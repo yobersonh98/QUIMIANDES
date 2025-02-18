@@ -1,0 +1,16 @@
+[
+  {
+    "documento": "800123456-7",
+    "tipoDocumento": "NIT",
+    "nombre": "Distribuidora Los Andes S.A.S.",
+    "direccion": "Calle 123 #45-67, Bogota",
+    "zonaBarrio": "Chapinero"
+  },
+  {
+    "documento": "900987654-3",
+    "tipoDocumento": "NIT",
+    "nombre": "Comercializadora del Norte Ltda.",
+    "direccion": "Carrera 10 #20-30, Medellin",
+    "zonaBarrio": "El Poblado"
+  }
+]

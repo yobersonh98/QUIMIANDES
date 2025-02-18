@@ -1,0 +1,133 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  userId String @id
+  name   String
+  email  String
+}
+
+model Cliente {
+  documento      String   @id // NIT o número de documento como clave primaria
+  tipoDocumento  String   // Tipo de documento (e.g., NIT, cédula)
+  nombre         String
+  direccion      String
+  zonaBarrio     String?
+  inventarios    InventarioCliente[]
+  pedidos        Pedido[]
+  cotizaciones   Cotizacion[]
+}
+
+model Proveedor {
+  documento      String   @id // NIT o número de documento como clave primaria
+  tipoDocumento  String   // Tipo de documento (e.g., NIT, cédula)
+  nombre         String
+  direccion      String
+  productos      Producto[]
+}
+
+model Producto {
+  id             String   @id @default(cuid())
+  nombre         String
+  tipo           String
+  unidadMedida   String
+  pesoVolumen    Float
+  precioBase     Float
+  inventarios    InventarioCliente[]
+  detalleCotizacion DetalleCotizacion[]
+  proveedor      Proveedor @relation(fields: [proveedorDocumento], references: [documento])
+  proveedorDocumento String
+  detallePedidos DetallePedido[]  // Relación opuesta con DetallePedido
+}
+
+model InventarioCliente {
+  id             String   @id @default(cuid())
+  cliente        Cliente  @relation(fields: [clienteDocumento], references: [documento])
+  clienteDocumento String
+  producto       Producto @relation(fields: [productoId], references: [id])
+  productoId     String
+  precioEspecial Float
+}
+
+model Cotizacion {
+  id             String   @id @default(cuid())
+  fecha          DateTime @default(now())
+  cliente        Cliente  @relation(fields: [clienteDocumento], references: [documento])
+  clienteDocumento String
+  total          Float
+  detalles       DetalleCotizacion[]
+}
+
+model DetalleCotizacion {
+  id             String   @id @default(cuid())
+  cotizacion     Cotizacion @relation(fields: [cotizacionId], references: [id])
+  cotizacionId   String
+  producto       Producto @relation(fields: [productoId], references: [id])
+  productoId     String
+  cantidad       Int
+  precioUnitario Float
+  subtotal       Float
+}
+
+model Pedido {
+  id             String   @id @default(cuid())
+  fechaRecibido  DateTime @default(now())
+  cliente        Cliente  @relation(fields: [clienteDocumento], references: [documento])
+  clienteDocumento String
+  estado         String
+  observaciones  String?
+  fechaRequerimiento DateTime
+  fechaEntrega   DateTime?
+  tiempoEntrega  Int?
+  pesoDespachado Float?
+  productos      DetallePedido[]
+  entregas       Entrega[]
+  ordenesCompra  OrdenCompra[]  // Relación opuesta con OrdenCompra
+}
+
+model DetallePedido {
+  id             String   @id @default(cuid())
+  pedido         Pedido   @relation(fields: [pedidoId], references: [id])
+  pedidoId       String
+  producto       Producto @relation(fields: [productoId], references: [id])
+  productoId     String
+  unidades       Int
+  cantidad       Float
+  total          Float
+}
+
+model Entrega {
+  id             String   @id @default(cuid())
+  pedido         Pedido   @relation(fields: [pedidoId], references: [id])
+  pedidoId       String
+  vehiculoInterno String?
+  vehiculoExterno String?
+  entregadoPorA  String
+  lugarEntrega   String
+  tipoEntrega    String
+  remision       String?
+  observaciones  String?
+}
+
+model OrdenCompra {
+  id             String   @id @default(cuid())
+  pedido         Pedido   @relation(fields: [pedidoId], references: [id])
+  pedidoId       String
+  numeroOrden    String
+  fechaRequerimiento DateTime
+  tiempoEntrega  Int
+  pesoDespachado Float
+  remision       String?
+}

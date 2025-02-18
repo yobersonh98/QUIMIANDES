@@ -1,0 +1,18 @@
+[
+  {
+    "id": "detcot1",
+    "cotizacionId": "cot1",
+    "productoId": "prod1",
+    "cantidad": 2,
+    "precioUnitario": 48000,
+    "subtotal": 96000
+  },
+  {
+    "id": "detcot2",
+    "cotizacionId": "cot2",
+    "productoId": "prod2",
+    "cantidad": 2,
+    "precioUnitario": 29000,
+    "subtotal": 58000
+  }
+]

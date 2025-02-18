@@ -1,0 +1,14 @@
+[
+  {
+    "documento": "830123456-9",
+    "tipoDocumento": "NIT",
+    "nombre": "Proveedor Quimicos S.A.",
+    "direccion": "Av. Principal 100, Cali"
+  },
+  {
+    "documento": "900654321-1",
+    "tipoDocumento": "NIT",
+    "nombre": "Suministros Industriales Ltda.",
+    "direccion": "Calle 50 #10-20, Bucaramanga"
+  }
+]

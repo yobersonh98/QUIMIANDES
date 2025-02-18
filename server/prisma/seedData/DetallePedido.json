@@ -1,0 +1,10 @@
+[
+  {
+    "id": "detped1",
+    "pedidoId": "ped1",
+    "productoId": "prod1",
+    "unidades": 1,
+    "cantidad": 25.0,
+    "total": 50000
+  }
+]

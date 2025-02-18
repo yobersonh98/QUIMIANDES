@@ -1,0 +1,14 @@
+[
+  {
+    "id": "inv1",
+    "clienteDocumento": "800123456-7",
+    "productoId": "prod1",
+    "precioEspecial": 48000
+  },
+  {
+    "id": "inv2",
+    "clienteDocumento": "900987654-3",
+    "productoId": "prod2",
+    "precioEspecial": 29000
+  }
+]

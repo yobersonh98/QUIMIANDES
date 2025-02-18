@@ -1,0 +1,20 @@
+[
+  {
+    "id": "prod1",
+    "nombre": "Policloruro de Aluminio",
+    "tipo": "Quimico",
+    "unidadMedida": "Litros",
+    "pesoVolumen": 25.0,
+    "precioBase": 50000,
+    "proveedorDocumento": "830123456-9"
+  },
+  {
+    "id": "prod2",
+    "nombre": "Sulfato de Aluminio",
+    "tipo": "Quimico",
+    "unidadMedida": "Kilogramos",
+    "pesoVolumen": 50.0,
+    "precioBase": 30000,
+    "proveedorDocumento": "900654321-1"
+  }
+]
