@@ -1,26 +1,57 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class PedidoService {
-  create(createPedidoDto: CreatePedidoDto) {
-    return 'This action adds a new pedido';
+  constructor(private readonly prisma: PrismaService) {}
+
+  async create(createPedidoDto: CreatePedidoDto) {
+    return await this.prisma.pedido.create({
+      data: {
+        ...createPedidoDto,
+      },
+    });
   }
 
-  findAll() {
-    return `This action returns all pedido`;
+  async findAll() {
+    return await this.prisma.pedido.findMany({
+      include: {
+        cliente: true,
+        productos: true,
+        entregas: true,
+        ordenesCompra: true,
+      },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} pedido`;
+  async findOne(id: string) {
+    const pedido = await this.prisma.pedido.findUnique({
+      where: { id },
+      include: {
+        cliente: true,
+        productos: true,
+        entregas: true,
+        ordenesCompra: true,
+      },
+    });
+    if (!pedido) {
+      throw new NotFoundException(`Pedido con ID ${id} no encontrado`);
+    }
+    return pedido;
   }
 
-  update(id: number, updatePedidoDto: UpdatePedidoDto) {
-    return `This action updates a #${id} pedido`;
+  async update(id: string, updatePedidoDto: UpdatePedidoDto) {
+    return await this.prisma.pedido.update({
+      where: { id },
+      data: updatePedidoDto,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} pedido`;
+  async remove(id: string) {
+    return await this.prisma.pedido.delete({
+      where: { id },
+    });
   }
 }
