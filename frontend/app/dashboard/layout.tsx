@@ -1,8 +1,8 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
+import { signOut, useSession } from "next-auth/react";
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
@@ -112,7 +112,7 @@ export default function DashboardLayout({
                     <span>Configuración</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => signOut()}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Cerrar sesión</span>
                   </DropdownMenuItem>
