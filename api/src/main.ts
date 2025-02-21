@@ -13,6 +13,12 @@ async function bootstrap() {
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('doc', app, documentFactory);
 
+  app.enableCors({
+    origin: '*',
+    methods: 'GET, POST, PUT, DELETE, PATCH',
+    allowedHeaders: 'Content-Type, Authorization',
+  })
+
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

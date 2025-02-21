@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState } from "react"
-import { signOut, useSession } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
@@ -18,7 +18,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { MoonIcon, SunIcon } from "@radix-ui/react-icons"
 import { useTheme } from "next-themes"
-import { Users, ShoppingBag, Package, Clipboard, BarChart3, Settings, LogOut, User } from "lucide-react"
+import { ShoppingBag, Package, Clipboard, BarChart3, Settings, LogOut, User } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,7 +42,7 @@ export default function DashboardLayout({
   })
 
   const menuItems = [
-    { icon: Users, label: "Usuarios", href: "/dashboard/usuarios" },
+    // { icon: Users, label: "Usuarios", href: "/dashboard/usuarios" },
     { icon: ShoppingBag, label: "Clientes", href: "/dashboard/clientes" },
     { icon: Package, label: "Productos", href: "/dashboard/productos" },
     { icon: Clipboard, label: "Pedidos", href: "/dashboard/pedidos" },

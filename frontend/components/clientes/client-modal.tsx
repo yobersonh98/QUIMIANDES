@@ -13,11 +13,11 @@ import { ClientForm } from "./client-form"
 
 export function ClientModal() {
   return (
-    <Dialog>
+    <Dialog >
       <DialogTrigger asChild>
         <Button>Nuevo Cliente</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Crear Nuevo Cliente</DialogTitle>
           <DialogDescription>

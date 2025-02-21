@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
+import { ClienteService } from "@/services/clientes/clientes.service"
+import { CrearClienteModel } from "@/services/clientes/models/crear-cliente.model"
 
 const clientFormSchema = z.object({
   name: z.string().min(2, {
@@ -48,20 +50,30 @@ export function ClientForm() {
     },
   })
 
-  function onSubmit(data: ClientFormValues) {
+  async function  onSubmit(data: ClientFormValues) {
+    const createClienteModel: CrearClienteModel = {
+      nombre: data.name,
+      tipoDocumento: data.documentType,
+      documento: data.documentNumber,
+      direccion: data.address,
+      zonaBarrio: data.zone,
+    }
+    const respose = await ClienteService.getInstance().crear(createClienteModel)
+    if (respose.error) {
+      return toast({
+        title: "Error creando cliente",
+        description: respose.error.message
+      })
+    }
     toast({
       title: "Cliente creado",
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
+      description: "El cliente ha sido creado con éxito."
     })
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
         <FormField
           control={form.control}
           name="name"
@@ -153,7 +165,10 @@ export function ClientForm() {
             </FormItem>
           )}
         />
-        <Button type="submit">Crear Cliente</Button>
+        <Button 
+          isLoading={form.formState.isSubmitting}
+        
+        type="submit">Crear Cliente</Button>
       </form>
     </Form>
   )
