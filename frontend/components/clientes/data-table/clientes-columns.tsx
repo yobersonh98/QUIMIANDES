@@ -43,7 +43,9 @@ export const ClientesColumns: ColumnDef<ClienteEntity>[] = [
             <Button size={"icon"}
             
               title="Editar Cliente">
-              <Pencil  size={18}/>
+                <Link href={`/dashboard/clientes/${cell.row.original.id}/editar`}>
+                  <Pencil size={18} />
+                </Link>
             </Button>
           </div>
         );
