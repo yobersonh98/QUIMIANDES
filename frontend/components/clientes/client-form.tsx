@@ -32,7 +32,7 @@ const clientFormSchema = z.object({
   phone: z.string().min(1, {
     message: "El teléfono es requerido.",
   }),
-  idMunicipio: z.string().min(1,{
+  idMunicipio: z.string().min(1, {
     message: 'El municipio es requerido'
   }),
 })
@@ -56,7 +56,7 @@ export function ClientForm() {
     },
   })
 
-  async function  onSubmit(data: ClientFormValues) {
+  async function onSubmit(data: ClientFormValues) {
     const createClienteModel: CrearClienteModel = {
       nombre: data.name,
       tipoDocumento: data.documentType,
@@ -123,15 +123,15 @@ export function ClientForm() {
           )}
         />
         <FormItem>
-        <FormLabel>Ciudad</FormLabel>
+          <FormLabel>Ciudad</FormLabel>
           <FormControl>
-          <SelectWithSearch 
-            apiUrl={BACKEND_URL}
-            maperOptions={(item) => ({value: item.id, label: item.nombre})}
-            endpoint="municipio"
-            onSelect={(value) => form.setValue("idMunicipio", value)}
-            placeholder="Seleccione un municipio"
-          />
+            <SelectWithSearch
+              apiUrl={BACKEND_URL}
+              maperOptions={(item) => ({ value: item.id, label: item.nombre })}
+              endpoint="municipio"
+              onSelect={(value) => form.setValue("idMunicipio", value)}
+              placeholder="Seleccione un municipio"
+            />
           </FormControl>
         </FormItem>
 
@@ -187,10 +187,12 @@ export function ClientForm() {
             </FormItem>
           )}
         />
-        <Button 
-          isLoading={form.formState.isSubmitting}
-        
-        type="submit">Crear Cliente</Button>
+        <div className="w-full text-right">
+          <Button
+            isLoading={form.formState.isSubmitting}
+
+            type="submit">Crear Cliente</Button>
+        </div>
       </form>
     </Form>
   )

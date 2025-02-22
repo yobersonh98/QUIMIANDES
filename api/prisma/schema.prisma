@@ -26,7 +26,8 @@ enum Role {
 }
 
 model Cliente {
-  documento      String   @id // NIT o número de documento como clave primaria
+  id            String   @id @default(cuid())
+  documento      String   @unique // NIT o número de documento como clave primaria
   tipoDocumento  String   // Tipo de documento (e.g., NIT, cédula)
   nombre         String
   idMunicipio    String
@@ -42,7 +43,8 @@ model Cliente {
 }
 
 model Proveedor {
-  documento      String   @id // NIT o número de documento como clave primaria
+  id            String   @id @default(cuid())
+  documento      String   @unique// NIT o número de documento como clave primaria
   tipoDocumento  String   // Tipo de documento (e.g., NIT, cédula)
   nombre         String
   direccion      String
@@ -58,15 +60,15 @@ model Producto {
   precioBase     Float
   inventarios    InventarioCliente[]
   detalleCotizacion DetalleCotizacion[]
-  proveedor      Proveedor @relation(fields: [proveedorDocumento], references: [documento])
-  proveedorDocumento String
+  proveedor      Proveedor @relation(fields: [idProveedor], references: [documento])
+  idProveedor String
   detallePedidos DetallePedido[]  // Relación opuesta con DetallePedido
 }
 
 model InventarioCliente {
   id             String   @id @default(cuid())
-  cliente        Cliente  @relation(fields: [clienteDocumento], references: [documento])
-  clienteDocumento String
+  cliente        Cliente  @relation(fields: [idCliente], references: [documento])
+  idCliente String
   producto       Producto @relation(fields: [productoId], references: [id])
   productoId     String
   precioEspecial Float
@@ -75,8 +77,8 @@ model InventarioCliente {
 model Cotizacion {
   id             String   @id @default(cuid())
   fecha          DateTime @default(now())
-  cliente        Cliente  @relation(fields: [clienteDocumento], references: [documento])
-  clienteDocumento String
+  cliente        Cliente  @relation(fields: [idCliente], references: [documento])
+  idCliente String
   total          Float
   detalles       DetalleCotizacion[]
 }
@@ -95,7 +97,7 @@ model DetalleCotizacion {
 model Pedido {
   id             String   @id @default(cuid())
   fechaRecibido  DateTime @default(now())
-  clienteDocumento String
+  idCliente String
   estado         String
   observaciones  String?
   fechaRequerimiento DateTime
@@ -106,7 +108,7 @@ model Pedido {
   entregas       Entrega[]
   ordenesCompra  OrdenCompra[]  // Relación opuesta con OrdenCompra
 
-  cliente        Cliente  @relation(fields: [clienteDocumento], references: [documento])
+  cliente        Cliente  @relation(fields: [idCliente], references: [documento])
 
 }
 

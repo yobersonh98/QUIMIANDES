@@ -10,6 +10,7 @@
 //   cotizaciones   Cotizacion[]
 // }
 export interface ClienteEntity {
+  id : string
   documento: string
   tipoDocumento: string
   nombre: string
