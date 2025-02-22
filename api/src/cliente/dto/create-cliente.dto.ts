@@ -45,6 +45,29 @@ class CreateCotizacionDto {
   @IsNotEmpty()
   total: number;
 }
+export class CrearLugarEntregaDto {
+
+  @ApiProperty({ example: 'nombre', description: 'Nombre del lugar de entrega' })
+  @IsString()
+  @IsNotEmpty()
+  nombre: string;
+
+  @ApiProperty({ example: '550e8400-e29b-41d4-a716-446655440000', description: 'ID único de la ciudad' })
+  @IsString()
+  @IsNotEmpty()
+  idCiudad: string;
+
+  @ApiProperty({ example: 'Calle 123 #45-67', description: 'Dirección del lugar de entrega' })
+  @IsString()
+  @IsNotEmpty()
+  direccion: string;
+
+  @ApiProperty({ example: 'Juan Pérez', description: 'Nombre de contacto del lugar de entrega' })
+  @IsString()
+  @IsNotEmpty()
+  contacto: string;
+
+}
 
 export class CreateClienteDto {
   @ApiProperty({ example: '12345678', description: 'Número de documento del cliente' })
@@ -97,4 +120,13 @@ export class CreateClienteDto {
   @ValidateNested({ each: true })
   @Type(() => CreateCotizacionDto)
   cotizaciones?: CreateCotizacionDto[];
+
+  @ApiProperty({ type: [CrearLugarEntregaDto], required: false })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CrearLugarEntregaDto)
+  lugaresEntrega?: CrearLugarEntregaDto[];
 }
+
+

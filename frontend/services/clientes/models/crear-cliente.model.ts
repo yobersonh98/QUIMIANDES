@@ -1,3 +1,5 @@
+import { CrearLugarEntregaModel } from "@/services/lugares-entrega/mode/crear-lugar-entrega.mode"
+
 export interface CrearClienteModel {
   documento: string
   tipoDocumento: string
@@ -7,4 +9,6 @@ export interface CrearClienteModel {
   idMunicipio: string
   email?: string
   telefono?: string 
+
+  lugaresEntrega?: CrearLugarEntregaModel[]
 }

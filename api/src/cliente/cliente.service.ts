@@ -29,7 +29,7 @@ export class ClienteService {
   }
 
   async create(createClienteDto: CreateClienteDto) {
-    const { documento, inventarios = [], pedidos = [], cotizaciones = [] } = createClienteDto;
+    const { documento, inventarios = [], pedidos = [], cotizaciones = [], lugaresEntrega=[] } = createClienteDto;
 
     const existingCliente = await this.prisma.cliente.findUnique({ where: { documento } });
     if (existingCliente) throw new BadRequestException('El cliente ya existe');
@@ -61,6 +61,7 @@ export class ClienteService {
           })),
         } : undefined,
         cotizaciones: cotizaciones.length > 0 ? { create: cotizaciones.map(cot => ({ fecha: new Date(), total: cot.total })) } : undefined,
+        lugaresEntrega: lugaresEntrega.length > 0 ? { create: lugaresEntrega } : undefined,
       },
       include: { inventarios: true, pedidos: true, cotizaciones: true },
     });

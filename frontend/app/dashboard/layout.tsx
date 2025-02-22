@@ -56,7 +56,7 @@ export default function DashboardLayout({
         <Sidebar>
           <SidebarHeader className="border-b p-4">
             {/* <img src={companyInfo.logo || "/placeholder.svg"} alt={companyInfo.name} className="h-8 w-auto" /> */}
-            <h1 className="text-lg font-bold">{companyInfo.name}</h1>
+            <h1 className="text-xl font-bold my-1">{companyInfo.name}</h1>
           </SidebarHeader>
           <SidebarContent>
             <SidebarMenu>

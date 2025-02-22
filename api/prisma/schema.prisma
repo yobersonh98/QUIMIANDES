@@ -60,14 +60,14 @@ model Producto {
   precioBase     Float
   inventarios    InventarioCliente[]
   detalleCotizacion DetalleCotizacion[]
-  proveedor      Proveedor @relation(fields: [idProveedor], references: [documento])
+  proveedor      Proveedor @relation(fields: [idProveedor], references: [id])
   idProveedor String
   detallePedidos DetallePedido[]  // Relación opuesta con DetallePedido
 }
 
 model InventarioCliente {
   id             String   @id @default(cuid())
-  cliente        Cliente  @relation(fields: [idCliente], references: [documento])
+  cliente        Cliente  @relation(fields: [idCliente], references: [id])
   idCliente String
   producto       Producto @relation(fields: [productoId], references: [id])
   productoId     String
@@ -77,7 +77,7 @@ model InventarioCliente {
 model Cotizacion {
   id             String   @id @default(cuid())
   fecha          DateTime @default(now())
-  cliente        Cliente  @relation(fields: [idCliente], references: [documento])
+  cliente        Cliente  @relation(fields: [idCliente], references: [id])
   idCliente String
   total          Float
   detalles       DetalleCotizacion[]
@@ -108,7 +108,7 @@ model Pedido {
   entregas       Entrega[]
   ordenesCompra  OrdenCompra[]  // Relación opuesta con OrdenCompra
 
-  cliente        Cliente  @relation(fields: [idCliente], references: [documento])
+  cliente        Cliente  @relation(fields: [idCliente], references: [id])
 
 }
 
@@ -144,7 +144,7 @@ model LugarEntrega {
   idCiudad       String
   direccion      String
   contacto       String
-  cliente       Cliente  @relation(fields: [idCliente], references: [documento])
+  cliente       Cliente  @relation(fields: [idCliente], references: [id])
   entregas       Entrega[]
   ciudad        Municipio @relation(fields: [idCiudad], references: [id])
 }
