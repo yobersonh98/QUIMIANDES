@@ -8,6 +8,9 @@
 //   inventarios    InventarioCliente[]
 //   pedidos        Pedido[]
 //   cotizaciones   Cotizacion[]
+
+import { LugarEntregaEntity } from "@/services/lugares-entrega/entity/lugar-entrega.entity"
+
 // }
 export interface ClienteEntity {
   id : string
@@ -15,7 +18,14 @@ export interface ClienteEntity {
   tipoDocumento: string
   nombre: string
   direccion: string
-  zonaBarrio?: string
+  zonaBarrio: string
+  idMunicipio: string
+
+  email?: string
+  telefono?: string
+
+  lugaresEntrega: LugarEntregaEntity[]
+
   // inventarios: InventarioClienteEntity[]
   // pedidos: PedidoEntity[]
   // cotizaciones: CotizacionEntity[]

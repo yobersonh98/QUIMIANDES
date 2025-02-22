@@ -18,7 +18,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { MoonIcon, SunIcon } from "@radix-ui/react-icons"
 import { useTheme } from "next-themes"
-import { ShoppingBag, Package, Clipboard, BarChart3, Settings, LogOut, User } from "lucide-react"
+import { ShoppingBag, Package, Clipboard, BarChart3, Settings, LogOut, User, Home } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,6 +43,7 @@ export default function DashboardLayout({
 
   const menuItems = [
     // { icon: Users, label: "Usuarios", href: "/dashboard/usuarios" },
+    { icon: Home , label: "Inicio", href: "/dashboard" },
     { icon: ShoppingBag, label: "Clientes", href: "/dashboard/clientes" },
     { icon: Package, label: "Productos", href: "/dashboard/productos" },
     { icon: Clipboard, label: "Pedidos", href: "/dashboard/pedidos" },

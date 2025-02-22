@@ -95,6 +95,17 @@ export class CreateClienteDto {
   @IsNotEmpty()
   direccion: string;
 
+  @ApiProperty({ example: 'mail@gmail.com', description: 'Correo electrónico del cliente', required: false })
+  @IsOptional()
+  @IsString()
+  email?: string;
+
+  @ApiProperty({ example: '1234567890', description: 'Teléfono del cliente', required: false })
+  @IsOptional()
+  @IsString()
+  telefono?: string;
+  
+
   @ApiProperty({ example: 'Zona Norte', description: 'Zona o barrio del cliente', required: false })
   @IsOptional()
   @IsString()

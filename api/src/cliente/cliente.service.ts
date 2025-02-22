@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
+import { EstadoCliente } from '@prisma/client';
 
 @Injectable()
 export class ClienteService {
@@ -20,7 +21,6 @@ export class ClienteService {
       where: { documento },
       include: {
         inventarios: { include: { producto: true } },
-        pedidos: { include: { productos: true } },
         cotizaciones: { include: { detalles: { include: { producto: true } } } },
       },
     });
@@ -28,6 +28,16 @@ export class ClienteService {
     return cliente;
   }
 
+  async findOneById(id: string) {
+    const cliente = await this.prisma.cliente.findUnique({
+      where: { id },
+      include: {
+        lugaresEntrega: true,
+      },
+    });
+    if (!cliente) throw new NotFoundException('Cliente no encontrado');
+    return cliente;
+  }
   async create(createClienteDto: CreateClienteDto) {
     const { documento, inventarios = [], pedidos = [], cotizaciones = [], lugaresEntrega=[] } = createClienteDto;
 
@@ -64,6 +74,23 @@ export class ClienteService {
         lugaresEntrega: lugaresEntrega.length > 0 ? { create: lugaresEntrega } : undefined,
       },
       include: { inventarios: true, pedidos: true, cotizaciones: true },
+    });
+  }
+
+  update(id: string, updateClienteDto: UpdateClienteDto) {
+    const { documento, nombre, direccion, estado, tipoDocumento, idMunicipio, email, telefono } = updateClienteDto;
+    return this.prisma.cliente.update({
+      where: { id },
+      data: {
+        documento,
+        nombre,
+        direccion,
+        estado,
+        tipoDocumento,
+        idMunicipio,
+        email,
+        telefono
+      },
     });
   }
 }
