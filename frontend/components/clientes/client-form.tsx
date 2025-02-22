@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import { ClienteService } from "@/services/clientes/clientes.service"
 import { CrearClienteModel } from "@/services/clientes/models/crear-cliente.model"
+import SelectWithSearch from "../shared/SelectWithSearch"
+import { BACKEND_URL } from "@/config/envs"
 
 const clientFormSchema = z.object({
   name: z.string().min(2, {
@@ -30,6 +32,9 @@ const clientFormSchema = z.object({
   phone: z.string().min(1, {
     message: "El teléfono es requerido.",
   }),
+  idMunicipio: z.string().min(1,{
+    message: 'El municipio es requerido'
+  }),
 })
 
 type ClientFormValues = z.infer<typeof clientFormSchema>
@@ -47,6 +52,7 @@ export function ClientForm() {
       zone: "",
       email: "",
       phone: "",
+      idMunicipio: '',
     },
   })
 
@@ -57,6 +63,9 @@ export function ClientForm() {
       documento: data.documentNumber,
       direccion: data.address,
       zonaBarrio: data.zone,
+      idMunicipio: data.idMunicipio,
+      telefono: data.phone,
+      email: data.email,
     }
     const respose = await ClienteService.getInstance().crear(createClienteModel)
     if (respose.error) {
@@ -113,6 +122,19 @@ export function ClientForm() {
             </FormItem>
           )}
         />
+        <FormItem>
+        <FormLabel>Ciudad</FormLabel>
+          <FormControl>
+          <SelectWithSearch 
+            apiUrl={BACKEND_URL}
+            maperOptions={(item) => ({value: item.id, label: item.nombre})}
+            endpoint="municipio"
+            onSelect={(value) => form.setValue("idMunicipio", value)}
+            placeholder="Seleccione un municipio"
+          />
+          </FormControl>
+        </FormItem>
+
         <FormField
           control={form.control}
           name="address"

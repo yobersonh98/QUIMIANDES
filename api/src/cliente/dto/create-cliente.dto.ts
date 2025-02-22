@@ -52,6 +52,11 @@ export class CreateClienteDto {
   @IsNotEmpty()
   documento: string;
 
+  @ApiProperty({ example: '550e8400-e29b-41d4-a716-446655440000', description: 'ID único del municipio' })
+  @IsString()
+  @IsNotEmpty()
+  idMunicipio: string;
+
   @ApiProperty({ example: 'CC', description: 'Tipo de documento (CC, TI, NIT, etc.)' })
   @IsString()
   @IsNotEmpty()

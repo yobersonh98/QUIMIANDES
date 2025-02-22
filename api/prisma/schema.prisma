@@ -29,11 +29,16 @@ model Cliente {
   documento      String   @id // NIT o número de documento como clave primaria
   tipoDocumento  String   // Tipo de documento (e.g., NIT, cédula)
   nombre         String
+  idMunicipio    String
   direccion      String
   zonaBarrio     String?
+  telefono      String?
+  email         String?
   inventarios    InventarioCliente[]
   pedidos        Pedido[]
   cotizaciones   Cotizacion[]
+  lugaresEntrega LugarEntrega[]
+  municipio      Municipio @relation(fields: [idMunicipio], references: [id])
 }
 
 model Proveedor {
@@ -90,7 +95,6 @@ model DetalleCotizacion {
 model Pedido {
   id             String   @id @default(cuid())
   fechaRecibido  DateTime @default(now())
-  cliente        Cliente  @relation(fields: [clienteDocumento], references: [documento])
   clienteDocumento String
   estado         String
   observaciones  String?
@@ -101,6 +105,9 @@ model Pedido {
   productos      DetallePedido[]
   entregas       Entrega[]
   ordenesCompra  OrdenCompra[]  // Relación opuesta con OrdenCompra
+
+  cliente        Cliente  @relation(fields: [clienteDocumento], references: [documento])
+
 }
 
 model DetallePedido {
@@ -121,12 +128,24 @@ model Entrega {
   vehiculoInterno String?
   vehiculoExterno String?
   entregadoPorA  String
-  lugarEntrega   String
+  idLugarEntrega String
   tipoEntrega    String
   remision       String?
   observaciones  String?
+  lugarEntrega  LugarEntrega @relation(fields: [idLugarEntrega], references: [id])
 }
 
+model LugarEntrega {
+  id             String   @id @default(cuid())
+  idCliente      String 
+  nombre         String
+  idCiudad       String
+  direccion      String
+  contacto       String
+  cliente       Cliente  @relation(fields: [idCliente], references: [documento])
+  entregas       Entrega[]
+  ciudad        Municipio @relation(fields: [idCiudad], references: [id])
+}
 model OrdenCompra {
   id             String   @id @default(cuid())
   pedido         Pedido   @relation(fields: [pedidoId], references: [id])
@@ -136,4 +155,34 @@ model OrdenCompra {
   tiempoEntrega  Int
   pesoDespachado Float
   remision       String?
+}
+
+model Municipio {
+  id             String    @id @default(cuid())
+  nombre         String
+  departamento   Departamento @relation(fields: [idDepartamento], references: [id])
+  estado         Boolean @default(true)
+  idDepartamento String
+
+  clientes      Cliente[]
+  lugaresEntrega LugarEntrega[]
+  @@index([nombre])
+}
+
+model Departamento {
+  id             String  @id @default(cuid())
+  nombre         String
+  ciudades       Municipio[]
+  pais           Pais @relation(fields: [idPais], references: [id])
+  idPais         String
+  @@index([nombre])
+}
+
+
+model Pais {
+  id             String  @id @default(cuid())
+  nombre         String
+  departamentos  Departamento[]
+
+  @@index([nombre])
 }

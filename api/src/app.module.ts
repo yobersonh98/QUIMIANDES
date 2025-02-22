@@ -15,9 +15,10 @@ import { DetalleCotizacionModule } from './detalle-cotizacion/detalle-cotizacion
 import { DetallePedidoModule } from './detalle-pedido/detalle-pedido.module';
 import { EntregaModule } from './entrega/entrega.module';
 import { OrdenCompraModule } from './orden-compra/orden-compra.module';
+import { MunicipioModule } from './municipio/municipio.module';
 
 @Module({
-  imports: [UserModule, AuthModule, ConfigModule.forRoot(), ClienteModule, CotizacionModule, PrismaModule, PedidoModule, ProveedorModule, ProductoModule, InventarioClienteModule, DetalleCotizacionModule, DetallePedidoModule, EntregaModule, OrdenCompraModule],
+  imports: [UserModule, AuthModule, ConfigModule.forRoot(), ClienteModule, CotizacionModule, PrismaModule, PedidoModule, ProveedorModule, ProductoModule, InventarioClienteModule, DetalleCotizacionModule, DetallePedidoModule, EntregaModule, OrdenCompraModule, MunicipioModule],
   controllers: [AppController],
   exports: [PrismaModule],
   providers: [AppService],

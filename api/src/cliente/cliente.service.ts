@@ -12,11 +12,6 @@ export class ClienteService {
       where: {
         nombre: search ? { contains: search, mode: 'insensitive' } : undefined,
       },
-      include: {
-        inventarios: { include: { producto: true } },
-        pedidos: { include: { productos: true } },
-        cotizaciones: { include: { detalles: { include: { producto: true } } } },
-      },
     });
   }
 

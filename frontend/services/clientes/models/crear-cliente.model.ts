@@ -4,4 +4,7 @@ export interface CrearClienteModel {
   nombre: string
   direccion: string
   zonaBarrio?: string
+  idMunicipio: string
+  email?: string
+  telefono?: string 
 }
