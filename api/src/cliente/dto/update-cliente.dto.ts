@@ -28,4 +28,8 @@ export class UpdateClienteDto extends PartialType(CreateClienteDto) {
 
   @ApiProperty({ example: '550e8400-e29b-41d4-a716-446655440000', description: 'ID único del municipio', required: false })
   idMunicipio?: string;
+
+
+  @ApiProperty({ example: ['550e8400-e29b-41d4-a716-446655440000'], description: 'Lista de IDs de lugares de entrega a agregar', required: false })
+  idLugaresEntregaEliminar?: string[];
 }

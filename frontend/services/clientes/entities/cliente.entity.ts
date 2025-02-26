@@ -10,6 +10,7 @@
 //   cotizaciones   Cotizacion[]
 
 import { LugarEntregaEntity } from "@/services/lugares-entrega/entity/lugar-entrega.entity"
+import { Municipio } from "@/types/lugares"
 
 // }
 export interface ClienteEntity {
@@ -24,7 +25,9 @@ export interface ClienteEntity {
   email?: string
   telefono?: string
 
-  lugaresEntrega: LugarEntregaEntity[]
+  lugaresEntrega?: LugarEntregaEntity[]
+
+  municipio?: Municipio
 
   // inventarios: InventarioClienteEntity[]
   // pedidos: PedidoEntity[]

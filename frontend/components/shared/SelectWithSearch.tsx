@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Check, ChevronsUpDown, Search } from 'lucide-react';
+import { Check, ChevronsUpDown } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 
 interface SelectOption {
   value: string;
@@ -13,6 +14,7 @@ interface SelectWithSearchProps {
   placeholder?: string;
   onSelect: (value: string) => void;
   maperOptions: (item: any) => SelectOption;
+  defaultValue?: string;
 }
 
 const SelectWithSearch = ({
@@ -22,18 +24,23 @@ const SelectWithSearch = ({
   placeholder = "Select an item...",
   onSelect,
   maperOptions,
+  defaultValue = ""
 }: SelectWithSearchProps) => {
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(defaultValue);
   const [options, setOptions] = useState<SelectOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
-
+  const session = useSession();
   const fetchOptions = async (searchTerm = "") => {
     setLoading(true);
     try {
       const queryParams = new URLSearchParams({ ...params, search: searchTerm });
-      const response = await fetch(`${apiUrl}/${endpoint}?${queryParams}`);
+      const response = await fetch(`${apiUrl}/${endpoint}?${queryParams}`, {
+        headers: {
+          "Authorization": `Bearer ${session.data?.user.token}`
+      }
+      });
       if (!response.ok) throw new Error("Failed to fetch options");
 
       const data = await response.json();

@@ -12,10 +12,11 @@ interface DatosClienteProps {
     email?: string;
     telefono?: string;
     idMunicipio: string;
+    municipio?: string;
   };
   datosEntrega: {
     nombre: string;
-    idCiudad: string;
+    ciudad?: string;
     direccion: string;
     contacto: string;
   }[];
@@ -71,8 +72,8 @@ export default function VisualizacionCliente({ datosCliente, datosEntrega }: Dat
               </div>
             )}
             <div>
-              <p className="text-sm font-medium text-muted-foreground">ID Municipio</p>
-              <p>{datosCliente.idMunicipio}</p>
+              <p className="text-sm font-medium text-muted-foreground">Ciudad</p>
+              <p>{datosCliente.municipio}</p>
             </div>
           </div>
         </CardContent>
@@ -92,8 +93,8 @@ export default function VisualizacionCliente({ datosCliente, datosEntrega }: Dat
               <div key={index} className="border rounded-lg p-3 shadow-sm">
                 <p className="text-sm font-medium text-muted-foreground">Nombre</p>
                 <p>{entrega.nombre}</p>
-                <p className="text-sm font-medium text-muted-foreground mt-2">ID Ciudad</p>
-                <p>{entrega.idCiudad}</p>
+                <p className="text-sm font-medium text-muted-foreground mt-2">Ciudad</p>
+                <p>{entrega.ciudad}</p>
                 <p className="text-sm font-medium text-muted-foreground mt-2">Dirección</p>
                 <p className="flex items-center space-x-2">
                   <MapPin className="h-4 w-4" />

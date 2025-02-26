@@ -4,7 +4,7 @@ import { ClienteService } from "@/services/clientes/clientes.service";
 import Link from "next/link";
 
 export default  async function ClientsPage() {
-  const clientes = await  ClienteService.getInstance().listar();
+  const clientes = await ClienteService.getServerInstance().listar();
   if (!clientes.data) {
     return <div>Cargando...</div>;
   }

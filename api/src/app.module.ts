@@ -16,11 +16,22 @@ import { DetallePedidoModule } from './detalle-pedido/detalle-pedido.module';
 import { EntregaModule } from './entrega/entrega.module';
 import { OrdenCompraModule } from './orden-compra/orden-compra.module';
 import { MunicipioModule } from './municipio/municipio.module';
+import { LugarEntregaModule } from './lugar-entrega/lugar-entrega.module';
+import { validateEnv } from './config';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
 
 @Module({
-  imports: [UserModule, AuthModule, ConfigModule.forRoot(), ClienteModule, CotizacionModule, PrismaModule, PedidoModule, ProveedorModule, ProductoModule, InventarioClienteModule, DetalleCotizacionModule, DetallePedidoModule, EntregaModule, OrdenCompraModule, MunicipioModule],
+  imports: [UserModule, AuthModule, ConfigModule.forRoot({
+    isGlobal: true,
+    validate: validateEnv,
+  }), ClienteModule, CotizacionModule, PrismaModule, PedidoModule, ProveedorModule, ProductoModule, InventarioClienteModule, DetalleCotizacionModule, DetallePedidoModule, EntregaModule, OrdenCompraModule, MunicipioModule, LugarEntregaModule],
   controllers: [AppController],
   exports: [PrismaModule],
-  providers: [AppService],
+  providers: [AppService,
+    {
+      provide: 'APP_GUARD',
+      useClass: JwtAuthGuard
+    }
+  ],
 })
 export class AppModule {}

@@ -2,18 +2,21 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
-import { EstadoCliente } from '@prisma/client';
+import { EstadoCliente, Prisma } from '@prisma/client';
+import { ClienteListarDto } from './dto/cliente-listar.dto';
+import { Pagination } from './../common/dtos/pagination.dto';
+import { PrismaGenericPaginationService } from './../prisma/prisma-generic-pagination.service';
 
 @Injectable()
 export class ClienteService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private prismaPagination: PrismaGenericPaginationService) {}
 
-  async findAll(search?: string) {
-    return this.prisma.cliente.findMany({
-      where: {
-        nombre: search ? { contains: search, mode: 'insensitive' } : undefined,
-      },
-    });
+  async findAll(findAllDto: ClienteListarDto) {
+    const { search } = findAllDto;
+    const whereInput: Prisma.ClienteWhereInput = {
+      nombre: search ? { contains: search, mode: 'insensitive' } : undefined,
+    }
+    return this.prismaPagination.paginate('Cliente', { where: whereInput }, findAllDto);
   }
 
   async findOneByDocumento(documento: string) {
@@ -32,65 +35,76 @@ export class ClienteService {
     const cliente = await this.prisma.cliente.findUnique({
       where: { id },
       include: {
-        lugaresEntrega: true,
+        lugaresEntrega: {
+          where: { activo: true },
+          include: { ciudad: true },
+        },
+        municipio: true,
       },
     });
     if (!cliente) throw new NotFoundException('Cliente no encontrado');
     return cliente;
   }
   async create(createClienteDto: CreateClienteDto) {
-    const { documento, inventarios = [], pedidos = [], cotizaciones = [], lugaresEntrega=[] } = createClienteDto;
+    const { documento, lugaresEntrega=[] } = createClienteDto;
 
     const existingCliente = await this.prisma.cliente.findUnique({ where: { documento } });
     if (existingCliente) throw new BadRequestException('El cliente ya existe');
 
-    // Validar productos en inventarios
-    if (inventarios.length > 0) {
-      const productosIds = inventarios.map(inv => inv.productoId);
-      const productosExistentes = await this.prisma.producto.findMany({
-        where: { id: { in: productosIds } },
-        select: { id: true },
-      });
-      const productosValidos = new Set(productosExistentes.map(p => p.id));
-      if (inventarios.some(inv => !productosValidos.has(inv.productoId))) {
-        throw new BadRequestException('Algunos productos en inventario no existen');
-      }
-    }
-
     return this.prisma.cliente.create({
       data: {
         ...createClienteDto,
-        inventarios: inventarios.length > 0 ? { create: inventarios } : undefined,
-        pedidos: pedidos.length > 0 ? {
-          create: pedidos.map(pedido => ({
-            fechaRequerimiento: new Date(pedido.fechaRequerimiento),
-            estado: pedido.estado,
-            observaciones: pedido.observaciones,
-            fechaEntrega: pedido.fechaEntrega ? new Date(pedido.fechaEntrega) : null,
-            pesoDespachado: pedido.pesoDespachado ?? null,
-          })),
-        } : undefined,
-        cotizaciones: cotizaciones.length > 0 ? { create: cotizaciones.map(cot => ({ fecha: new Date(), total: cot.total })) } : undefined,
         lugaresEntrega: lugaresEntrega.length > 0 ? { create: lugaresEntrega } : undefined,
       },
       include: { inventarios: true, pedidos: true, cotizaciones: true },
     });
   }
 
-  update(id: string, updateClienteDto: UpdateClienteDto) {
-    const { documento, nombre, direccion, estado, tipoDocumento, idMunicipio, email, telefono } = updateClienteDto;
-    return this.prisma.cliente.update({
-      where: { id },
-      data: {
-        documento,
-        nombre,
-        direccion,
-        estado,
-        tipoDocumento,
-        idMunicipio,
-        email,
-        telefono
-      },
+  async update(id: string, updateClienteDto: UpdateClienteDto) {
+    const {
+      documento,
+      nombre,
+      direccion,
+      estado,
+      tipoDocumento,
+      idMunicipio,
+      email,
+      telefono,
+      zonaBarrio,
+      lugaresEntrega,
+      idLugaresEntregaEliminar,
+    } = updateClienteDto;
+  
+    const lugaresEntregaAcrear = lugaresEntrega.filter((lugar) => !lugar.id);
+  
+    return this.prisma.$transaction(async (prisma) => {
+      if (idLugaresEntregaEliminar && idLugaresEntregaEliminar.length > 0) {
+        await prisma.lugarEntrega.updateMany({
+          where: { id: { in: idLugaresEntregaEliminar } },
+          data: { activo: false },
+        });
+      }
+
+      return prisma.cliente.update({
+        where: { id },
+        data: {
+          documento,
+          nombre,
+          direccion,
+          estado,
+          tipoDocumento,
+          idMunicipio,
+          email,
+          telefono,
+          zonaBarrio,
+          lugaresEntrega: {
+            createMany: lugaresEntregaAcrear.length
+              ? { data: lugaresEntregaAcrear }
+              : undefined, // Evitar error si no hay nuevos lugares de entrega
+          },
+        },
+      });
     });
   }
+  
 }
