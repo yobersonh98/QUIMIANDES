@@ -1,47 +1,7 @@
-import NextAuth from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
+import NextAuhtOptions from "@/auth/next-auth-options";
 
-const handler = NextAuth({
-  providers: [
-    CredentialsProvider({
-      name: "Credentials",
-      credentials: {
-        email: { label: "email", type: "email", placeholder: "test@test.com" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        console.log(credentials);
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth`,
-          {
-            method: "POST",
-            body: JSON.stringify({
-              email: credentials?.email,
-              password: credentials?.password,
-            }),
-            headers: { "Content-Type": "application/json" },
-          }
-        );
-        const user = await res.json();
-        if (!res.ok) {
-          throw new Error(user.error || "Credenciales incorrectas");
-        }
-        return user;
-      },
-    }),
-  ],
-  callbacks: {
-    async jwt({ token, user }) {
-      return { ...token, ...user };
-    },
-    async session({ session, token }) {
-      session.user = token as any;
-      return session;
-    },
-  },
-  pages: {
-    signIn: "/login",
-  },
-});
+import nextAuth from "next-auth/next";
+
+const handler = nextAuth(NextAuhtOptions);
 
 export { handler as GET, handler as POST };

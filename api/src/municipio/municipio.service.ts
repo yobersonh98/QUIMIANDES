@@ -13,7 +13,7 @@ export class MunicipioService {
           mode: 'insensitive', // Ignora mayúsculas y minúsculas
         },
       },
-      take: 20, // Limita la consulta a 20 resultados
+      take: 30, // Limita la consulta a 20 resultados
     });
   }
 }

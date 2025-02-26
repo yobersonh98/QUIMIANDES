@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import * as z from "zod"
 
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
@@ -19,33 +18,16 @@ import { CrearClienteModel } from '@/services/clientes/models/crear-cliente.mode
 import { CrearLugarEntregaModel } from '@/services/lugares-entrega/mode/crear-lugar-entrega.mode';
 import { CustomSelect } from '../shared/custom-select';
 import { TipoDocumentoArray } from '@/core/constantes/tipo-documentos';
-
-// Extend the client form schema to include delivery locations
-const clientFormSchema = z.object({
-  name: z.string().min(2, { message: "El nombre debe tener al menos 2 caracteres." }),
-  documentType: z.string().min(1, { message: "El tipo de documento es requerido." }),
-  documentNumber: z.string().min(1, { message: "El número de documento es requerido." }),
-  address: z.string().min(1, { message: "La dirección es requerida." }),
-  zone: z.string().optional(),
-  email: z.string().email({ message: "Ingrese un correo electrónico válido." }),
-  phone: z.string().min(1, { message: "El teléfono es requerido." }),
-  idMunicipio: z.string().min(1, { message: 'El municipio es requerido' }),
-})
-
-const deliveryLocationSchema = z.object({
-  nombre: z.string().min(1, { message: "El nombre es requerido" }),
-  idCiudad: z.string().min(1, { message: "La ciudad es requerida" }),
-  direccion: z.string().min(1, { message: "La dirección es requerida" }),
-  contacto: z.string().min(1, { message: "El contacto es requerido" }),
-})
-
-type ClientFormValues = z.infer<typeof clientFormSchema>
-type DeliveryLocation = z.infer<typeof deliveryLocationSchema>
+import { useSession } from 'next-auth/react';
+import { clientFormSchema, deliveryLocationSchema } from './schemas';
+import { ClientFormValues, DeliveryLocation } from './types';
 
 export function ClientForm() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [deliveryLocations, setDeliveryLocations] = useState<CrearLugarEntregaModel[]>([])
   const { toast } = useToast()
+  const session = useSession()
+  
 
   const clientForm = useForm<ClientFormValues>({
     resolver: zodResolver(clientFormSchema),
@@ -98,7 +80,8 @@ export function ClientForm() {
       email: data.email,
       lugaresEntrega: deliveryLocations,
     }
-    const respose = await ClienteService.getInstance().crear(createClienteModel)
+    console.log(createClienteModel)
+    const respose = await new ClienteService(session.data?.user.token).crear(createClienteModel)
     if (respose.error) {
       return toast({
         title: "Error creando cliente",
@@ -115,7 +98,6 @@ export function ClientForm() {
 
   return (
     <div>
-    <h3 className="font-semibold text-3xl mb-6">Nuevo Cliente</h3>
       <div className="flex gap-6 flex-wrap">
       <div className="flex-1">
         <Form {...clientForm}>

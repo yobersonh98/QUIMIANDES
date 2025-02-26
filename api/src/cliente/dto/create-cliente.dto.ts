@@ -47,6 +47,11 @@ class CreateCotizacionDto {
 }
 export class CrearLugarEntregaDto {
 
+  @ApiProperty({ example: '550e8400-e29b-41d4-a716-446655440000', description: 'ID único del lugar' })
+  @IsOptional()
+  @IsString()
+  id?:string;
+
   @ApiProperty({ example: 'nombre', description: 'Nombre del lugar de entrega' })
   @IsString()
   @IsNotEmpty()
@@ -110,27 +115,6 @@ export class CreateClienteDto {
   @IsOptional()
   @IsString()
   zonaBarrio?: string;
-
-  @ApiProperty({ type: [CreateInventarioDto], required: false })
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CreateInventarioDto)
-  inventarios?: CreateInventarioDto[];
-
-  @ApiProperty({ type: [CreatePedidoDto], required: false })
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CreatePedidoDto)
-  pedidos?: CreatePedidoDto[];
-
-  @ApiProperty({ type: [CreateCotizacionDto], required: false })
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CreateCotizacionDto)
-  cotizaciones?: CreateCotizacionDto[];
 
   @ApiProperty({ type: [CrearLugarEntregaDto], required: false })
   @IsOptional()

@@ -149,6 +149,8 @@ model LugarEntrega {
   idCiudad       String
   direccion      String
   contacto       String
+
+  activo        Boolean @default(true)
   cliente       Cliente  @relation(fields: [idCliente], references: [id])
   entregas       Entrega[]
   ciudad        Municipio @relation(fields: [idCiudad], references: [id])

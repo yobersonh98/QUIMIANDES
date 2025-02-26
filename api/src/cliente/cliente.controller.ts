@@ -1,19 +1,23 @@
-import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, Put } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ClienteService } from './cliente.service';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
+import { ClienteListarDto } from './dto/cliente-listar.dto';
+import { PublicEnpoint } from './../common/PublicEndpoint';
 
 @ApiTags('Clientes')
 @Controller('cliente')
 export class ClienteController {
   constructor(private readonly clienteService: ClienteService) {}
 
+  
+  @PublicEnpoint()
   @ApiOperation({ summary: 'Obtener todos los clientes' })
   @ApiResponse({ status: 200, description: 'Lista de clientes obtenida con éxito' })
   @Get()
-  async getClientes(@Query('search') search?: string) {
-    return this.clienteService.findAll(search);
+  async getClientes(@Query() listarDto: ClienteListarDto) {
+    return this.clienteService.findAll(listarDto);
   }
 
   @ApiOperation({ summary: 'Obtener un cliente por id' })
@@ -35,7 +39,7 @@ export class ClienteController {
   @ApiOperation({ summary: 'Actualizar un cliente' })
   @ApiResponse({ status: 200, description: 'Cliente actualizado con éxito' })
   @ApiResponse({ status: 404, description: 'Cliente no encontrado' })
-  @Post(':id')
+  @Put(':id')
   async updateCliente(@Param('id') id: string, @Body() updateCliente: UpdateClienteDto) {
     return this.clienteService.update(id, updateCliente);
   }

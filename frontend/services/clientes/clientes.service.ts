@@ -1,72 +1,72 @@
 import { ErrorResponse, SuccessResponse } from "@/core/service/service.response";
-import { AxiosInstance } from "axios";
 import { ClienteEntity } from "./entities/cliente.entity";
-import { UnknownError } from "@/core/errors/errors";
-import { API } from "@/lib/Api";
+import {  UnknownError } from "@/core/errors/errors";
 import { CrearClienteModel } from "./models/crear-cliente.model";
+import { ApiService } from "../api/ApiService";
+import { ActualizarClienteModel } from "./models/actualizar-cliente.model";
 
-export class ClienteService {
+export class ClienteService  extends ApiService {
 
-  constructor(private API: AxiosInstance) {
+  constructor(token?: string) {
+    super("/cliente", token);
   }
 
   async listar():Promise<SuccessResponse<ClienteEntity[]>> {
     try {
-      const response = await this.API.get<ClienteEntity[]>("/cliente");
-      return new SuccessResponse(response.data);
+      const response = await this.makeRequest<ClienteEntity[]>();
+      return new SuccessResponse(response);
     } catch (e) {
-      console.error(e);
-      return new ErrorResponse(new UnknownError("Errror consultando clientes"));
+      return e as ErrorResponse<ClienteEntity[]>;
     }
   }
 
   async consultar(id: string):Promise<SuccessResponse<ClienteEntity>> {
     try {
-      const response = await this.API.get<ClienteEntity>(`/cliente/${id}`);
-      return new SuccessResponse(response.data);
+      const response = await this.makeRequest<ClienteEntity>({ endpoint: `/${id}`});
+      return new SuccessResponse(response);
     } catch (e) {
-      console.error(e);
-      return new ErrorResponse(new UnknownError("Error consultando cliente"));
+      return e as ErrorResponse<ClienteEntity>;
     }
   }
 
 
   async crear(cliente: CrearClienteModel):Promise<SuccessResponse<ClienteEntity>> {
     try {
-      const response = await this.API.post<ClienteEntity>("/cliente", cliente);
-      return new SuccessResponse(response.data);
+      const data = await this.makeRequest<ClienteEntity>({ method: "post", data: cliente });
+      return new SuccessResponse(data);
     } catch (e) {
-      console.error(e);
-      return new ErrorResponse(new UnknownError("Error creando cliente"));
+      return e as ErrorResponse<ClienteEntity>;
     }
   }
 
-  async actualizar(cliente: ClienteEntity):Promise<SuccessResponse<ClienteEntity>> {
+  async actualizar(cliente: ActualizarClienteModel):Promise<SuccessResponse<ClienteEntity>> {
     try {
-      const response = await this.API.put<ClienteEntity>(`/cliente/${cliente.documento}`, cliente);
-      return new SuccessResponse(response.data);
+      const response = await this.makeRequest<ClienteEntity>({ method: "put", data: cliente, endpoint: `/${cliente.id}` });
+      return new SuccessResponse(response);
     } catch (e) {
-      console.error(e);
-      return new ErrorResponse(new UnknownError("Error actualizando cliente"));
+      return e as ErrorResponse<ClienteEntity>;
     }
   }
   async eliminar(id: string):Promise<SuccessResponse<ClienteEntity>> {
     try {
-      const response = await this.API.delete<ClienteEntity>(`/cliente/${id}`);
-      return new SuccessResponse(response.data);
+      const response = await this.makeRequest<ClienteEntity>({ method: "delete", endpoint: `/${id}` });
+      return new SuccessResponse(response);
     } catch (e) {
       console.error(e);
       return new ErrorResponse(new UnknownError("Error eliminando cliente"));
     }
   }
 
-
-
   private static instance: ClienteService;
-  public static getInstance(): ClienteService {
+  public static getServerInstance(): ClienteService {
     if (!this.instance) {
-      this.instance = new ClienteService(API);
+      this.instance = new ClienteService();
     }
     return this.instance;
   }
+
+  public static getClientInstance(token: string): ClienteService {
+    return new ClienteService(token);
+  }
+
 }

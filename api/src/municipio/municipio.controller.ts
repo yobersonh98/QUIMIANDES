@@ -2,12 +2,14 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestj
 import { MunicipioService } from './municipio.service';
 import { CreateMunicipioDto } from './dto/create-municipio.dto';
 import { UpdateMunicipioDto } from './dto/update-municipio.dto';
+import { PublicEnpoint } from './../common/PublicEndpoint';
 
 @Controller('municipio')
 export class MunicipioController {
   constructor(private readonly municipioService: MunicipioService) {}
 
   @Get()
+  @PublicEnpoint()
   findAll(
     @Query('search') search: string,
   ) {

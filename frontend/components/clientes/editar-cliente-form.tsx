@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import * as z from "zod"
 
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
@@ -18,41 +17,19 @@ import { ClienteService } from '@/services/clientes/clientes.service';
 import { CrearLugarEntregaModel } from '@/services/lugares-entrega/mode/crear-lugar-entrega.mode';
 import { CustomSelect } from '../shared/custom-select';
 import { TipoDocumentoArray } from '@/core/constantes/tipo-documentos';
-import { ClienteEntity } from '@/services/clientes/entities/cliente.entity';
-import { LugarEntregaEntity } from '@/services/lugares-entrega/entity/lugar-entrega.entity';
+import { useSession } from 'next-auth/react';
+import { ActualizarClienteModel } from '@/services/clientes/models/actualizar-cliente.model';
+import { clientFormSchema, deliveryLocationSchema } from './schemas';
+import { ClientFormValues, DeliveryLocation, EditClientFormProps } from './types';
 
 // Extend the client form schema to include delivery locations
-const clientFormSchema = z.object({
-  name: z.string().min(2, { message: "El nombre debe tener al menos 2 caracteres." }),
-  documentType: z.string().min(1, { message: "El tipo de documento es requerido." }),
-  documentNumber: z.string().min(1, { message: "El número de documento es requerido." }),
-  address: z.string().min(1, { message: "La dirección es requerida." }),
-  zone: z.string().optional(),
-  email: z.string().email({ message: "Ingrese un correo electrónico válido." }),
-  phone: z.string().min(1, { message: "El teléfono es requerido." }),
-  idMunicipio: z.string().min(1, { message: 'El municipio es requerido' }),
-})
-
-const deliveryLocationSchema = z.object({
-  nombre: z.string().min(1, { message: "El nombre es requerido" }),
-  idCiudad: z.string().min(1, { message: "La ciudad es requerida" }),
-  direccion: z.string().min(1, { message: "La dirección es requerida" }),
-  contacto: z.string().min(1, { message: "El contacto es requerido" }),
-})
-
-type ClientFormValues = z.infer<typeof clientFormSchema>
-type DeliveryLocation = z.infer<typeof deliveryLocationSchema>
-
-interface EditClientFormProps {
-  clientId: string;
-  initialData: ClienteEntity;
-}
 
 export function EditarClienteForm({ clientId, initialData }: EditClientFormProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [deliveryLocations, setDeliveryLocations] = useState<CrearLugarEntregaModel[]>(initialData.lugaresEntrega || [])
+  const [idLugaresEntregaEliminar, setIdLugaresEntregaEliminar] = useState<string[]>([])
   const { toast } = useToast()
-
+  const session = useSession()
   const clientForm = useForm<ClientFormValues>({
     resolver: zodResolver(clientFormSchema),
     defaultValues: {
@@ -88,11 +65,14 @@ export function EditarClienteForm({ clientId, initialData }: EditClientFormProps
   }
 
   const removeDeliveryLocation = (index: number) => {
+    if (deliveryLocations[index].id) {
+      setIdLugaresEntregaEliminar([...idLugaresEntregaEliminar, deliveryLocations[index].id])
+    }
     setDeliveryLocations(deliveryLocations.filter((_, i) => i !== index))
   }
 
   async function onSubmit(data: ClientFormValues) {
-    const updateClienteModel: ClienteEntity = {
+    const updateClienteModel: ActualizarClienteModel = {
       id: clientId,
       nombre: data.name,
       tipoDocumento: data.documentType,
@@ -102,9 +82,10 @@ export function EditarClienteForm({ clientId, initialData }: EditClientFormProps
       idMunicipio: data.idMunicipio,
       telefono: data.phone,
       email: data.email,
-      lugaresEntrega: deliveryLocations as LugarEntregaEntity[]
+      lugaresEntrega: deliveryLocations,
+      idLugaresEntregaEliminar: idLugaresEntregaEliminar
     }
-    const response = await ClienteService.getInstance().actualizar(updateClienteModel)
+    const response = await new ClienteService(session.data?.user.token).actualizar(updateClienteModel)
     if (response.error) {
       return toast({
         title: "Error actualizando cliente",
@@ -119,7 +100,6 @@ export function EditarClienteForm({ clientId, initialData }: EditClientFormProps
 
   return (
     <div>
-      <h3 className="font-semibold text-3xl mb-6">Editar Cliente</h3>
       <div className="flex gap-6 flex-wrap">
         <div className="flex-1">
           <Form {...clientForm}>
@@ -146,7 +126,7 @@ export function EditarClienteForm({ clientId, initialData }: EditClientFormProps
                     <FormItem>
                       <FormLabel>Tipo de Documento</FormLabel>
                       <FormControl>
-                        <CustomSelect {...field} options={
+                        <CustomSelect defaultValue={initialData.tipoDocumento} {...field} options={
                           TipoDocumentoArray.map((tipo) => ({ value: tipo, label: tipo }))
                         } />
                       </FormControl>
@@ -178,6 +158,7 @@ export function EditarClienteForm({ clientId, initialData }: EditClientFormProps
                       endpoint="municipio"
                       onSelect={(value) => clientForm.setValue("idMunicipio", value)}
                       placeholder="Seleccione un municipio"
+                      defaultValue={initialData.idMunicipio}
                     />
                   </FormControl>
                 </FormItem>
