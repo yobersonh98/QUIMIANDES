@@ -2,17 +2,20 @@ import { DataTable } from '@/components/data_table/data_table'
 import { ClienteEntity } from '@/services/clientes/entities/cliente.entity'
 import React from 'react'
 import { ClientesColumns } from './clientes-columns'
-type ClientesDataTableProps ={
-  clientes: ClienteEntity[]
+import { PaginationMetadata } from '@/types/pagination'
+type ClientesDataTableProps = {
+  clientes: ClienteEntity[],
+  pagination?: PaginationMetadata
 }
 export default function ClientesDataTable(
-  {clientes} : ClientesDataTableProps
+  { clientes, pagination }: ClientesDataTableProps
 ) {
   return (
-    
     <DataTable
-    data={clientes}
-    columns={ClientesColumns}
-  />
+      isShowSearchInput
+      pagination={pagination}
+      data={clientes}
+      columns={ClientesColumns}
+    />
   )
 }
