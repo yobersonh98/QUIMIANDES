@@ -4,6 +4,8 @@ import {  UnknownError } from "@/core/errors/errors";
 import { CrearClienteModel } from "./models/crear-cliente.model";
 import { ApiService } from "../api/ApiService";
 import { ActualizarClienteModel } from "./models/actualizar-cliente.model";
+import { ListarClientesModel } from "./models/listar-clientes.model";
+import { PaginationResponse } from "@/types/pagination";
 
 export class ClienteService  extends ApiService {
 
@@ -11,12 +13,16 @@ export class ClienteService  extends ApiService {
     super("/cliente", token);
   }
 
-  async listar():Promise<SuccessResponse<ClienteEntity[]>> {
+  async listar(listarClientesModel?: ListarClientesModel):Promise<SuccessResponse<PaginationResponse<ClienteEntity[]>>> {
     try {
-      const response = await this.makeRequest<ClienteEntity[]>();
+      const response = await this.makeRequest<PaginationResponse<ClienteEntity[]>>({
+        searchParams: {
+          ...listarClientesModel
+        }
+      });
       return new SuccessResponse(response);
     } catch (e) {
-      return e as ErrorResponse<ClienteEntity[]>;
+      return e as ErrorResponse<PaginationResponse<ClienteEntity[]>>;
     }
   }
 

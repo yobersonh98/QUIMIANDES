@@ -6,6 +6,7 @@ export interface SearchParamToNavigation {
 export interface PaginationSearchParamsPage {
   limit?: string;
   offset?: string;
+  search?: string;
 }
 
 export interface PaginationMetadata {
@@ -21,4 +22,12 @@ export interface PaginationMetadata {
 export interface PaginationResponse<T> {
   data: T;
   meta: PaginationMetadata;
+}
+
+
+export interface PageProps<T extends PaginationSearchParamsPage> {
+  searchParams?: T
+  params?:  {
+    id: string
+  }
 }

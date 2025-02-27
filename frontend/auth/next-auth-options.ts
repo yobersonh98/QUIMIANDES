@@ -43,6 +43,9 @@ export const NextAuhtOptions: NextAuthOptions = {
   pages: {
     signIn: "/login",
   },
+  session: {
+    maxAge: 24 * 60 * 8,
+  }
 };
 
 export default NextAuhtOptions;
