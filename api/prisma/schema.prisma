@@ -12,7 +12,7 @@ datasource db {
 }
 
 model User {
-  id       String @id @default(cuid())
+  id       String  @id @default(cuid())
   name     String?
   email    String  @unique
   password String
@@ -29,70 +29,81 @@ enum EstadoCliente {
   ACTIVO
   INACTIVO
 }
+
+enum TipoDocumento {
+  NIT
+  CC
+  CE
+  TI
+  PASAPORTE
+}
+
 model Cliente {
-  id            String   @id @default(cuid())
-  documento      String   @unique // NIT o número de documento como clave primaria
-  tipoDocumento  String   // Tipo de documento (e.g., NIT, cédula)
+  id             String              @id @default(cuid())
+  documento      String              @unique // NIT o número de documento como clave primaria
+  tipoDocumento  TipoDocumento       @default(NIT) // Tipo de documento (e.g., NIT, cédula)
   nombre         String
   idMunicipio    String
   direccion      String
   zonaBarrio     String?
-  telefono      String?
-  email         String?
-  estado        EstadoCliente @default(ACTIVO)
+  telefono       String?
+  email          String?
+  estado         EstadoCliente       @default(ACTIVO)
   inventarios    InventarioCliente[]
   pedidos        Pedido[]
   cotizaciones   Cotizacion[]
   lugaresEntrega LugarEntrega[]
-  municipio      Municipio @relation(fields: [idMunicipio], references: [id])
+  municipio      Municipio           @relation(fields: [idMunicipio], references: [id])
 }
 
 model Proveedor {
-  id            String   @id @default(cuid())
-  documento      String   @unique// NIT o número de documento como clave primaria
-  tipoDocumento  String   // Tipo de documento (e.g., NIT, cédula)
-  nombre         String
-  direccion      String
-  productos      Producto[]
+  id            String        @id @default(cuid())
+  documento     String        @unique // NIT o número de documento como clave primaria
+  tipoDocumento TipoDocumento @default(NIT) // Tipo de documento (e.g., NIT, cédula)
+  nombre        String
+  telefono      String?
+  direccion     String        @default("")
+  facturaIva    Boolean       @default(false)
+  productos     Producto[]
 }
 
 model Producto {
-  id             String   @id @default(cuid())
-  nombre         String
-  tipo           String
-  unidadMedida   String
-  pesoVolumen    Float
-  precioBase     Float
-  inventarios    InventarioCliente[]
+  id                String              @id @default(cuid())
+  nombre            String
+  tipo              String
+  unidadMedida      String
+  pesoVolumen       Float
+  precioBase        Float
+  inventarios       InventarioCliente[]
   detalleCotizacion DetalleCotizacion[]
-  proveedor      Proveedor @relation(fields: [idProveedor], references: [id])
-  idProveedor String
-  detallePedidos DetallePedido[]  // Relación opuesta con DetallePedido
+  proveedor         Proveedor           @relation(fields: [idProveedor], references: [id])
+  idProveedor       String
+  detallePedidos    DetallePedido[] // Relación opuesta con DetallePedido
 }
 
 model InventarioCliente {
   id             String   @id @default(cuid())
   cliente        Cliente  @relation(fields: [idCliente], references: [id])
-  idCliente String
+  idCliente      String
   producto       Producto @relation(fields: [productoId], references: [id])
   productoId     String
   precioEspecial Float
 }
 
 model Cotizacion {
-  id             String   @id @default(cuid())
-  fecha          DateTime @default(now())
-  cliente        Cliente  @relation(fields: [idCliente], references: [id])
+  id        String              @id @default(cuid())
+  fecha     DateTime            @default(now())
+  cliente   Cliente             @relation(fields: [idCliente], references: [id])
   idCliente String
-  total          Float
-  detalles       DetalleCotizacion[]
+  total     Float
+  detalles  DetalleCotizacion[]
 }
 
 model DetalleCotizacion {
-  id             String   @id @default(cuid())
+  id             String     @id @default(cuid())
   cotizacion     Cotizacion @relation(fields: [cotizacionId], references: [id])
   cotizacionId   String
-  producto       Producto @relation(fields: [productoId], references: [id])
+  producto       Producto   @relation(fields: [productoId], references: [id])
   productoId     String
   cantidad       Int
   precioUnitario Float
@@ -100,98 +111,99 @@ model DetalleCotizacion {
 }
 
 model Pedido {
-  id             String   @id @default(cuid())
-  fechaRecibido  DateTime @default(now())
-  idCliente String
-  estado         String
-  observaciones  String?
+  id                 String          @id @default(cuid())
+  fechaRecibido      DateTime        @default(now())
+  idCliente          String
+  estado             String
+  observaciones      String?
   fechaRequerimiento DateTime
-  fechaEntrega   DateTime?
-  tiempoEntrega  Int?
-  pesoDespachado Float?
-  productos      DetallePedido[]
-  entregas       Entrega[]
-  ordenesCompra  OrdenCompra[]  // Relación opuesta con OrdenCompra
+  fechaEntrega       DateTime?
+  tiempoEntrega      Int?
+  pesoDespachado     Float?
+  productos          DetallePedido[]
+  entregas           Entrega[]
+  ordenesCompra      OrdenCompra[] // Relación opuesta con OrdenCompra
 
-  cliente        Cliente  @relation(fields: [idCliente], references: [id])
-
+  cliente Cliente @relation(fields: [idCliente], references: [id])
 }
 
 model DetallePedido {
-  id             String   @id @default(cuid())
-  pedido         Pedido   @relation(fields: [pedidoId], references: [id])
-  pedidoId       String
-  producto       Producto @relation(fields: [productoId], references: [id])
-  productoId     String
-  unidades       Int
-  cantidad       Float
-  total          Float
+  id         String   @id @default(cuid())
+  pedido     Pedido   @relation(fields: [pedidoId], references: [id])
+  pedidoId   String
+  producto   Producto @relation(fields: [productoId], references: [id])
+  productoId String
+  unidades   Int
+  cantidad   Float
+  total      Float
 }
 
 model Entrega {
-  id             String   @id @default(cuid())
-  pedido         Pedido   @relation(fields: [pedidoId], references: [id])
-  pedidoId       String
+  id              String       @id @default(cuid())
+  pedido          Pedido       @relation(fields: [pedidoId], references: [id])
+  pedidoId        String
   vehiculoInterno String?
   vehiculoExterno String?
-  entregadoPorA  String
-  idLugarEntrega String
-  tipoEntrega    String
-  remision       String?
-  observaciones  String?
-  lugarEntrega  LugarEntrega @relation(fields: [idLugarEntrega], references: [id])
+  entregadoPorA   String
+  idLugarEntrega  String
+  tipoEntrega     String
+  remision        String?
+  observaciones   String?
+  lugarEntrega    LugarEntrega @relation(fields: [idLugarEntrega], references: [id])
 }
 
 model LugarEntrega {
-  id             String   @id @default(cuid())
-  idCliente      String 
-  nombre         String
-  idCiudad       String
-  direccion      String
-  contacto       String
+  id        String @id @default(cuid())
+  idCliente String
+  nombre    String
+  idCiudad  String
+  direccion String
+  contacto  String
 
-  activo        Boolean @default(true)
-  cliente       Cliente  @relation(fields: [idCliente], references: [id])
-  entregas       Entrega[]
-  ciudad        Municipio @relation(fields: [idCiudad], references: [id])
+  activo   Boolean   @default(true)
+  cliente  Cliente   @relation(fields: [idCliente], references: [id])
+  entregas Entrega[]
+  ciudad   Municipio @relation(fields: [idCiudad], references: [id])
 }
+
 model OrdenCompra {
-  id             String   @id @default(cuid())
-  pedido         Pedido   @relation(fields: [pedidoId], references: [id])
-  pedidoId       String
-  numeroOrden    String
+  id                 String   @id @default(cuid())
+  pedido             Pedido   @relation(fields: [pedidoId], references: [id])
+  pedidoId           String
+  numeroOrden        String
   fechaRequerimiento DateTime
-  tiempoEntrega  Int
-  pesoDespachado Float
-  remision       String?
+  tiempoEntrega      Int
+  pesoDespachado     Float
+  remision           String?
 }
 
 model Municipio {
-  id             String    @id @default(cuid())
+  id             String       @id @default(cuid())
   nombre         String
   departamento   Departamento @relation(fields: [idDepartamento], references: [id])
-  estado         Boolean @default(true)
+  estado         Boolean      @default(true)
   idDepartamento String
 
-  clientes      Cliente[]
+  clientes       Cliente[]
   lugaresEntrega LugarEntrega[]
+
   @@index([nombre])
 }
 
 model Departamento {
-  id             String  @id @default(cuid())
-  nombre         String
-  ciudades       Municipio[]
-  pais           Pais @relation(fields: [idPais], references: [id])
-  idPais         String
+  id       String      @id @default(cuid())
+  nombre   String
+  ciudades Municipio[]
+  pais     Pais        @relation(fields: [idPais], references: [id])
+  idPais   String
+
   @@index([nombre])
 }
 
-
 model Pais {
-  id             String  @id @default(cuid())
-  nombre         String
-  departamentos  Departamento[]
+  id            String         @id @default(cuid())
+  nombre        String
+  departamentos Departamento[]
 
   @@index([nombre])
 }

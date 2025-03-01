@@ -1,6 +1,7 @@
 import { IsString, IsOptional, IsArray, ValidateNested, IsNotEmpty, IsUUID, IsNumber } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
+import { TipoDocumento } from '@prisma/client';
 
 class CreateInventarioDto {
   @ApiProperty({ example: '550e8400-e29b-41d4-a716-446655440000', description: 'ID único del producto' })
@@ -88,7 +89,7 @@ export class CreateClienteDto {
   @ApiProperty({ example: 'CC', description: 'Tipo de documento (CC, TI, NIT, etc.)' })
   @IsString()
   @IsNotEmpty()
-  tipoDocumento: string;
+  tipoDocumento: TipoDocumento;
 
   @ApiProperty({ example: 'Juan Pérez', description: 'Nombre completo del cliente' })
   @IsString()

@@ -61,4 +61,6 @@ export class PaginationDto {
     @IsOptional()
     @Type(() => Number)
     offset?: number;
+
+    search?: string;
 }

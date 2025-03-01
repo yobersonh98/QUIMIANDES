@@ -45,6 +45,7 @@ export default function DashboardLayout({
     // { icon: Users, label: "Usuarios", href: "/dashboard/usuarios" },
     { icon: Home , label: "Inicio", href: "/dashboard" },
     { icon: ShoppingBag, label: "Clientes", href: "/dashboard/clientes" },
+    { icon: Package, label: "Proveedores", href: "/dashboard/proveedores" },
     { icon: Package, label: "Productos", href: "/dashboard/productos" },
     { icon: Clipboard, label: "Pedidos", href: "/dashboard/pedidos" },
     { icon: BarChart3, label: "Inventario", href: "/dashboard/inventario" },

@@ -1,7 +1,7 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateClienteDto } from './create-cliente.dto';
 import { ApiProperty } from '@nestjs/swagger';
-import { EstadoCliente } from '@prisma/client';
+import { EstadoCliente, TipoDocumento } from '@prisma/client';
 
 export class UpdateClienteDto extends PartialType(CreateClienteDto) {
   @ApiProperty({ example: '12345678', description: 'Número de documento del cliente', required: false })
@@ -24,7 +24,7 @@ export class UpdateClienteDto extends PartialType(CreateClienteDto) {
   telefono?: string;
 
   @ApiProperty({ example: 'CC', description: 'Tipo de documento (CC, TI, NIT, etc.)', required: false })
-  tipoDocumento?: string;
+  tipoDocumento?: TipoDocumento;
 
   @ApiProperty({ example: '550e8400-e29b-41d4-a716-446655440000', description: 'ID único del municipio', required: false })
   idMunicipio?: string;
