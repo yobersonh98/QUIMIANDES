@@ -24,6 +24,17 @@ export class ProveedorService {
     return this.paginationService.paginate('Proveedor', {where: whereInput}, findAllDto);
   }
 
+  async search(search: string) {
+    return this.prisma.proveedor.findMany({
+      where: {
+        nombre: {
+          contains: search,
+          mode: 'insensitive',
+        },
+      },
+    });
+  }
+
   async findOne(id: string) {
     const proveedor = await this.prisma.proveedor.findUnique({
       where: { id },

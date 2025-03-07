@@ -11,7 +11,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Edit } from "lucide-react"
+import {  Pencil } from "lucide-react"
 import { CrearProveedorModel } from "@/services/proveedor/models/crear-proveedor.model"
 import { useSession } from "next-auth/react"
 import { ProveedorEntity } from "@/services/proveedor/entities/proveedor.entity"
@@ -61,8 +61,8 @@ export function ModificarProveedorModal({ proveedor }: ModificarProveedorModalPr
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon">
-          <Edit className="h-4 w-4" />
+        <Button variant="default" size="icon">
+          <Pencil className="h-4 w-4" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px]">

@@ -1,11 +1,11 @@
 "use client"
 
-import { Button } from "@/components/ui/button";
 import { ProveedorEntity } from "@/services/proveedor/entities/proveedor.entity";
 import { ColumnDef } from "@tanstack/react-table";
 import { Eye } from "lucide-react";
 import Link from "next/link";
 import { ModificarProveedorModal } from "./modificar-proveedo-modal";
+import { Button } from "../ui/button";
 
 export const ProveedoresColumns: ColumnDef<ProveedorEntity>[] = [
   {

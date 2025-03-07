@@ -18,6 +18,11 @@ export class ProveedorController {
     return this.proveedorService.findAll(paginationDto);
   }
 
+  @Get('search')
+  async search(@Query('search') search: string) {
+    return this.proveedorService.search(search);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.proveedorService.findOne(id);

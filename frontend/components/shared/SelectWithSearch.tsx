@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { useSession } from 'next-auth/react';
+import { BACKEND_URL } from '@/config/envs';
 
 interface SelectOption {
   value: string;
@@ -8,7 +9,7 @@ interface SelectOption {
 }
 
 interface SelectWithSearchProps {
-  apiUrl: string;
+  apiUrl?: string;
   endpoint: string;
   params?: Record<string, string>;
   placeholder?: string;
@@ -18,7 +19,7 @@ interface SelectWithSearchProps {
 }
 
 const SelectWithSearch = ({
-  apiUrl,
+  apiUrl = BACKEND_URL,
   endpoint,
   params = {},
   placeholder = "Select an item...",
@@ -32,13 +33,14 @@ const SelectWithSearch = ({
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const session = useSession();
+  console.log("Session", session)
   const fetchOptions = async (searchTerm = "") => {
     setLoading(true);
     try {
       const queryParams = new URLSearchParams({ ...params, search: searchTerm });
       const response = await fetch(`${apiUrl}/${endpoint}?${queryParams}`, {
         headers: {
-          "Authorization": `Bearer ${session.data?.user.token}`
+          "Authorization": `Bearer ${session.data?.user?.token}`
       }
       });
       if (!response.ok) throw new Error("Failed to fetch options");
@@ -51,7 +53,7 @@ const SelectWithSearch = ({
         setOptions([]);
       }
     } catch (error) {
-      console.error("Error fetching options:", error);
+      console.log("Error fetching options:", error);
       setOptions([]);
     } finally {
       setLoading(false);
@@ -59,8 +61,9 @@ const SelectWithSearch = ({
   };
 
   useEffect(() => {
+    if (!session?.data?.user?.token) return;
     fetchOptions();
-  }, [apiUrl, endpoint]);
+  }, [apiUrl, endpoint, session]);
 
   useEffect(() => {
     if (search.length === 0) return;

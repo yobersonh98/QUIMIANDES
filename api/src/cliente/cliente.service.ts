@@ -2,9 +2,8 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
-import { EstadoCliente, Prisma } from '@prisma/client';
+import {  Prisma } from '@prisma/client';
 import { ClienteListarDto } from './dto/cliente-listar.dto';
-import { Pagination } from './../common/dtos/pagination.dto';
 import { PrismaGenericPaginationService } from './../prisma/prisma-generic-pagination.service';
 
 @Injectable()
@@ -17,6 +16,19 @@ export class ClienteService {
       nombre: search ? { contains: search, mode: 'insensitive' } : undefined,
     }
     return this.prismaPagination.paginate('Cliente', { where: whereInput }, findAllDto);
+  }
+
+  async search(search: string) {
+    const clientes = await this.prisma.cliente.findMany({
+      where: {
+        OR: [
+          { nombre: { contains: search, mode: 'insensitive' } },
+          { documento: { contains: search, mode: 'insensitive' } },
+        ],
+      },
+      select: { id: true, nombre: true, documento: true },
+    })
+    return clientes;
   }
 
   async findOneByDocumento(documento: string) {

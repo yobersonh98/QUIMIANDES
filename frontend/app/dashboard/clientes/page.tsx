@@ -2,6 +2,7 @@ import ClientesDataTable from "@/components/clientes/data-table/clientes-datatab
 import { Button } from "@/components/ui/button";
 import { ClienteService } from "@/services/clientes/clientes.service";
 import { PageProps, PaginationSearchParamsPage } from "@/types/pagination";
+import { PlusCircle } from "lucide-react";
 import Link from "next/link";
 
 export default async function ClientsPage(props: PageProps<PaginationSearchParamsPage>) {
@@ -19,7 +20,10 @@ export default async function ClientsPage(props: PageProps<PaginationSearchParam
         <div className="flex items-center space-x-2">
           <Button>
             <Link href={"/dashboard/clientes/crear"} >
-              Nuevo Cliente
+              <Button className="gap-2">
+                <PlusCircle className="h-4 w-4" />
+                Nuevo Proveedor
+              </Button>
             </Link>
           </Button>
         </div>

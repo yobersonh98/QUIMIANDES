@@ -38,10 +38,46 @@ enum TipoDocumento {
   PASAPORTE
 }
 
+enum UnidadMedida {
+  // Unidades de conteo
+  UND // Unidad
+  
+  // Unidades de masa
+  MG  // Miligramo
+  GR  // Gramo
+  KG  // Kilogramo
+  LB  // Libra
+  TON // Tonelada
+  
+  // Unidades de volumen
+  ML  // Mililitro
+  L   // Litro
+  M3  // Metro cúbico
+  GAL // Galón
+  ONZ // Onza líquida
+  
+  // Unidades de longitud
+  MM  // Milímetro
+  CM  // Centímetro
+  M   // Metro
+  MTS // Metros (redundante con Mpodría eliminarse)
+  PULG// Pulgada
+  PIES// Pies
+  
+  // Unidades de superficie
+  M2  // Metro cuadrado
+  
+  // Unidades de cocina
+  TAZA// Taza
+  CDA // Cucharada
+  CTA   // Cucharadita
+}
+
+
 model Cliente {
   id             String              @id @default(cuid())
   documento      String              @unique // NIT o número de documento como clave primaria
-  tipoDocumento  TipoDocumento       @default(NIT) // Tipo de documento (e.g., NIT, cédula)
+  tipoDocumento  TipoDocumento       @default(NIT) // Tipo de documento (e.g.NITcédula)
   nombre         String
   idMunicipio    String
   direccion      String
@@ -67,18 +103,28 @@ model Proveedor {
   productos     Producto[]
 }
 
+
+model Presentacion {
+  id          String   @id @default(cuid())
+  nombre      String
+  descripcion String?
+  productos   Producto[]
+}
+
 model Producto {
   id                String              @id @default(cuid())
   nombre            String
+  idPresentacion    String
+  idProveedor       String
   tipo              String
-  unidadMedida      String
   pesoVolumen       Float
   precioBase        Float
+  unidadMedida      UnidadMedida       @default(UND)
   inventarios       InventarioCliente[]
   detalleCotizacion DetalleCotizacion[]
-  proveedor         Proveedor           @relation(fields: [idProveedor], references: [id])
-  idProveedor       String
   detallePedidos    DetallePedido[] // Relación opuesta con DetallePedido
+  presentacion      Presentacion       @relation(fields: [idPresentacion], references: [id])
+  proveedor         Proveedor          @relation(fields: [idProveedor], references: [id])
 }
 
 model InventarioCliente {

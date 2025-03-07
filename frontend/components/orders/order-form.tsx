@@ -15,9 +15,12 @@ import { Textarea } from "@/components/ui/textarea"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Card, CardContent } from "@/components/ui/card"
+import SelectWithSearch from "../shared/SelectWithSearch"
+import { CustomFormInput } from "../shared/custom-form-input"
+import { CustomFormDatePicker } from "../shared/custom-form-date-picker"
 
 const orderFormSchema = z.object({
-  clienteDocumento: z.string({
+  clienteId: z.string({
     required_error: "Por favor seleccione un cliente",
   }),
   fechaPedido: z.date({
@@ -65,11 +68,6 @@ const orderFormSchema = z.object({
 
 type OrderFormValues = z.infer<typeof orderFormSchema>
 
-// Datos de ejemplo - En producción estos vendrían de la base de datos
-const clientes = [
-  { documento: "901234567-8", nombre: "Aguas kapital" },
-  { documento: "900987654-3", nombre: "TQI" },
-]
 
 const productos = [
   { id: "1", nombre: "PHCA-20" },
@@ -117,29 +115,22 @@ export function OrderForm() {
             <div className="grid gap-6 md:grid-cols-2">
               <FormField
                 control={form.control}
-                name="clienteDocumento"
+                name="clienteId"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Cliente</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Seleccione un cliente" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {clientes.map((cliente) => (
-                          <SelectItem key={cliente.documento} value={cliente.documento}>
-                            {cliente.nombre}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <SelectWithSearch
+                      endpoint="cliente/search"
+                      onSelect={field.onChange}
+                      defaultValue={field.value}
+                      placeholder="Seleccione un cliente"
+                      maperOptions={(cliente) => ({ value: cliente.id, label: cliente.nombre })}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
+{/* 
               <FormField
                 control={form.control}
                 name="fechaPedido"
@@ -169,6 +160,13 @@ export function OrderForm() {
                     <FormMessage />
                   </FormItem>
                 )}
+              /> */}
+              <CustomFormDatePicker 
+                control={form.control}
+                name="fechaPedido"
+                label="Fecha del Pedido"
+                defaultValue={new Date()}
+                withTime
               />
 
               <FormField
@@ -201,44 +199,11 @@ export function OrderForm() {
                   </FormItem>
                 )}
               />
-
-              <FormField
+              <CustomFormInput 
                 control={form.control}
                 name="ordenCompra"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Orden de Compra</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Ingrese el número de orden de compra" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="estado"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Estado del Pedido</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Seleccione un estado" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="pendiente">Pendiente</SelectItem>
-                        <SelectItem value="en_proceso">En Proceso</SelectItem>
-                        <SelectItem value="entregado_parcial">Entregado Parcialmente</SelectItem>
-                        <SelectItem value="entregado">Entregado</SelectItem>
-                        <SelectItem value="cancelado">Cancelado</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Orden de Compra"
+                placeholder="Ingrese el número de orden de compra"
               />
             </div>
           </CardContent>

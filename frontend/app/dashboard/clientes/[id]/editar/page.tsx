@@ -8,7 +8,7 @@ type ClientePageProps = {
   }
 }
 export default async function page( {params}: ClientePageProps) {
-  const {id } = await params
+  const { id } = await params
   const {data} = await ClienteService.getServerInstance().consultar(id)
   if (!data) {
     return <div>No se encontro ningun cliente</div>

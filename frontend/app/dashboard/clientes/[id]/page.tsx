@@ -5,8 +5,8 @@ import { PageProps, PaginationSearchParamsPage } from '@/types/pagination'
 import React from 'react'
 
 export default async function ClientePage(props: PageProps<PaginationSearchParamsPage>) {
-  const id = await props?.params?.id as string
-  const {data} = await ClienteService.getServerInstance().consultar(id)
+  const params = await props?.params 
+  const {data} = await ClienteService.getServerInstance().consultar(params?.id || '');
   if (!data) {
     return <div>No se encontro ningun cliente</div>
   }

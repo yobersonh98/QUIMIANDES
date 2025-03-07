@@ -1,0 +1,25 @@
+import { UnidadMedida } from "@/services/productos/entities/producto.entity";
+
+export const UNIDADES_MEDIDA: UnidadMedida[] = [
+  "UND",
+  "MG",
+  "GR",
+  "KG",
+  "LB",
+  "TON",
+  "ML",
+  "L",
+  "M3",
+  "GAL",
+  "ONZ",
+  "MM",
+  "CM",
+  "M",
+  "MTS",
+  "PULG",
+  "PIES",
+  "M2",
+  "TAZA",
+  "CDA",
+  "CTA",
+]

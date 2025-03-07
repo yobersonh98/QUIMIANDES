@@ -12,12 +12,19 @@ export class ClienteController {
   constructor(private readonly clienteService: ClienteService) {}
 
   
-  @PublicEnpoint()
   @ApiOperation({ summary: 'Obtener todos los clientes' })
   @ApiResponse({ status: 200, description: 'Lista de clientes obtenida con éxito' })
   @Get()
   async getClientes(@Query() listarDto: ClienteListarDto) {
     return this.clienteService.findAll(listarDto);
+  }
+
+  @ApiOperation({ summary: 'Obtener un por busqueda' })
+  @ApiResponse({ status: 200, description: 'Cliente encontrado' })
+  @ApiResponse({ status: 404, description: 'Cliente no encontrado' })
+  @Get('search')
+  async searchClients(@Query('search') search: string) {
+    return this.clienteService.search(search);
   }
 
   @ApiOperation({ summary: 'Obtener un cliente por id' })

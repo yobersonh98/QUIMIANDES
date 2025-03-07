@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Search } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ProductoService } from './producto.service';
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { UpdateProductoDto } from './dto/update-producto.dto';
+import { UnidadMedida } from '@prisma/client';
 
 @ApiTags('productos')
 @Controller('productos')
@@ -20,8 +21,19 @@ export class ProductoController {
   @ApiOperation({ summary: 'Obtener todos los productos' })
   @ApiResponse({ status: 200, description: 'Lista de productos obtenida exitosamente.' })
   @Get()
-  findAll() {
-    return this.productoService.findAll();
+  async findAll(@Query() paginationDto) {
+    const productos = await this.productoService.findAll(paginationDto);  
+    return productos;
+  }
+  @ApiOperation({ summary: 'Obtener todas las unidades de medida' })
+  @ApiResponse({ status: 200, description: 'Lista de unidades de medida obtenida exitosamente.' })
+  @Get('unidades-medida')
+  getUnidadesMedida(@Query('search') search?: string): string[] {
+    if (search) {
+      return Object.values(UnidadMedida).filter((unidad) => unidad.toLowerCase().includes(search.toLowerCase
+      ())); 
+    }
+    return Object.values(UnidadMedida);
   }
 
   @ApiOperation({ summary: 'Obtener un producto por ID' })
@@ -47,4 +59,6 @@ export class ProductoController {
   remove(@Param('id') id: string) {
     return this.productoService.remove(id);
   }
+
+
 }
