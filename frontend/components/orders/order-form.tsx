@@ -2,25 +2,21 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useFieldArray, useForm } from "react-hook-form"
 import * as z from "zod"
-import { CalendarIcon, Plus, Trash2 } from "lucide-react"
-import { format } from "date-fns"
-import { es } from "date-fns/locale"
-
-import { cn } from "@/lib/utils"
+import { Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Card, CardContent } from "@/components/ui/card"
 import SelectWithSearch from "../shared/SelectWithSearch"
 import { CustomFormInput } from "../shared/custom-form-input"
 import { CustomFormDatePicker } from "../shared/custom-form-date-picker"
+import { CustomSelect } from "../shared/custom-select"
+import { useSession } from "next-auth/react"
+import { CrearPedidoModel } from "@/services/pedidos/models/crear-pedido.model"
+import { PedidoService } from "@/services/pedidos/pedido.service"
 
 const orderFormSchema = z.object({
-  clienteId: z.string({
+  idCliente: z.string({
     required_error: "Por favor seleccione un cliente",
   }),
   fechaPedido: z.date({
@@ -40,12 +36,6 @@ const orderFormSchema = z.object({
         productoId: z.string({
           required_error: "Por favor seleccione un producto",
         }),
-        presentacion: z.string({
-          required_error: "Por favor seleccione una presentación",
-        }),
-        unidad: z.number({
-          required_error: "Por favor ingrese la unidad",
-        }),
         cantidad: z.number({
           required_error: "Por favor ingrese la cantidad",
         }),
@@ -54,9 +44,6 @@ const orderFormSchema = z.object({
         }),
         tipoEntrega: z.string({
           required_error: "Por favor seleccione el tipo de entrega",
-        }),
-        lugarEntrega: z.string({
-          required_error: "Por favor ingrese el lugar de entrega",
         }),
         ciudad: z.string({
           required_error: "Por favor ingrese la ciudad",
@@ -69,27 +56,13 @@ const orderFormSchema = z.object({
 type OrderFormValues = z.infer<typeof orderFormSchema>
 
 
-const productos = [
-  { id: "1", nombre: "PHCA-20" },
-  { id: "2", nombre: "PAC-19" },
-  { id: "3", nombre: "Cloro Gaseoso" },
-  { id: "4", nombre: "Soda Caustica" },
-  { id: "5", nombre: "Acido Clorhidrico" },
-]
-
-const presentaciones = [
-  { id: "granel", nombre: "Granel" },
-  { id: "caneca250", nombre: "Caneca 250kg" },
-  { id: "contenedor", nombre: "Contenedor" },
-  { id: "saco25", nombre: "Saco 25kg" },
-]
-
 const tiposEntrega = [
   { id: "entrega_cliente", nombre: "Entrega al Cliente" },
   { id: "recoge_planta", nombre: "Recoge en Planta" },
 ]
 
 export function OrderForm() {
+  const session = useSession();
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(orderFormSchema),
     defaultValues: {
@@ -102,10 +75,17 @@ export function OrderForm() {
     control: form.control,
   })
 
-  function onSubmit(data: OrderFormValues) {
-    console.log(data)
+async  function onSubmit(data: OrderFormValues) {
+    // const datos:CrearPedidoModel = {
+    //   ...data,
+    //   detallesPedido:data.productos,
+    // }
+    // const response = await new PedidoService(session.data?.user.token).crear(datos);
+    
     // Aquí iría la lógica para guardar el pedido
   }
+
+
 
   return (
     <Form {...form}>
@@ -115,7 +95,7 @@ export function OrderForm() {
             <div className="grid gap-6 md:grid-cols-2">
               <FormField
                 control={form.control}
-                name="clienteId"
+                name="idCliente"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Cliente</FormLabel>
@@ -130,74 +110,12 @@ export function OrderForm() {
                   </FormItem>
                 )}
               />
-{/* 
-              <FormField
-                control={form.control}
-                name="fechaPedido"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Fecha del Pedido</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
-                          >
-                            {field.value ? (
-                              format(field.value, "PPP", { locale: es })
-                            ) : (
-                              <span>Seleccione una fecha</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar mode="single" selected={field.value} onSelect={field.onChange} locale={es} />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              /> */}
               <CustomFormDatePicker 
                 control={form.control}
                 name="fechaPedido"
                 label="Fecha del Pedido"
                 defaultValue={new Date()}
                 withTime
-              />
-
-              <FormField
-                control={form.control}
-                name="fechaRequerimiento"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Fecha de Requerimiento General</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
-                          >
-                            {field.value ? (
-                              format(field.value, "PPP", { locale: es })
-                            ) : (
-                              <span>Seleccione una fecha</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar mode="single" selected={field.value} onSelect={field.onChange} locale={es} />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
               />
               <CustomFormInput 
                 control={form.control}
@@ -213,7 +131,14 @@ export function OrderForm() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-medium">Productos</h3>
-              <Button type="button" variant="outline" size="sm" onClick={() => append({})}>
+              <Button type="button" variant="outline" size="sm" onClick={() => append({
+                cantidad: 1,
+                fechaRequerimiento: new Date(),
+                tipoEntrega: "",
+                lugarEntrega: "",
+                productoId: "",
+                ciudad: "",
+              })}>
                 <Plus className="h-4 w-4 mr-2" />
                 Agregar Producto
               </Button>
@@ -230,119 +155,30 @@ export function OrderForm() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Producto</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Seleccione un producto" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {productos.map((producto) => (
-                                  <SelectItem key={producto.id} value={producto.id}>
-                                    {producto.nombre}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            <SelectWithSearch
+                              endpoint="productos/search"
+                              onSelect={field.onChange}
+                              defaultValue={field.value}
+                              placeholder="Seleccione un producto"
+                              maperOptions={(producto) => ({ value: producto.id, label: producto.nombre })}
+                            />
                             <FormMessage />
                           </FormItem>
                         )}
                       />
 
-                      <FormField
-                        control={form.control}
-                        name={`productos.${index}.presentacion`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Presentación</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Seleccione presentación" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {presentaciones.map((pres) => (
-                                  <SelectItem key={pres.id} value={pres.id}>
-                                    {pres.nombre}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name={`productos.${index}.unidad`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Unidad</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                {...field}
-                                onChange={(e) => field.onChange(Number.parseInt(e.target.value))}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
+                      <CustomFormInput 
                         control={form.control}
                         name={`productos.${index}.cantidad`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Cantidad</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                {...field}
-                                onChange={(e) => field.onChange(Number.parseFloat(e.target.value))}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
+                        label="Cantidad"
+                        type="number"
                       />
 
-                      <FormField
+                      <CustomFormDatePicker
                         control={form.control}
                         name={`productos.${index}.fechaRequerimiento`}
-                        render={({ field }) => (
-                          <FormItem className="flex flex-col">
-                            <FormLabel>Fecha de Requerimiento</FormLabel>
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <FormControl>
-                                  <Button
-                                    variant={"outline"}
-                                    className={cn(
-                                      "w-full pl-3 text-left font-normal",
-                                      !field.value && "text-muted-foreground",
-                                    )}
-                                  >
-                                    {field.value ? (
-                                      format(field.value, "PPP", { locale: es })
-                                    ) : (
-                                      <span>Seleccione una fecha</span>
-                                    )}
-                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                  </Button>
-                                </FormControl>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar mode="single" selected={field.value} onSelect={field.onChange} locale={es} />
-                              </PopoverContent>
-                            </Popover>
-                            <FormMessage />
-                          </FormItem>
-                        )}
+                        label="Fecha de Requerimiento"
+                        defaultValue={new Date()}
                       />
 
                       <FormField
@@ -351,20 +187,12 @@ export function OrderForm() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Tipo de Entrega</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Seleccione tipo de entrega" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {tiposEntrega.map((tipo) => (
-                                  <SelectItem key={tipo.id} value={tipo.id}>
-                                    {tipo.nombre}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            <CustomSelect 
+                              options={tiposEntrega.map((tipo) => ({ value: tipo.id, label: tipo.nombre }))}
+                              onChange={field.onChange}
+                              placeholder="Seleccione tipo de entrega"
+                              defaultValue={field.value}
+                          />
                             <FormMessage />
                           </FormItem>
                         )}
@@ -377,21 +205,16 @@ export function OrderForm() {
                           <FormItem>
                             <FormLabel>Lugar de Entrega</FormLabel>
                             <FormControl>
-                              <Input {...field} placeholder="Ej: Planta Principal" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name={`productos.${index}.ciudad`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Ciudad</FormLabel>
-                            <FormControl>
-                              <Input {...field} placeholder="Ej: Cúcuta" />
+                              <SelectWithSearch 
+                                endpoint="lugar-entrega/search"
+                                onSelect={field.onChange}
+                                defaultValue={field.value}
+                                params={{
+                                  idCliente: form.getValues('idCliente'),
+                                }}
+                                placeholder="Seleccione una ciudad"
+                                maperOptions={(ciudad) => ({ value: ciudad.id, label: ciudad.nombre })}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>

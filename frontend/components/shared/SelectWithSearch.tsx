@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { BACKEND_URL } from '@/config/envs';
@@ -33,7 +33,10 @@ const SelectWithSearch = ({
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const session = useSession();
-  console.log("Session", session)
+  
+  // Usar useRef para comparar los cambios reales en params
+  const prevParamsRef = useRef<Record<string, string>>(params);
+
   const fetchOptions = async (searchTerm = "") => {
     setLoading(true);
     try {
@@ -41,7 +44,7 @@ const SelectWithSearch = ({
       const response = await fetch(`${apiUrl}/${endpoint}?${queryParams}`, {
         headers: {
           "Authorization": `Bearer ${session.data?.user?.token}`
-      }
+        }
       });
       if (!response.ok) throw new Error("Failed to fetch options");
 
@@ -60,13 +63,44 @@ const SelectWithSearch = ({
     }
   };
 
+  // Verificar si los params cambiaron realmente
+  const didParamsChange = () => {
+    const prevParams = prevParamsRef.current;
+    
+    // Si tienen diferentes cantidades de propiedades
+    if (Object.keys(prevParams).length !== Object.keys(params).length) {
+      return true;
+    }
+    
+    // Comparar cada propiedad
+    for (const key in params) {
+      if (params[key] !== prevParams[key]) {
+        return true;
+      }
+    }
+    
+    return false;
+  };
+
+  // Efecto para la carga inicial y cuando cambia la sesión o endpoint
   useEffect(() => {
     if (!session?.data?.user?.token) return;
     fetchOptions();
-  }, [apiUrl, endpoint, session]);
+  }, [session]);
 
+  // Efecto para cuando cambian los parámetros
   useEffect(() => {
-    if (search.length === 0) return;
+    if (!session?.data?.user?.token) return;
+    
+    if (didParamsChange()) {
+      fetchOptions(search);
+      prevParamsRef.current = { ...params };
+    }
+  }, [params, apiUrl, endpoint]);
+
+  // Efecto para la búsqueda
+  useEffect(() => {
+    if (!session?.data?.user?.token || search.length === 0) return;
 
     const timeoutId = setTimeout(() => {
       fetchOptions(search);

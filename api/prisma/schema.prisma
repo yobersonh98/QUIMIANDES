@@ -38,6 +38,16 @@ enum TipoDocumento {
   PASAPORTE
 }
 
+enum EstadoPedido {
+  PENDIENTE
+  DESPACHADO
+  EN_TRANSITO
+  ENTREGADO
+  CANCELADO
+  APLAZADO
+  DEVUELTO
+}
+
 enum UnidadMedida {
   // Unidades de conteo
   UND // Unidad
@@ -160,16 +170,15 @@ model Pedido {
   id                 String          @id @default(cuid())
   fechaRecibido      DateTime        @default(now())
   idCliente          String
-  estado             String
+  estado             EstadoPedido    @default(PENDIENTE)
+  
   observaciones      String?
-  fechaRequerimiento DateTime
   fechaEntrega       DateTime?
   tiempoEntrega      Int?
   pesoDespachado     Float?
   productos          DetallePedido[]
   entregas           Entrega[]
   ordenesCompra      OrdenCompra[] // Relación opuesta con OrdenCompra
-
   cliente Cliente @relation(fields: [idCliente], references: [id])
 }
 
@@ -178,10 +187,14 @@ model DetallePedido {
   pedido     Pedido   @relation(fields: [pedidoId], references: [id])
   pedidoId   String
   producto   Producto @relation(fields: [productoId], references: [id])
+  idLugarEntrega String
+  lugarEntrega LugarEntrega @relation(fields: [idLugarEntrega], references: [id])
   productoId String
-  unidades   Int
-  cantidad   Float
-  total      Float
+  fechaCreacion DateTime @default(now())
+  fechaEntrega DateTime? 
+  unidades   Int  @default(0)
+  cantidad   Float @default(0)
+  total      Float @default(0)
 }
 
 model Entrega {
@@ -210,6 +223,8 @@ model LugarEntrega {
   cliente  Cliente   @relation(fields: [idCliente], references: [id])
   entregas Entrega[]
   ciudad   Municipio @relation(fields: [idCiudad], references: [id])
+  detallesPedidos DetallePedido[] 
+  @@index([nombre])
 }
 
 model OrdenCompra {
@@ -217,9 +232,9 @@ model OrdenCompra {
   pedido             Pedido   @relation(fields: [pedidoId], references: [id])
   pedidoId           String
   numeroOrden        String
-  fechaRequerimiento DateTime
-  tiempoEntrega      Int
-  pesoDespachado     Float
+  fechaRequerimiento DateTime  @default(now())
+  tiempoEntrega      Int       @default(0)
+  pesoDespachado     Float     @default(0)
   remision           String?
 }
 

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateLugarEntregaDto } from './dto/create-lugar-entrega.dto';
 import { UpdateLugarEntregaDto } from './dto/update-lugar-entrega.dto';
 import { PrismaService } from './../prisma/prisma.service';
+import { SearchLugarEntregaDto } from './dto/search-lugar-entrega.dto';
 
 @Injectable()
 export class LugarEntregaService {
@@ -10,10 +11,13 @@ export class LugarEntregaService {
   create(createLugarEntregaDto: CreateLugarEntregaDto) {
     return 'This action adds a new lugarEntrega';
   }
-
-  findAll(idCliente: string) {
+  findAll(params: SearchLugarEntregaDto) {
     return this.prisma.lugarEntrega.findMany({
-      where: { idCliente, activo: true
+      where: { idCliente: params.idCliente, activo: true,
+        OR: [
+          { direccion: { contains: params.search, mode: 'insensitive' } },
+          { nombre : { contains: params.search, mode: 'insensitive' } },
+        ]
       },
     });
   }

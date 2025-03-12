@@ -41,6 +41,18 @@ export class ProductoService {
 
   }
 
+  async search(search: string) {
+    return await this.prisma.producto.findMany({
+      where: {
+        nombre: {
+          contains: search,
+          mode: 'insensitive',
+        },
+      },
+      take: 50
+    });
+  }
+
   async findOne(id: string) {
     const producto = await this.prisma.producto.findUnique({
       where: { id },

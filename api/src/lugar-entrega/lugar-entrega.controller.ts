@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Search, Query } from '@nestjs/common';
 import { LugarEntregaService } from './lugar-entrega.service';
 import { CreateLugarEntregaDto } from './dto/create-lugar-entrega.dto';
 import { UpdateLugarEntregaDto } from './dto/update-lugar-entrega.dto';
+import { SearchLugarEntregaDto } from './dto/search-lugar-entrega.dto';
 
 @Controller('lugar-entrega')
 export class LugarEntregaController {
@@ -12,9 +13,9 @@ export class LugarEntregaController {
     return this.lugarEntregaService.create(createLugarEntregaDto);
   }
 
-  @Get(':idCliente')
-  findAll(@Param('idCliente') idCliente: string) {
-    return this.lugarEntregaService.findAll(idCliente);
+  @Get('search')
+  findAll(@Query() params: SearchLugarEntregaDto) {
+    return this.lugarEntregaService.findAll(params);
   }
 
   @Get(':id')

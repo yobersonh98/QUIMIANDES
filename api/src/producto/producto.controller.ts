@@ -25,6 +25,14 @@ export class ProductoController {
     const productos = await this.productoService.findAll(paginationDto);  
     return productos;
   }
+  @ApiOperation({ summary: 'Obtener un producto por busqueda' })
+  @ApiResponse({ status: 200, description: 'Producto encontrado.' })
+  @ApiResponse({ status: 404, description: 'Producto no encontrado.' })
+  @Get('search')
+  async searchProducts(@Query('search') search: string) {
+    return this.productoService.search(search);
+  }
+
   @ApiOperation({ summary: 'Obtener todas las unidades de medida' })
   @ApiResponse({ status: 200, description: 'Lista de unidades de medida obtenida exitosamente.' })
   @Get('unidades-medida')

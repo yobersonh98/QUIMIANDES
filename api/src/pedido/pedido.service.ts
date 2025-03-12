@@ -7,12 +7,22 @@ import { PrismaService } from '../prisma/prisma.service';
 export class PedidoService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createPedidoDto: CreatePedidoDto) {
-    return await this.prisma.pedido.create({
-      data: {
-        ...createPedidoDto,
-      },
-    });
+  async create({detallesPedido, ...infoPedido}: CreatePedidoDto) {
+    try {
+      const pedido = await this.prisma.pedido.create({
+        data: {
+          ...infoPedido,
+          productos: {
+            createMany: {
+              data: detallesPedido
+            }
+          }
+        }
+      })
+      return pedido
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   async findAll() {

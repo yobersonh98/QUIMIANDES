@@ -1,7 +1,8 @@
-import { IsString, IsInt, IsNumber } from 'class-validator';
+import { IsString, IsInt, IsNumber, isString, IsDateString, IsOptional } from 'class-validator';
 
 export class CreateDetallePedidoDto {
   @IsString()
+  @IsOptional()
   pedidoId: string;
 
   @IsString()
@@ -15,4 +16,13 @@ export class CreateDetallePedidoDto {
 
   @IsNumber()
   total: number;
+
+  @IsString()
+  idLugarEntrega: string;
+
+  @IsString()
+  tipoEntrega: string;
+
+  @IsDateString()
+  fechaRequerimiento: Date;
 }
