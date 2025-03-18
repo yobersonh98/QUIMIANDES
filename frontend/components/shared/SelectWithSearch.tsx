@@ -107,7 +107,7 @@ const SelectWithSearch = ({
 
     const timeoutId = setTimeout(() => {
       fetchOptions(search);
-    }, 300);
+    }, 200);
 
     return () => clearTimeout(timeoutId);
   }, [search]);

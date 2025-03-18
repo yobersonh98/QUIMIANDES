@@ -7,7 +7,9 @@ export const OrderFormSchema = z.object({
   fechaRecibido: z.date({
     required_error: "Por favor seleccione la fecha del pedido",
   }),
-
+  fechaEntregaGlobal: z.date().optional(),
+  tipoEntregaGlobal: z.string().optional(),
+  lugarEntregaGlobal: z.string(),
   estado: z.string({
     required_error: "Por favor seleccione un estado",
   }),

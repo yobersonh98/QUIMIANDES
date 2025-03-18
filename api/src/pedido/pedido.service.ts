@@ -23,7 +23,6 @@ export class PedidoService {
       }
     });
     const detallesPedidoSaved = [];
-    console.log(detallesPedido)
     if (detallesPedido && detallesPedido.length > 0) {
       for await(const detalle of detallesPedido) {
         detalle.pedidoId = pedidoId

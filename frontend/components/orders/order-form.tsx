@@ -18,7 +18,6 @@ import { useState } from "react"
 import { TipoEntregaProducto, TiposEntrega } from "@/core/constantes/pedido"
 import { OrderFormSchema, OrderFormValues } from "./schemas/order-form-schema"
 
-
 export function OrderForm() {
   const session = useSession();
   const [isLoading, setIsLoading] = useState(false);
@@ -34,6 +33,26 @@ export function OrderForm() {
     name: "detallesPedido",
     control: form.control,
   })
+
+  const detallesPedido = useWatch({
+    control: form.control,
+    name: `detallesPedido`,
+  });
+
+  const idCliente = useWatch({
+    control: form.control,
+    name: 'idCliente'
+  })
+
+  const aplicarValoresGlobales = () => {
+    const valoresGlobales = form.getValues();
+    detallesPedido.forEach((_, index) => {
+      form.setValue(`detallesPedido.${index}.fechaEntrega`, valoresGlobales.fechaEntregaGlobal || new Date());
+      form.setValue(`detallesPedido.${index}.tipoEntrega`, valoresGlobales.tipoEntregaGlobal || '');
+      form.setValue(`detallesPedido.${index}.lugarEntregaId`, valoresGlobales.lugarEntregaGlobal);
+    });
+    console.log(form.getValues())
+  }
 
   async function onSubmit() {
     try {
@@ -66,11 +85,6 @@ export function OrderForm() {
     }
   }
 
-  const detallesPedido = useWatch({
-    control: form.control,
-    name: `detallesPedido`,
-  });
-
   return (
     <Form {...form}>
       <form className="space-y-8">
@@ -86,6 +100,7 @@ export function OrderForm() {
                     <SelectWithSearch
                       endpoint="cliente/search"
                       onSelect={field.onChange}
+                      
                       defaultValue={field.value}
                       placeholder="Seleccione un cliente"
                       maperOptions={(cliente) => ({ value: cliente.id, label: cliente.nombre })}
@@ -129,10 +144,62 @@ export function OrderForm() {
             </div>
 
             <div className="space-y-4">
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="grid gap-6 md:grid-cols-3">
+                    <CustomFormDatePicker
+                      control={form.control}
+                      name="fechaEntregaGlobal"
+                      label="Fecha de Entrega Global"
+                      defaultValue={new Date()}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="tipoEntregaGlobal"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Tipo de Entrega Global</FormLabel>
+                          <CustomSelect
+                            options={TiposEntrega.map((tipo) => ({ value: tipo.id, label: tipo.nombre }))}
+                            onChange={field.onChange}
+                            placeholder="Seleccione tipo de entrega"
+                            defaultValue={field.value}
+                          />
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="lugarEntregaGlobal"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Lugar de Entrega Global</FormLabel>
+                          <FormControl>
+                            <SelectWithSearch
+                              endpoint="lugar-entrega/search"
+                              onSelect={field.onChange}
+                              defaultValue={field.value}
+                              params={{
+                                idCliente,
+                              }}
+                              placeholder="Seleccione una ciudad"
+                              maperOptions={(ciudad) => ({ value: ciudad.id, label: ciudad.nombre })}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <Button type="button" variant="outline" size="sm" className="mt-4" onClick={aplicarValoresGlobales}>
+                    Aplicar a todos los productos
+                  </Button>
+                </CardContent>
+              </Card>
+
               {fields.map((field, index) => {
-
-                const tipoEntrega = detallesPedido?.[index]?.tipoEntrega; // Obtener tipo de entrega
-
+                const tipoEntrega = detallesPedido?.[index]?.tipoEntrega;
                 return (
                   <Card key={field.id}>
                     <CardContent className="pt-6">
@@ -146,7 +213,6 @@ export function OrderForm() {
                               <SelectWithSearch
                                 endpoint="productos/search"
                                 onSelect={field.onChange}
-                                // params={{ idCliente: form.getFieldState('idCliente')}}
                                 defaultValue={field.value}
                                 placeholder="Seleccione un producto"
                                 maperOptions={(producto) => ({ value: producto.id, label: producto.nombre })}
@@ -189,19 +255,19 @@ export function OrderForm() {
 
                         <FormField
                           control={form.control}
-                          disabled={tipoEntrega === TipoEntregaProducto.RECOGE_EN_PLANTA}  // 🔹 Deshabilita si es "Recoge en Planta"
+                          disabled={tipoEntrega === TipoEntregaProducto.RECOGE_EN_PLANTA}
                           name={`detallesPedido.${index}.lugarEntregaId`}
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Lugar de Entrega</FormLabel>
                               <FormControl>
                                 <SelectWithSearch
-                                  disabled={tipoEntrega === TipoEntregaProducto.RECOGE_EN_PLANTA}  // 🔹 Deshabilita si es "Recoge en Planta"
+                                  disabled={tipoEntrega === TipoEntregaProducto.RECOGE_EN_PLANTA}
                                   endpoint="lugar-entrega/search"
                                   onSelect={field.onChange}
                                   defaultValue={field.value}
                                   params={{
-                                    idCliente: form.getValues('idCliente'),
+                                    idCliente,
                                   }}
                                   placeholder="Seleccione una ciudad"
                                   maperOptions={(ciudad) => ({ value: ciudad.id, label: ciudad.nombre })}
@@ -220,7 +286,6 @@ export function OrderForm() {
                     </CardContent>
                   </Card>
                 )
-
               })}
             </div>
           </CardContent>
@@ -258,4 +323,3 @@ export function OrderForm() {
     </Form>
   )
 }
-
