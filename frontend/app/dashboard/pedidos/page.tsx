@@ -1,9 +1,14 @@
-import { OrdersTable } from "@/components/orders/order-table"
+import TablePedidos from "@/components/pedidos/table-pedidos"
 import { Button } from "@/components/ui/button"
+import { PageProps, PaginationSearchParamsPage } from "@/types/pagination"
 import { Plus } from "lucide-react"
 import Link from "next/link"
 
-export default function OrdersPage() {
+export default async function OrdersPage(
+  {searchParams}: PageProps<PaginationSearchParamsPage>
+) {
+  const params = await searchParams
+
   return (
     <div className="flex-1 space-y-4 pt-6">
       <div className="flex items-center flex-row justify-between space-y-2">
@@ -16,7 +21,9 @@ export default function OrdersPage() {
           </Link>
         </div>
       </div>
-      <OrdersTable />
+      <TablePedidos
+        {...params}
+      />
     </div>
   )
 }

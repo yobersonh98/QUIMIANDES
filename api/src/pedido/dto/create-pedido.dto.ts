@@ -1,5 +1,6 @@
-import { IsDate, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsDate, IsDateString, IsInt, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { CreateDetallePedidoDto } from '../../detalle-pedido/dto/create-detalle-pedido.dto';
+import { Type } from 'class-transformer';
 
 export class CreatePedidoDto {
   @IsString()
@@ -9,8 +10,8 @@ export class CreatePedidoDto {
   @IsString()
   observaciones?: string;
 
-  @IsDate()
-  fechaRequerimiento: Date;
+  @IsDateString()
+  fechaRecibido?: Date;
 
   @IsOptional()
   @IsDate()
@@ -24,6 +25,14 @@ export class CreatePedidoDto {
   @IsNumber()
   pesoDespachado?: number;
 
-  detallesPedido: CreateDetallePedidoDto[]
+  @IsString()
+  @IsOptional()
+  ordenCompra?: string
 
+
+  @IsOptional() // ✅ Hace que detallesPedido sea opcional
+  @IsArray() // ✅ Asegura que sea un array
+  @ValidateNested({ each: true }) // ✅ Valida cada elemento dentro del array
+  @Type(() => CreateDetallePedidoDto) // ✅ Transforma los datos al tipo esperado
+  detallesPedido?: CreateDetallePedidoDto[];
 }

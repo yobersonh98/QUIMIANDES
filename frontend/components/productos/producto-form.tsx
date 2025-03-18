@@ -13,6 +13,7 @@ import { ProductoEntity, UnidadMedida } from "@/services/productos/entities/prod
 import { CrearProductoModel } from "@/services/productos/models/crear-producto.model"
 import { ActualizarProductoModel } from "@/services/productos/models/actualizar-producto.model"
 import SelectWithSearch from "../shared/SelectWithSearch"
+import { CustomSelect } from "../shared/custom-select"
 
 // Mock data for providers and presentations
 
@@ -104,7 +105,15 @@ export function ProductForm({ initialData, onSubmit, isEditing = false }: Produc
                   <FormItem>
                     <FormLabel>Tipo</FormLabel>
                     <FormControl>
-                      <Input placeholder="Tipo de producto" {...field} />
+                      <CustomSelect
+                        defaultValue='Materia Prisma'
+                        onChange={field.onChange}
+                        options={[
+                          { value: 'Materia Prisma', label: 'Materia Prima'},
+                          { value: 'Comercial', label: 'Comercial'},
+                          { value: 'Trabajos en Fibra', label:'Trabajos en Fibra'}
+                        ]}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

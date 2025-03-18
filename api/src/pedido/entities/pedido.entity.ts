@@ -1,3 +1,4 @@
+import { EstadoPedido } from '@prisma/client';
 import { Cliente } from '../../cliente/entities/cliente.entity';
 import { DetallePedido } from '../../detalle-pedido/entities/detalle-pedido.entity';
 import { Entrega } from '../../entrega/entities/entrega.entity';
@@ -17,4 +18,16 @@ export class Pedido {
   productos: DetallePedido[];
   entregas: Entrega[];
   ordenesCompra: OrdenCompra[];
+}
+
+export interface PedidoDataTable {
+  id?:string;
+  cliente?: {
+    nombre?: string
+  };
+  idCliente?: string
+  fechaRecibido?: string
+  ordenCompra?: string
+  estado?: EstadoPedido
+  cantidadDetallesPedido?: number;
 }

@@ -25,8 +25,8 @@ async function bootstrap() {
   // Configuración del ValidationPipe
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: false, // Permite campos desconocidos
-      forbidNonWhitelisted: false, // No lanza error por campos desconocidos
+      whitelist: true, // ❗ Elimina las propiedades desconocidas
+      forbidNonWhitelisted: false, // No lanza error si llegan propiedades extra
       transform: true, // Convierte los datos al tipo esperado
     }),
   );

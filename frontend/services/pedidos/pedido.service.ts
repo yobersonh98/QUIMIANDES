@@ -1,7 +1,8 @@
 import { ErrorResponse, ServiceResponse, SuccessResponse } from "@/core/service/service.response";
 import { ApiService } from "../api/ApiService";
 import { CrearPedidoModel } from "./models/crear-pedido.model";
-import { PedidoEntity } from "./entity/pedido.entity";
+import { PedidoDataTable, PedidoEntity } from "./entity/pedido.entity";
+import { PaginationResponse, PaginationSearchParamsPage } from "@/types/pagination";
 
 export class PedidoService extends ApiService {
   constructor(token?:string) {
@@ -12,10 +13,24 @@ export class PedidoService extends ApiService {
     try {
       const data = await this.makeRequest<PedidoEntity>({
         data: datos,
+        method:'post'
       })
       return new SuccessResponse(data);
     } catch (error) {
       return ErrorResponse.fromUnknownError(error)
+    }
+  }
+
+  async listar(paginationDto: PaginationSearchParamsPage): Promise<ServiceResponse<PaginationResponse<PedidoDataTable[]>>> {
+    try {
+      const data = await this.makeRequest<PaginationResponse<PedidoDataTable[]>>({
+        searchParams: {
+          ...paginationDto,
+        }
+      })
+      return new SuccessResponse(data);
+    } catch (error) {
+      return ErrorResponse.fromUnknownError(error);
     }
   }
 

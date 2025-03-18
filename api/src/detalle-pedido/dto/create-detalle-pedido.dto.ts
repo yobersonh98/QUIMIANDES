@@ -1,4 +1,5 @@
-import { IsString, IsInt, IsNumber, isString, IsDateString, IsOptional } from 'class-validator';
+import { TipoEntregaProducto } from '@prisma/client';
+import { IsString, IsInt, IsNumber, IsDateString, IsOptional } from 'class-validator';
 
 export class CreateDetallePedidoDto {
   @IsString()
@@ -14,15 +15,17 @@ export class CreateDetallePedidoDto {
   @IsNumber()
   cantidad: number;
 
-  @IsNumber()
-  total: number;
+  @IsString()
+  lugarEntregaId: string;
 
   @IsString()
-  idLugarEntrega: string;
-
-  @IsString()
-  tipoEntrega: string;
+  tipoEntrega: TipoEntregaProducto;
 
   @IsDateString()
-  fechaRequerimiento: Date;
+  @IsOptional()
+  fechaEntrega?: Date
+
+  @IsString()
+  @IsOptional()
+  remision?: string
 }

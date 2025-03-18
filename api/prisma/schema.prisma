@@ -37,7 +37,10 @@ enum TipoDocumento {
   TI
   PASAPORTE
 }
-
+enum TipoEntregaProducto {
+  RECOGE_EN_PLANTA
+  ENTREGA_AL_CLIENTE
+}
 enum EstadoPedido {
   PENDIENTE
   DESPACHADO
@@ -49,40 +52,18 @@ enum EstadoPedido {
 }
 
 enum UnidadMedida {
-  // Unidades de conteo
   UND // Unidad
-  
-  // Unidades de masa
-  MG  // Miligramo
-  GR  // Gramo
-  KG  // Kilogramo
-  LB  // Libra
-  TON // Tonelada
-  
-  // Unidades de volumen
-  ML  // Mililitro
-  L   // Litro
-  M3  // Metro cúbico
-  GAL // Galón
-  ONZ // Onza líquida
-  
-  // Unidades de longitud
-  MM  // Milímetro
-  CM  // Centímetro
-  M   // Metro
-  MTS // Metros (redundante con Mpodría eliminarse)
-  PULG// Pulgada
-  PIES// Pies
-  
-  // Unidades de superficie
-  M2  // Metro cuadrado
-  
-  // Unidades de cocina
-  TAZA// Taza
-  CDA // Cucharada
-  CTA   // Cucharadita
+  KG // Kilogramo
+  L // Litro
+  M3 // Metro cúbico
+  M2 // Metro cuadrado
 }
 
+enum EstadODetallePedido {
+  PENDIENTE
+  DESPACHADO
+  FINALIZADO
+}
 
 model Cliente {
   id             String              @id @default(cuid())
@@ -113,9 +94,8 @@ model Proveedor {
   productos     Producto[]
 }
 
-
 model Presentacion {
-  id          String   @id @default(cuid())
+  id          String     @id @default(cuid())
   nombre      String
   descripcion String?
   productos   Producto[]
@@ -129,12 +109,12 @@ model Producto {
   tipo              String
   pesoVolumen       Float
   precioBase        Float
-  unidadMedida      UnidadMedida       @default(UND)
+  unidadMedida      UnidadMedida        @default(UND)
   inventarios       InventarioCliente[]
   detalleCotizacion DetalleCotizacion[]
   detallePedidos    DetallePedido[] // Relación opuesta con DetallePedido
-  presentacion      Presentacion       @relation(fields: [idPresentacion], references: [id])
-  proveedor         Proveedor          @relation(fields: [idProveedor], references: [id])
+  presentacion      Presentacion        @relation(fields: [idPresentacion], references: [id])
+  proveedor         Proveedor           @relation(fields: [idProveedor], references: [id])
 }
 
 model InventarioCliente {
@@ -167,34 +147,38 @@ model DetalleCotizacion {
 }
 
 model Pedido {
-  id                 String          @id @default(cuid())
-  fechaRecibido      DateTime        @default(now())
-  idCliente          String
-  estado             EstadoPedido    @default(PENDIENTE)
-  
-  observaciones      String?
-  fechaEntrega       DateTime?
-  tiempoEntrega      Int?
-  pesoDespachado     Float?
-  productos          DetallePedido[]
-  entregas           Entrega[]
-  ordenesCompra      OrdenCompra[] // Relación opuesta con OrdenCompra
-  cliente Cliente @relation(fields: [idCliente], references: [id])
+  id            String       @id @default(cuid())
+  fechaRecibido DateTime     @default(now())
+  idCliente     String
+  estado        EstadoPedido @default(PENDIENTE)
+
+  observaciones  String?
+  fechaEntrega   DateTime?
+  tiempoEntrega  Int?
+  pesoDespachado Float @default(0)
+  detallesPedido      DetallePedido[]
+  entregas       Entrega[]
+  ordenCompra    String?
+  cliente        Cliente         @relation(fields: [idCliente], references: [id])
 }
 
 model DetallePedido {
-  id         String   @id @default(cuid())
-  pedido     Pedido   @relation(fields: [pedidoId], references: [id])
-  pedidoId   String
-  producto   Producto @relation(fields: [productoId], references: [id])
-  idLugarEntrega String
-  lugarEntrega LugarEntrega @relation(fields: [idLugarEntrega], references: [id])
-  productoId String
-  fechaCreacion DateTime @default(now())
-  fechaEntrega DateTime? 
-  unidades   Int  @default(0)
-  cantidad   Float @default(0)
-  total      Float @default(0)
+  id             String       @id @default(cuid())
+  pedido         Pedido       @relation(fields: [pedidoId], references: [id])
+  pedidoId       String
+  producto       Producto     @relation(fields: [productoId], references: [id])
+  lugarEntregaId String?
+  lugarEntrega   LugarEntrega?  @relation(fields: [lugarEntregaId], references: [id])
+  productoId     String
+  fechaCreacion  DateTime     @default(now())
+  fechaEntrega   DateTime?
+  remision       String?
+  unidades       Float          @default(0)
+  cantidad       Float        @default(0)
+  tipoEntrega    TipoEntregaProducto @default(ENTREGA_AL_CLIENTE)
+  precioUnitario        Float             @default(0) // el precio en el que se genero el producto
+  cantidadDespachada    Float             @default(0)
+  entregasDetallePedido EntregaProducto[]
 }
 
 model Entrega {
@@ -203,12 +187,24 @@ model Entrega {
   pedidoId        String
   vehiculoInterno String?
   vehiculoExterno String?
-  entregadoPorA   String
+  entregadoPorA   String?
   idLugarEntrega  String
   tipoEntrega     String
   remision        String?
   observaciones   String?
+  fechaCreacion DateTime @default(now())
   lugarEntrega    LugarEntrega @relation(fields: [idLugarEntrega], references: [id])
+}
+
+model EntregaProducto {
+  id              String @id @default(cuid())
+  entregaId       String
+  detallePedidoId String
+
+  detallePedido      DetallePedido @relation(references: [id], fields: [detallePedidoId])
+  cantidadDespachada Float         @default(0)
+  fechaEntrega    DateTime?
+  observaciones      String?
 }
 
 model LugarEntrega {
@@ -219,23 +215,13 @@ model LugarEntrega {
   direccion String
   contacto  String
 
-  activo   Boolean   @default(true)
-  cliente  Cliente   @relation(fields: [idCliente], references: [id])
-  entregas Entrega[]
-  ciudad   Municipio @relation(fields: [idCiudad], references: [id])
-  detallesPedidos DetallePedido[] 
-  @@index([nombre])
-}
+  activo          Boolean         @default(true)
+  cliente         Cliente         @relation(fields: [idCliente], references: [id])
+  entregas        Entrega[]
+  ciudad          Municipio       @relation(fields: [idCiudad], references: [id])
+  detallesPedidos DetallePedido[]
 
-model OrdenCompra {
-  id                 String   @id @default(cuid())
-  pedido             Pedido   @relation(fields: [pedidoId], references: [id])
-  pedidoId           String
-  numeroOrden        String
-  fechaRequerimiento DateTime  @default(now())
-  tiempoEntrega      Int       @default(0)
-  pesoDespachado     Float     @default(0)
-  remision           String?
+  @@index([nombre])
 }
 
 model Municipio {

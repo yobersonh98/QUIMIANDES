@@ -1,7 +1,6 @@
 "use client"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useFieldArray, useForm } from "react-hook-form"
-import * as z from "zod"
+import { useFieldArray, useForm, useWatch } from "react-hook-form"
 import { Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
@@ -14,82 +13,67 @@ import { CustomSelect } from "../shared/custom-select"
 import { useSession } from "next-auth/react"
 import { CrearPedidoModel } from "@/services/pedidos/models/crear-pedido.model"
 import { PedidoService } from "@/services/pedidos/pedido.service"
+import { useToast } from "@/hooks/use-toast"
+import { useState } from "react"
+import { TipoEntregaProducto, TiposEntrega } from "@/core/constantes/pedido"
+import { OrderFormSchema, OrderFormValues } from "./schemas/order-form-schema"
 
-const orderFormSchema = z.object({
-  idCliente: z.string({
-    required_error: "Por favor seleccione un cliente",
-  }),
-  fechaPedido: z.date({
-    required_error: "Por favor seleccione la fecha del pedido",
-  }),
-  fechaRequerimiento: z.date({
-    required_error: "Por favor seleccione una fecha de requerimiento",
-  }),
-  estado: z.string({
-    required_error: "Por favor seleccione un estado",
-  }),
-  ordenCompra: z.string().optional(),
-  observaciones: z.string().optional(),
-  productos: z
-    .array(
-      z.object({
-        productoId: z.string({
-          required_error: "Por favor seleccione un producto",
-        }),
-        cantidad: z.number({
-          required_error: "Por favor ingrese la cantidad",
-        }),
-        fechaRequerimiento: z.date({
-          required_error: "Por favor seleccione una fecha de requerimiento",
-        }),
-        tipoEntrega: z.string({
-          required_error: "Por favor seleccione el tipo de entrega",
-        }),
-        ciudad: z.string({
-          required_error: "Por favor ingrese la ciudad",
-        }),
-      }),
-    )
-    .min(1, "Debe agregar al menos un producto"),
-})
-
-type OrderFormValues = z.infer<typeof orderFormSchema>
-
-
-const tiposEntrega = [
-  { id: "entrega_cliente", nombre: "Entrega al Cliente" },
-  { id: "recoge_planta", nombre: "Recoge en Planta" },
-]
 
 export function OrderForm() {
   const session = useSession();
+  const [isLoading, setIsLoading] = useState(false);
   const form = useForm<OrderFormValues>({
-    resolver: zodResolver(orderFormSchema),
+    resolver: zodResolver(OrderFormSchema),
     defaultValues: {
-      productos: [{}],
+      detallesPedido: [{}],
     },
   })
+  const { toast } = useToast()
 
   const { fields, append, remove } = useFieldArray({
-    name: "productos",
+    name: "detallesPedido",
     control: form.control,
   })
 
-async  function onSubmit(data: OrderFormValues) {
-    // const datos:CrearPedidoModel = {
-    //   ...data,
-    //   detallesPedido:data.productos,
-    // }
-    // const response = await new PedidoService(session.data?.user.token).crear(datos);
-    
-    // Aquí iría la lógica para guardar el pedido
+  async function onSubmit() {
+    try {
+      const data: OrderFormValues = form.getValues();
+      const datos: CrearPedidoModel = {
+        ...data,
+        fechaRecibido: data.fechaRecibido,
+        detallesPedido: data.detallesPedido.map(p => ({
+          productoId: p.productoId || '',
+          tipoEntrega: p.tipoEntrega || '',
+          cantidad: parseFloat(p.cantidad) || 0,
+          fechaEntrega: p.fechaEntrega || '',
+          lugarEntregaId: p.lugarEntregaId || '',
+          unidades: 0,
+        })),
+      }
+      setIsLoading(true)
+      const response = await new PedidoService(session.data?.user.token).crear(datos);
+      if (response.error) {
+        return toast({ title: response.error.message })
+      }
+      toast({
+        title: 'Pedido creado correctamente',
+        description: 'Se recomienda gestionar el pedido en funcionalidad Gestionar Pedido'
+      })
+    } catch (error) {
+      console.log(error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-
+  const detallesPedido = useWatch({
+    control: form.control,
+    name: `detallesPedido`,
+  });
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form className="space-y-8">
         <Card>
           <CardContent className="pt-6">
             <div className="grid gap-6 md:grid-cols-2">
@@ -110,14 +94,15 @@ async  function onSubmit(data: OrderFormValues) {
                   </FormItem>
                 )}
               />
-              <CustomFormDatePicker 
+              <CustomFormDatePicker
                 control={form.control}
-                name="fechaPedido"
+                name="fechaRecibido"
                 label="Fecha del Pedido"
                 defaultValue={new Date()}
                 withTime
+                disabled
               />
-              <CustomFormInput 
+              <CustomFormInput
                 control={form.control}
                 name="ordenCompra"
                 label="Orden de Compra"
@@ -132,12 +117,11 @@ async  function onSubmit(data: OrderFormValues) {
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-medium">Productos</h3>
               <Button type="button" variant="outline" size="sm" onClick={() => append({
-                cantidad: 1,
-                fechaRequerimiento: new Date(),
+                cantidad: '1',
+                fechaEntrega: new Date(),
                 tipoEntrega: "",
-                lugarEntrega: "",
+                lugarEntregaId: "",
                 productoId: "",
-                ciudad: "",
               })}>
                 <Plus className="h-4 w-4 mr-2" />
                 Agregar Producto
@@ -145,90 +129,99 @@ async  function onSubmit(data: OrderFormValues) {
             </div>
 
             <div className="space-y-4">
-              {fields.map((field, index) => (
-                <Card key={field.id}>
-                  <CardContent className="pt-6">
-                    <div className="grid gap-6 md:grid-cols-2">
-                      <FormField
-                        control={form.control}
-                        name={`productos.${index}.productoId`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Producto</FormLabel>
-                            <SelectWithSearch
-                              endpoint="productos/search"
-                              onSelect={field.onChange}
-                              defaultValue={field.value}
-                              placeholder="Seleccione un producto"
-                              maperOptions={(producto) => ({ value: producto.id, label: producto.nombre })}
-                            />
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+              {fields.map((field, index) => {
 
-                      <CustomFormInput 
-                        control={form.control}
-                        name={`productos.${index}.cantidad`}
-                        label="Cantidad"
-                        type="number"
-                      />
+                const tipoEntrega = detallesPedido?.[index]?.tipoEntrega; // Obtener tipo de entrega
 
-                      <CustomFormDatePicker
-                        control={form.control}
-                        name={`productos.${index}.fechaRequerimiento`}
-                        label="Fecha de Requerimiento"
-                        defaultValue={new Date()}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name={`productos.${index}.tipoEntrega`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Tipo de Entrega</FormLabel>
-                            <CustomSelect 
-                              options={tiposEntrega.map((tipo) => ({ value: tipo.id, label: tipo.nombre }))}
-                              onChange={field.onChange}
-                              placeholder="Seleccione tipo de entrega"
-                              defaultValue={field.value}
-                          />
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name={`productos.${index}.lugarEntrega`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Lugar de Entrega</FormLabel>
-                            <FormControl>
-                              <SelectWithSearch 
-                                endpoint="lugar-entrega/search"
+                return (
+                  <Card key={field.id}>
+                    <CardContent className="pt-6">
+                      <div className="grid gap-6 md:grid-cols-2">
+                        <FormField
+                          control={form.control}
+                          name={`detallesPedido.${index}.productoId`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Producto</FormLabel>
+                              <SelectWithSearch
+                                endpoint="productos/search"
                                 onSelect={field.onChange}
+                                // params={{ idCliente: form.getFieldState('idCliente')}}
                                 defaultValue={field.value}
-                                params={{
-                                  idCliente: form.getValues('idCliente'),
-                                }}
-                                placeholder="Seleccione una ciudad"
-                                maperOptions={(ciudad) => ({ value: ciudad.id, label: ciudad.nombre })}
+                                placeholder="Seleccione un producto"
+                                maperOptions={(producto) => ({ value: producto.id, label: producto.nombre })}
                               />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                    <Button type="button" variant="ghost" size="sm" className="mt-4" onClick={() => remove(index)}>
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Eliminar Producto
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+                        <CustomFormInput
+                          control={form.control}
+                          name={`detallesPedido.${index}.cantidad`}
+                          label="Cantidad"
+                          type="number"
+                        />
+
+                        <CustomFormDatePicker
+                          control={form.control}
+                          name={`detallesPedido.${index}.fechaEntrega`}
+                          label="Fecha de Entrega"
+                          defaultValue={new Date()}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name={`detallesPedido.${index}.tipoEntrega`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Tipo de Entrega</FormLabel>
+                              <CustomSelect
+                                options={TiposEntrega.map((tipo) => ({ value: tipo.id, label: tipo.nombre }))}
+                                onChange={field.onChange}
+                                placeholder="Seleccione tipo de entrega"
+                                defaultValue={field.value}
+                              />
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          disabled={tipoEntrega === TipoEntregaProducto.RECOGE_EN_PLANTA}  // 🔹 Deshabilita si es "Recoge en Planta"
+                          name={`detallesPedido.${index}.lugarEntregaId`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Lugar de Entrega</FormLabel>
+                              <FormControl>
+                                <SelectWithSearch
+                                  disabled={tipoEntrega === TipoEntregaProducto.RECOGE_EN_PLANTA}  // 🔹 Deshabilita si es "Recoge en Planta"
+                                  endpoint="lugar-entrega/search"
+                                  onSelect={field.onChange}
+                                  defaultValue={field.value}
+                                  params={{
+                                    idCliente: form.getValues('idCliente'),
+                                  }}
+                                  placeholder="Seleccione una ciudad"
+                                  maperOptions={(ciudad) => ({ value: ciudad.id, label: ciudad.nombre })}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <Button type="button" variant="ghost" size="sm" className="mt-4" onClick={() => remove(index)}>
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Eliminar Producto
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )
+
+              })}
             </div>
           </CardContent>
         </Card>
@@ -252,7 +245,12 @@ async  function onSubmit(data: OrderFormValues) {
         </Card>
 
         <div className="flex justify-end gap-4">
-          <Button type="submit" size="lg">
+          <Button
+            type="button"
+            size="lg"
+            isLoading={isLoading}
+            onClick={onSubmit}
+          >
             Crear Pedido
           </Button>
         </div>

@@ -4,13 +4,23 @@ export interface PedidoEntity {
   id: string;
   fechaRecibido: Date;
   idCliente: string
-  estado: string;
+  estado: EstadoPedido;
   observaciones?: string;
   fechaRequerimiento: Date;
   fechaEntrega?: Date;
   tiempoEntrega?: number;
   pesoDespachado?: number;
   productos: DetallePedidoEntity[];
-  // entregas: Entrega[];
-  // ordenesCompra: OrdenCompra[];
+}
+export type EstadoPedido = "PENDIENTE" | "DESPACHADO" | "EN_TRANSITO" | "ENTREGADO" | "CANCELADO" | "APLAZADO" | "DEVUELTO"
+export interface PedidoDataTable {
+  id?:string;
+  cliente?: {
+    nombre?: string
+  };
+  idCliente?: string
+  fechaRecibido?: string
+  ordenCompra?: string
+  estado?: EstadoPedido
+  cantidadDetallesPedido?: number;
 }

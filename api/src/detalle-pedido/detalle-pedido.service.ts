@@ -2,15 +2,24 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateDetallePedidoDto } from './dto/create-detalle-pedido.dto';
 import { UpdateDetallePedidoDto } from './dto/update-detalle-pedido.dto';
+import { IdGeneratorService } from './../services/IdGeneratorService';
 
 @Injectable()
 export class DetallePedidoService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService,
+    private idGeneratorService: IdGeneratorService,
+
+  ) {}
 
   async create(createDetallePedidoDto: CreateDetallePedidoDto) {
-    return await this.prisma.detallePedido.create({
-      data: createDetallePedidoDto,
+    const idDetallePeido = await this.idGeneratorService.generarIdDetallePedido(createDetallePedidoDto.pedidoId);
+    const detallePedido = await this.prisma.detallePedido.create({
+      data: {
+        ...createDetallePedidoDto,
+        id: idDetallePeido,
+      },
     });
+    return detallePedido;
   }
 
   async findAll() {

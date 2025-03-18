@@ -16,6 +16,7 @@ interface SelectWithSearchProps {
   onSelect: (value: string) => void;
   maperOptions: (item: any) => SelectOption;
   defaultValue?: string;
+  disabled?:boolean
 }
 
 const SelectWithSearch = ({
@@ -25,7 +26,8 @@ const SelectWithSearch = ({
   placeholder = "Select an item...",
   onSelect,
   maperOptions,
-  defaultValue = ""
+  defaultValue = "",
+  disabled
 }: SelectWithSearchProps) => {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(defaultValue);
@@ -84,6 +86,7 @@ const SelectWithSearch = ({
 
   // Efecto para la carga inicial y cuando cambia la sesión o endpoint
   useEffect(() => {
+    if (disabled) return;
     if (!session?.data?.user?.token) return;
     fetchOptions();
   }, [session]);
@@ -114,6 +117,7 @@ const SelectWithSearch = ({
       {/* Trigger Button */}
       <button
         type="button"
+        disabled={disabled}
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between px-3 py-2 text-sm bg-background border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring"
       >

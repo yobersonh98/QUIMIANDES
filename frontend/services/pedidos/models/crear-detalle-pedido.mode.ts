@@ -1,6 +1,6 @@
 
 export interface CrearDetallePedidoModel {
-  pedidoId: string;
+  pedidoId?: string;
 
   productoId: string;
 
@@ -8,11 +8,9 @@ export interface CrearDetallePedidoModel {
 
   cantidad: number;
 
-  total: number;
-
-  idLugarEntrega: string;
+  lugarEntregaId?: string;
 
   tipoEntrega: string;
 
-  fechaRequerimiento: Date;
+  fechaEntrega: Date;
 }

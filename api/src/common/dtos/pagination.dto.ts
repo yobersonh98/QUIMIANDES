@@ -56,11 +56,11 @@ export class PaginationDto {
     @IsNumber()
     @IsOptional()
     @Type(() => Number)
-    limit?: number;
+    limit?: number = 10
     @IsNumber()
     @IsOptional()
     @Type(() => Number)
-    offset?: number;
+    offset?: number = 0
 
     search?: string;
 }

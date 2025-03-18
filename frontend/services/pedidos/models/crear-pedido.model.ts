@@ -5,7 +5,7 @@ export interface CrearPedidoModel {
 
   observaciones?: string;
 
-  fechaRequerimiento: Date;
+  fechaRecibido: Date;
 
   fechaEntrega?: Date;
 

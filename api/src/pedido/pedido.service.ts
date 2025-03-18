@@ -1,39 +1,58 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { PaginationDto } from './../common/dtos/pagination.dto';
+import { PrismaGenericPaginationService } from './../prisma/prisma-generic-pagination.service';
+import { IdGeneratorService } from './../services/IdGeneratorService';
+import { DetallePedidoService } from './../detalle-pedido/detalle-pedido.service';
 
 @Injectable()
 export class PedidoService {
-  constructor(private readonly prisma: PrismaService) {}
-
+  constructor(private readonly prisma: PrismaService,
+    private paginationService: PrismaGenericPaginationService,
+    private idGeneratorService: IdGeneratorService,
+    private detallePedidoService: DetallePedidoService,
+  ) {}
   async create({detallesPedido, ...infoPedido}: CreatePedidoDto) {
-    try {
-      const pedido = await this.prisma.pedido.create({
-        data: {
-          ...infoPedido,
-          productos: {
-            createMany: {
-              data: detallesPedido
-            }
-          }
-        }
-      })
-      return pedido
-    } catch (error) {
-      console.log(error);
+    const pedidoId = await this.idGeneratorService.generarIdPedido();
+    const pedido = await this.prisma.pedido.create({
+      data: {
+        id: pedidoId,
+        ...infoPedido,
+      }
+    });
+    const detallesPedidoSaved = [];
+    console.log(detallesPedido)
+    if (detallesPedido && detallesPedido.length > 0) {
+      for await(const detalle of detallesPedido) {
+        detalle.pedidoId = pedidoId
+        const detallePeido = await this.detallePedidoService.create(detalle);
+        detallesPedidoSaved.push(detallePeido)
+      }
+    }
+    return {
+      ...pedido,
+      detallesPedido
     }
   }
 
-  async findAll() {
-    return await this.prisma.pedido.findMany({
-      include: {
-        cliente: true,
-        productos: true,
-        entregas: true,
-        ordenesCompra: true,
-      },
-    });
+  async findAll(findAllPeiddosDto: PaginationDto){
+    const response = await this.paginationService.paginate('Pedido',{
+      select:{
+        id:true,
+        estado: true,
+        cliente: {
+          select: {
+            nombre: true
+          }
+        },
+        fechaRecibido: true,
+        idCliente: true,
+        ordenCompra: true,  
+      }
+    },findAllPeiddosDto);
+    return response
   }
 
   async findOne(id: string) {
@@ -41,9 +60,8 @@ export class PedidoService {
       where: { id },
       include: {
         cliente: true,
-        productos: true,
+        detallesPedido: true,
         entregas: true,
-        ordenesCompra: true,
       },
     });
     if (!pedido) {
@@ -53,9 +71,10 @@ export class PedidoService {
   }
 
   async update(id: string, updatePedidoDto: UpdatePedidoDto) {
+    throw new InternalServerErrorException('Method not implmented')
     return await this.prisma.pedido.update({
       where: { id },
-      data: updatePedidoDto,
+      data: {}
     });
   }
 
