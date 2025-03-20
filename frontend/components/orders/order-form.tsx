@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useState } from "react"
 import { TipoEntregaProducto, TiposEntrega } from "@/core/constantes/pedido"
 import { OrderFormSchema, OrderFormValues } from "./schemas/order-form-schema"
+import { Label } from "../ui/label"
 
 export function OrderForm() {
   const session = useSession();
@@ -97,7 +98,7 @@ export function OrderForm() {
                 name="idCliente"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Cliente</FormLabel>
+                    <Label required>Cliente</Label>
                     <SelectWithSearch
                       endpoint="cliente/search"
                       value={field.value}

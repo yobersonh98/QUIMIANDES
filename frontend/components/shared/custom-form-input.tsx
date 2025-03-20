@@ -2,14 +2,15 @@ import React from 'react';
 import { 
   FormField, 
   FormItem, 
-  FormLabel, 
   FormControl, 
   FormMessage
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Control } from 'react-hook-form';
+import { Label } from '../ui/label';
 
 interface CustomFormInputProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   control: Control<any>;
   name: string;
   label: string;
@@ -18,6 +19,7 @@ interface CustomFormInputProps {
   disabled?: boolean;
   className?: string;
   description?: string;
+  required?:boolean
 }
 
 export function CustomFormInput({
@@ -28,7 +30,8 @@ export function CustomFormInput({
   type = 'text',
   disabled = false,
   className = '',
-  description
+  description,
+  required
 }: CustomFormInputProps) {
   return (
     <FormField
@@ -36,7 +39,7 @@ export function CustomFormInput({
       name={name}
       render={({ field }) => (
         <FormItem className={className}>
-          <FormLabel>{label}</FormLabel>
+          <Label required={required}>{label}</Label>
           <FormControl>
             <Input 
               {...field} 
@@ -46,7 +49,7 @@ export function CustomFormInput({
             />
           </FormControl>
           {description && (
-            <p className="text-sm text-gray-500">{description}</p>
+            <p className="text-sm ">{description}</p>
           )}
           <FormMessage />
         </FormItem>

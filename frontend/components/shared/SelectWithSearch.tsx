@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { BACKEND_URL } from '@/config/envs';
+import { cn } from '@/lib/utils';
 
 interface SelectOption {
   value: string;
@@ -17,7 +18,7 @@ interface SelectWithSearchProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   maperOptions: (item: any) => SelectOption;
   defaultValue?: string;
-  disabled?:boolean
+  disabled?: boolean
   value?: string
 }
 
@@ -40,7 +41,7 @@ const SelectWithSearch = ({
   // Usar useRef para comparar los cambios reales en params
   const prevParamsRef = useRef<Record<string, string>>(params);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  
+
   const fetchOptions = async (searchTerm = "") => {
     setLoading(true);
     try {
@@ -70,19 +71,19 @@ const SelectWithSearch = ({
   // Verificar si los params cambiaron realmente
   const didParamsChange = () => {
     const prevParams = prevParamsRef.current;
-    
+
     // Si tienen diferentes cantidades de propiedades
     if (Object.keys(prevParams).length !== Object.keys(params).length) {
       return true;
     }
-    
+
     // Comparar cada propiedad
     for (const key in params) {
       if (params[key] !== prevParams[key]) {
         return true;
       }
     }
-    
+
     return false;
   };
 
@@ -96,7 +97,7 @@ const SelectWithSearch = ({
   // Efecto para cuando cambian los parámetros
   useEffect(() => {
     if (!session?.data?.user?.token) return;
-    
+
     if (didParamsChange()) {
       fetchOptions(search);
       prevParamsRef.current = { ...params };
@@ -136,13 +137,17 @@ const SelectWithSearch = ({
         type="button"
         disabled={disabled}
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-3 py-2 text-sm bg-background border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring"
+        className={cn([
+          "w-full flex items-center justify-between px-3 py-2 text-sm border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring",
+          disabled && "opacity-50 cursor-not-allowed"]
+        )}
       >
         <span className="block truncate">
           {value ? options.find((option) => option.value === value)?.label : placeholder}
         </span>
         <ChevronsUpDown className="w-4 h-4 text-muted-foreground" />
       </button>
+
       {open && (
         <div className="absolute z-10 w-full mt-1 bg-background rounded-md shadow-lg border border-input">
           <div className="p-2 flex flex-1 gap-1">

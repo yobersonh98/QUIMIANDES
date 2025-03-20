@@ -105,7 +105,7 @@ export function CustomFormDatePicker({
                     <Button
                       variant={"outline"}
                       className={cn(
-                        "w-full pl-3 text-left font-normal", 
+                        "w-full pl-3 text-left font-normal bg-background", 
                         !fieldValue && "text-muted-foreground",
                         withTime && "sm:w-[70%]"
                       )}
@@ -153,7 +153,7 @@ export function CustomFormDatePicker({
             </div>
             
             {description && (
-              <p className="text-sm text-gray-500">{description}</p>
+              <p className="text-sm">{description}</p>
             )}
             <FormMessage />
           </FormItem>
