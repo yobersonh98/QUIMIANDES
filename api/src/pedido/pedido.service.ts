@@ -38,8 +38,8 @@ export class PedidoService {
 
   async findAll(findAllPeiddosDto: PaginationDto){
     const response = await this.paginationService.paginate('Pedido',{
-      select:{
-        id:true,
+      select: {
+        id: true,
         estado: true,
         cliente: {
           select: {

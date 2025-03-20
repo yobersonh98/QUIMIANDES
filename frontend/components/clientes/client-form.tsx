@@ -155,6 +155,7 @@ export function ClientForm() {
                     apiUrl={BACKEND_URL}
                     maperOptions={(item) => ({ value: item.id, label: item.nombre })}
                     endpoint="municipio"
+                    value={clientForm.getValues('idMunicipio')}
                     onSelect={(value) => clientForm.setValue("idMunicipio", value)}
                     placeholder="Seleccione un municipio"
                   />
@@ -254,6 +255,7 @@ export function ClientForm() {
                         <FormControl>
                           <SelectWithSearch
                             apiUrl={BACKEND_URL}
+                            value={clientForm.getValues('idMunicipio')}
                             maperOptions={(item) => ({ value: item.id, label: item.nombre })}
                             endpoint="municipio"
                             onSelect={(value) => deliveryForm.setValue("idCiudad", value)}

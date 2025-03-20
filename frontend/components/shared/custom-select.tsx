@@ -21,6 +21,7 @@ interface CustomSelectProps {
   label?: string
   className?: string
   defaultValue?: string
+  value?: string
 }
 
 export function CustomSelect({
@@ -29,10 +30,11 @@ export function CustomSelect({
   placeholder = "Seleccione una opción",
   label,
   className = "w-full",
-  defaultValue
+  defaultValue,
+  value
 }: CustomSelectProps) {
   return (
-    <Select onValueChange={onChange} defaultValue={defaultValue}>
+    <Select onValueChange={onChange} defaultValue={defaultValue} value={value}>
       <SelectTrigger className={className}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>

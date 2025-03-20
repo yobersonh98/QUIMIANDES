@@ -14,9 +14,11 @@ interface SelectWithSearchProps {
   params?: Record<string, string>;
   placeholder?: string;
   onSelect: (value: string) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   maperOptions: (item: any) => SelectOption;
   defaultValue?: string;
   disabled?:boolean
+  value?: string
 }
 
 const SelectWithSearch = ({
@@ -26,19 +28,19 @@ const SelectWithSearch = ({
   placeholder = "Select an item...",
   onSelect,
   maperOptions,
-  defaultValue = "",
-  disabled
+  disabled,
+  value,
+  defaultValue
 }: SelectWithSearchProps) => {
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(defaultValue);
   const [options, setOptions] = useState<SelectOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const session = useSession();
-  
   // Usar useRef para comparar los cambios reales en params
   const prevParamsRef = useRef<Record<string, string>>(params);
-
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  
   const fetchOptions = async (searchTerm = "") => {
     setLoading(true);
     try {
@@ -112,9 +114,24 @@ const SelectWithSearch = ({
     return () => clearTimeout(timeoutId);
   }, [search]);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (defaultValue) {
+      onSelect(defaultValue);
+    }
+  }, [defaultValue, onSelect]);
+
   return (
-    <div className="relative">
-      {/* Trigger Button */}
+    <div className="relative" ref={dropdownRef}>
       <button
         type="button"
         disabled={disabled}
@@ -126,8 +143,6 @@ const SelectWithSearch = ({
         </span>
         <ChevronsUpDown className="w-4 h-4 text-muted-foreground" />
       </button>
-
-      {/* Dropdown Panel */}
       {open && (
         <div className="absolute z-10 w-full mt-1 bg-background rounded-md shadow-lg border border-input">
           <div className="p-2 flex flex-1 gap-1">
@@ -139,7 +154,6 @@ const SelectWithSearch = ({
               className="w-full px-3 py-2 text-sm border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring bg-background"
             />
           </div>
-
           <div className="max-h-60 overflow-auto">
             {loading ? (
               <div className="px-3 py-2 text-sm text-muted-foreground">Cargando...</div>
@@ -151,17 +165,13 @@ const SelectWithSearch = ({
                   <li
                     key={option.value}
                     onClick={() => {
-                      const newValue = option.value === value ? "" : option.value;
-                      setValue(newValue);
-                      onSelect(newValue);
+                      onSelect(option.value);
                       setOpen(false);
                     }}
                     className="flex items-center px-3 py-2 text-sm cursor-pointer hover:bg-accent"
                   >
                     <span className="w-4 h-4 mr-2">
-                      {value === option.value && (
-                        <Check className="w-4 h-4 text-primary" />
-                      )}
+                      {value === option.value && <Check className="w-4 h-4 text-primary" />}
                     </span>
                     {option.label}
                   </li>
@@ -174,5 +184,4 @@ const SelectWithSearch = ({
     </div>
   );
 };
-
 export default SelectWithSearch;

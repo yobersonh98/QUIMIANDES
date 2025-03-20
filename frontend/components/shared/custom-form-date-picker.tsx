@@ -1,12 +1,11 @@
 import React, { useEffect } from 'react';
-import { format, Locale, parse, setHours, setMinutes } from 'date-fns';
+import { format, Locale } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { CalendarIcon, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   FormField,
   FormItem,
@@ -22,6 +21,8 @@ import {
 import { Control, useFormContext } from 'react-hook-form';
 
 interface CustomFormDatePickerProps {
+  //
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   control: Control<any>;
   name: string;
   label: string;
@@ -95,7 +96,7 @@ export function CustomFormDatePicker({
         const fieldValue = field.value ? (field.value instanceof Date ? field.value : new Date(field.value)) : undefined;
         
         return (
-          <FormItem className={cn("flex flex-col", className)}>
+          <FormItem className={cn( className)}>
             <FormLabel>{label}</FormLabel>
             <div className={cn("flex gap-2", withTime ? "flex-col sm:flex-row" : "")}>
               <Popover>

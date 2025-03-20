@@ -46,6 +46,7 @@ export function OrderForm() {
 
   const aplicarValoresGlobales = () => {
     const valoresGlobales = form.getValues();
+    console.log('valoresGlobales: ', valoresGlobales)
     detallesPedido.forEach((_, index) => {
       form.setValue(`detallesPedido.${index}.fechaEntrega`, valoresGlobales.fechaEntregaGlobal || new Date());
       form.setValue(`detallesPedido.${index}.tipoEntrega`, valoresGlobales.tipoEntregaGlobal || '');
@@ -90,7 +91,7 @@ export function OrderForm() {
       <form className="space-y-8">
         <Card>
           <CardContent className="pt-6">
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-3 md:grid-cols-2">
               <FormField
                 control={form.control}
                 name="idCliente"
@@ -99,9 +100,8 @@ export function OrderForm() {
                     <FormLabel>Cliente</FormLabel>
                     <SelectWithSearch
                       endpoint="cliente/search"
+                      value={field.value}
                       onSelect={field.onChange}
-                      
-                      defaultValue={field.value}
                       placeholder="Seleccione un cliente"
                       maperOptions={(cliente) => ({ value: cliente.id, label: cliente.nombre })}
                     />
@@ -131,13 +131,17 @@ export function OrderForm() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-medium">Productos</h3>
-              <Button type="button" variant="outline" size="sm" onClick={() => append({
-                cantidad: '1',
-                fechaEntrega: new Date(),
-                tipoEntrega: "",
-                lugarEntregaId: "",
-                productoId: "",
-              })}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => append({
+                  cantidad: '1',
+                  fechaEntrega: new Date(),
+                  tipoEntrega: "",
+                  lugarEntregaId: "",
+                  productoId: "",
+                })}>
                 <Plus className="h-4 w-4 mr-2" />
                 Agregar Producto
               </Button>
@@ -163,7 +167,7 @@ export function OrderForm() {
                             options={TiposEntrega.map((tipo) => ({ value: tipo.id, label: tipo.nombre }))}
                             onChange={field.onChange}
                             placeholder="Seleccione tipo de entrega"
-                            defaultValue={field.value}
+                            defaultValue={TipoEntregaProducto.ENTREGA_AL_CLIENTE}
                           />
                           <FormMessage />
                         </FormItem>
@@ -179,7 +183,7 @@ export function OrderForm() {
                             <SelectWithSearch
                               endpoint="lugar-entrega/search"
                               onSelect={field.onChange}
-                              defaultValue={field.value}
+                              value={field.value}
                               params={{
                                 idCliente,
                               }}
@@ -213,7 +217,7 @@ export function OrderForm() {
                               <SelectWithSearch
                                 endpoint="productos/search"
                                 onSelect={field.onChange}
-                                defaultValue={field.value}
+                                value={field.value}
                                 placeholder="Seleccione un producto"
                                 maperOptions={(producto) => ({ value: producto.id, label: producto.nombre })}
                               />
@@ -245,8 +249,9 @@ export function OrderForm() {
                               <CustomSelect
                                 options={TiposEntrega.map((tipo) => ({ value: tipo.id, label: tipo.nombre }))}
                                 onChange={field.onChange}
+                                value={field.value}
                                 placeholder="Seleccione tipo de entrega"
-                                defaultValue={field.value}
+                                defaultValue={TipoEntregaProducto.ENTREGA_AL_CLIENTE}
                               />
                               <FormMessage />
                             </FormItem>
@@ -265,7 +270,7 @@ export function OrderForm() {
                                   disabled={tipoEntrega === TipoEntregaProducto.RECOGE_EN_PLANTA}
                                   endpoint="lugar-entrega/search"
                                   onSelect={field.onChange}
-                                  defaultValue={field.value}
+                                  value={field.value}
                                   params={{
                                     idCliente,
                                   }}

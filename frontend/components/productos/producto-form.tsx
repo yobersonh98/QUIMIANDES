@@ -127,7 +127,7 @@ export function ProductForm({ initialData, onSubmit, isEditing = false }: Produc
                   <FormItem>
                     <FormLabel>Unidad de Medida</FormLabel>
                     <SelectWithSearch 
-                      defaultValue={field.value}
+                      value={field.value}
                       endpoint="productos/unidades-medida"
                       onSelect={field.onChange}
                       maperOptions={(unidad) => ({ value: unidad, label: unidad })}
@@ -173,7 +173,7 @@ export function ProductForm({ initialData, onSubmit, isEditing = false }: Produc
                     <FormLabel>Proveedor</FormLabel>
                     <SelectWithSearch
                       endpoint="proveedores/search"
-                      defaultValue={field.value}
+                      value={field.value}
                       onSelect={field.onChange}
                       maperOptions={(provider) => ({ value: provider.id, label: provider.nombre })}
                      />
@@ -189,7 +189,7 @@ export function ProductForm({ initialData, onSubmit, isEditing = false }: Produc
                   <FormItem>
                     <FormLabel>Presentación</FormLabel>
                     <SelectWithSearch
-                      defaultValue={field.value}
+                      value={field.value}
                       endpoint="presentacion/search"
                       onSelect={field.onChange}
                       maperOptions={(presentation) => ({ value: presentation.id, label: presentation.nombre })}

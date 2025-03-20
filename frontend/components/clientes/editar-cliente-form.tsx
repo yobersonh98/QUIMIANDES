@@ -154,6 +154,7 @@ export function EditarClienteForm({ clientId, initialData }: EditClientFormProps
                   <FormControl>
                     <SelectWithSearch
                       apiUrl={BACKEND_URL}
+                      value={clientForm.getValues("idMunicipio")}
                       maperOptions={(item) => ({ value: item.id, label: item.nombre })}
                       endpoint="municipio"
                       onSelect={(value) => clientForm.setValue("idMunicipio", value)}
@@ -258,6 +259,7 @@ export function EditarClienteForm({ clientId, initialData }: EditClientFormProps
                               apiUrl={BACKEND_URL}
                               maperOptions={(item) => ({ value: item.id, label: item.nombre })}
                               endpoint="municipio"
+                              value={deliveryForm.getValues('idCiudad')}
                               onSelect={(value) => deliveryForm.setValue("idCiudad", value)}
                               placeholder="Seleccione un municipio"
                             />
