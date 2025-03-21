@@ -21,6 +21,7 @@ import { validateEnv } from './config';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { PresentacionModule } from './presentacion/presentacion.module';
 import { ServicesModule } from './services/services.module';
+import { EntregaProductoModule } from './entrega-producto/entrega-producto.module';
 
 @Module({
   imports: [
@@ -44,7 +45,8 @@ import { ServicesModule } from './services/services.module';
     MunicipioModule,
     LugarEntregaModule,
     PresentacionModule,
-    ServicesModule
+    ServicesModule,
+    EntregaProductoModule
   ],
   controllers: [AppController],
   exports: [PrismaModule],

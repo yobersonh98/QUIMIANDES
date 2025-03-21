@@ -188,12 +188,12 @@ model Entrega {
   vehiculoInterno String?
   vehiculoExterno String?
   entregadoPorA   String?
-  idLugarEntrega  String
-  tipoEntrega     String
+  lugarEntregaId  String
+  tipoEntrega     String?
   remision        String?
   observaciones   String?
   fechaCreacion DateTime @default(now())
-  lugarEntrega    LugarEntrega @relation(fields: [idLugarEntrega], references: [id])
+  lugarEntrega    LugarEntrega @relation(fields: [lugarEntregaId], references: [id])
 }
 
 model EntregaProducto {

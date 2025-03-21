@@ -1,4 +1,5 @@
 import { IsString, IsOptional } from 'class-validator';
+import { CreateEntregaProductoDto } from '../../entrega-producto/dto/create-entrega-producto.dto';
 
 export class CreateEntregaDto {
   @IsString()
@@ -16,10 +17,8 @@ export class CreateEntregaDto {
   entregadoPorA: string;
 
   @IsString()
-  lugarEntrega: string;
+  lugarEntregaId: string;
 
-  @IsString()
-  tipoEntrega: string;
 
   @IsOptional()
   @IsString()
@@ -28,4 +27,7 @@ export class CreateEntregaDto {
   @IsOptional()
   @IsString()
   observaciones?: string;
+
+
+  entregasProducto?: CreateEntregaProductoDto[]
 }

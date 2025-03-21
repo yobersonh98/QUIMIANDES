@@ -2,15 +2,29 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateEntregaDto } from './dto/create-entrega.dto';
 import { UpdateEntregaDto } from './dto/update-entrega.dto';
+import { EntregaProductoService } from './../entrega-producto/entrega-producto.service';
 
 @Injectable()
 export class EntregaService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService,
+    private readonly entregraProductoService: EntregaProductoService
+  ) {}
 
   async create(createEntregaDto: CreateEntregaDto) {
-    return await this.prisma.entrega.create({
-      data: createEntregaDto,
+    const {pedidoId, lugarEntregaId,vehiculoExterno, vehiculoInterno,remision,entregadoPorA, observaciones, entregasProducto} = createEntregaDto;
+    const entrega  =  await this.prisma.entrega.create({
+        data: {
+          pedidoId,
+          lugarEntregaId,
+          vehiculoExterno,
+          vehiculoInterno,
+          remision,
+          entregadoPorA,
+          observaciones
+        }
     });
+    await this.entregraProductoService.createMany(entregasProducto)
+    return entrega;
   }
 
   async findAll() {
