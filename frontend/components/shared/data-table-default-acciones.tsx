@@ -8,22 +8,26 @@ import { Eye, Pencil } from 'lucide-react'
 type DataTableDefaultRowAccionesProps = {
   pathName: string
   modifyPathName: string
+  modifyTitle?: string
+  viewTitle?: string
+  ViewIcon?: React.ReactNode
+  ModifyIcon?: React.ReactNode
 }
 
-export default function DataTableDefaultRowAcciones({ pathName, modifyPathName }: DataTableDefaultRowAccionesProps) {
+export default function DataTableDefaultRowAcciones({ pathName, modifyPathName, modifyTitle="Editar", viewTitle="Ver", ViewIcon, ModifyIcon  }: DataTableDefaultRowAccionesProps) {
   return (
     <div className="flex space-x-2">
       <Link href={pathName} passHref>
         <Button size={"icon"} variant={"secondary"}
-          title="Ver"
+          title={viewTitle}
         >
-          <Eye size={18} />
+          {ViewIcon ? ViewIcon : <Eye size={18} />}
         </Button>
       </Link>
       <Link href={modifyPathName} passHref>
         <Button size={"icon"}
-          title="Editar">
-          <Pencil size={18} />
+          title={modifyTitle}>
+          {ModifyIcon ? ModifyIcon : <Pencil size={18} />}
         </Button>
       </Link>
     </div>

@@ -3,6 +3,7 @@ import DataTableDefaultRowAcciones from "@/components/shared/data-table-default-
 import { formatFecha } from "@/lib/utils";
 import { PedidoDataTable } from "@/services/pedidos/entity/pedido.entity";
 import { ColumnDef } from "@tanstack/react-table";
+import { PackageCheck, Pencil } from "lucide-react";
 
 export const PedidoColumns: ColumnDef<PedidoDataTable>[] = [
   {header: 'ID',
@@ -22,7 +23,7 @@ export const PedidoColumns: ColumnDef<PedidoDataTable>[] = [
     header: "Estado",
     accessorKey: "estado"
   },
-  { header: "Fecha",
+  { header: "Fecha Pedido",
     accessorKey:'fechaRecibido',
     cell: ({cell})=> (
       <p>
@@ -39,9 +40,9 @@ export const PedidoColumns: ColumnDef<PedidoDataTable>[] = [
     accessorKey:"idCliente",
     cell: (cell) => {
       return (
-        <DataTableDefaultRowAcciones 
+        <DataTableDefaultRowAcciones modifyTitle="Gestionar Entrega" viewTitle="Ver Pedido" ModifyIcon={<PackageCheck size={18}/>}
           pathName={`/dashboard/pedidos/${cell.row.original.id}`}
-          modifyPathName={`/dashboard/pedidos/${cell.row.original.id}/editar`}
+          modifyPathName={`/dashboard/pedidos/${cell.row.original.id}/gestionar`}
         />
       );
     }

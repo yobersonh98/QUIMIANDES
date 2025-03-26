@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 
 type BackButtonLayoutProps = {
   children: React.ReactNode;
-  title?: string;
+  title?: React.ReactNode;
   customGoBack?: () => void;
 }
 
@@ -35,7 +35,7 @@ const BackButtonLayout = ({ children, title, customGoBack }: BackButtonLayoutPro
   return (
     <div className="w-full mx-auto">
       <div className="">
-        <div className="flex items-center">
+        <div className="flex items-center w-full">
           <Button 
             variant="ghost" 
             size="sm" 
@@ -45,7 +45,7 @@ const BackButtonLayout = ({ children, title, customGoBack }: BackButtonLayoutPro
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
-          {title && <h1 className="text-xl font-semibold">{title}</h1>}
+          {typeof title == "string" ?  <h1 className="text-xl font-semibold">{title}</h1>: title}
         </div>
       </div>
       

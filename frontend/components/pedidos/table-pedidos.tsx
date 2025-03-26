@@ -18,6 +18,7 @@ export default async function TablePedidos(paginationDto: PaginationSearchParams
      <DataTable
       columns={PedidoColumns}
       data={pedidos}
+      pagination={response.data.meta}
      />
   )
 }

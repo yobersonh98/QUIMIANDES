@@ -1,6 +1,10 @@
+import BackButtonLayout from "@/components/shared/back-button-layout"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChevronLeft, Pencil } from "lucide-react"
+import { formatFecha } from "@/lib/utils"
+import { PedidoService } from "@/services/pedidos/pedido.service"
+import { PageProps, PaginationSearchParamsPage } from "@/types/pagination"
+import { Pencil } from "lucide-react"
 import Link from "next/link"
 
 // En producción, estos datos vendrían de la base de datos
@@ -91,29 +95,28 @@ const orderData = {
   observations: "Entrega en diferentes fechas según programación",
 }
 
-export default function OrderDetailsPage({ params }: { params: { id: string } }) {
+export default async function OrderDetailsPage(props: PageProps<PaginationSearchParamsPage>) {
+  const params = await props.params;
+  const respones = await PedidoService.getServerIntance().consultar(params?.id || '');
+  if (!respones.data) {
+    return <div>
+      {respones.error?.message || 'No se econtro el pedido...'}
+    </div>
+  }
+  const pedido = respones.data;
   return (
-    <div className="flex-1 space-y-6 p-8 pt-6">
-      <div className="flex items-center justify-between">
+    <BackButtonLayout title={
+      <div className="flex items-center w-full justify-between">
         <div className="space-y-1">
-          <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="sm">
-              <Link href="/dashboard/pedidos">
-                <ChevronLeft className="h-4 w-4" />
-                Volver
-              </Link>
-            </Button>
-          </div>
-          <h2 className="text-3xl font-bold tracking-tight">Pedido {orderData.id}</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Pedido {params?.id}</h2>
         </div>
         <Button>
-          <Link href={`/dashboard/pedidos/${params.id}/editar`}>
+          <Link href={`/dashboard/pedidos/${params?.id}/editar}`}>
             <Pencil className="h-4 w-4 mr-2" />
             Editar Pedido
           </Link>
         </Button>
-      </div>
-
+      </div>}>
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
@@ -123,11 +126,11 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <div className="text-sm font-medium text-muted-foreground">Cliente</div>
-                <div>{orderData.client.name}</div>
+                <div>{pedido.cliente.nombre}</div>
               </div>
               <div>
                 <div className="text-sm font-medium text-muted-foreground">Documento</div>
-                <div>{orderData.client.document}</div>
+                <div>{pedido.cliente.documento}</div>
               </div>
             </div>
           </CardContent>
@@ -141,19 +144,19 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <div className="text-sm font-medium text-muted-foreground">Fecha del Pedido</div>
-                <div>{orderData.orderDate}</div>
+                <div>{formatFecha(pedido.fechaRecibido)}</div>
               </div>
               <div>
                 <div className="text-sm font-medium text-muted-foreground">Estado</div>
-                <div>{orderData.status}</div>
+                <div>{pedido.estado}</div>
               </div>
               <div>
                 <div className="text-sm font-medium text-muted-foreground">Orden de Compra</div>
-                <div>{orderData.purchaseOrder}</div>
+                <div>{pedido.ordenCompra}</div>
               </div>
               <div>
-                <div className="text-sm font-medium text-muted-foreground">Fecha de Requerimiento</div>
-                <div>{orderData.requirementDate}</div>
+                <div className="text-sm font-medium text-muted-foreground">Fecha de Entrega</div>
+                <div>{formatFecha(pedido.fechaEntrega)}</div>
               </div>
             </div>
           </CardContent>
@@ -233,7 +236,6 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
           </Card>
         )}
       </div>
-    </div>
+      </BackButtonLayout>
   )
 }
-
