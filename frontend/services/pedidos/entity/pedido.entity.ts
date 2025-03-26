@@ -8,9 +8,10 @@ export interface PedidoEntity {
   observaciones?: string;
   fechaRequerimiento: Date;
   fechaEntrega?: Date;
+  ordenCompra?:string;
   tiempoEntrega?: number;
   pesoDespachado?: number;
-  productos: DetallePedidoEntity[];
+  detallesPedido: DetallePedidoEntity[];
 }
 export type EstadoPedido = "PENDIENTE" | "DESPACHADO" | "EN_TRANSITO" | "ENTREGADO" | "CANCELADO" | "APLAZADO" | "DEVUELTO"
 export interface PedidoDataTable {

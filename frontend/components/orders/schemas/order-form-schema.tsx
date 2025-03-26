@@ -18,6 +18,7 @@ export const OrderFormSchema = z.object({
   detallesPedido: z
     .array(
       z.object({
+        id: z.string().optional(),
         productoId: z.string({
           required_error: "Por favor seleccione un producto",
         }),

@@ -18,23 +18,46 @@ import { useState } from "react"
 import { TipoEntregaProducto, TiposEntrega } from "@/core/constantes/pedido"
 import { OrderFormSchema, OrderFormValues } from "./schemas/order-form-schema"
 import { Label } from "../ui/label"
+import { PedidoEntity } from "@/services/pedidos/entity/pedido.entity"
+import { usePathname, useRouter } from "next/navigation"
+import RefreshPage from "@/actions/refresh-page"
 
-export function OrderForm() {
+type OrderFormProps = {
+  pedido?: PedidoEntity,
+  pathNameToRefresh?: string
+  isGoBack?: boolean
+}
+
+export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderFormProps) {
   const session = useSession();
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  const isEditing = !!pedido;
+  const pathName = usePathname()
+  // Inicializar el formulario con valores por defecto o con los del pedido si está en modo edición
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(OrderFormSchema),
     defaultValues: {
-      detallesPedido: [{}],
+      ordenCompra: pedido?.ordenCompra,
+      idCliente: pedido?.idCliente || '',
+      observaciones: pedido?.observaciones,
+      fechaRecibido: pedido?.fechaRecibido,
+      detallesPedido: pedido?.detallesPedido.map(dp => ({
+        id: dp.id,
+        productoId: dp.productoId,
+        cantidad: new String(dp.cantidad).toString(),
+        fechaEntrega: dp.fechaEntrega,
+        lugarEntregaId: dp.lugarEntregaId,
+        tipoEntrega: dp.tipoEntrega
+      })) || [{}]
     },
-  })
-  const { toast } = useToast()
+  });
 
   const { fields, append, remove } = useFieldArray({
     name: "detallesPedido",
     control: form.control,
-  })
-
+  });
   const detallesPedido = useWatch({
     control: form.control,
     name: `detallesPedido`,
@@ -43,18 +66,16 @@ export function OrderForm() {
   const idCliente = useWatch({
     control: form.control,
     name: 'idCliente'
-  })
+  });
 
   const aplicarValoresGlobales = () => {
     const valoresGlobales = form.getValues();
-    console.log('valoresGlobales: ', valoresGlobales)
     detallesPedido.forEach((_, index) => {
       form.setValue(`detallesPedido.${index}.fechaEntrega`, valoresGlobales.fechaEntregaGlobal || new Date());
       form.setValue(`detallesPedido.${index}.tipoEntrega`, valoresGlobales.tipoEntregaGlobal || '');
       form.setValue(`detallesPedido.${index}.lugarEntregaId`, valoresGlobales.lugarEntregaGlobal);
     });
-    console.log(form.getValues())
-  }
+  };
 
   async function onSubmit() {
     try {
@@ -63,6 +84,7 @@ export function OrderForm() {
         ...data,
         fechaRecibido: data.fechaRecibido,
         detallesPedido: data.detallesPedido.map(p => ({
+          id: p.id,
           productoId: p.productoId || '',
           tipoEntrega: p.tipoEntrega || '',
           cantidad: parseFloat(p.cantidad) || 0,
@@ -70,20 +92,50 @@ export function OrderForm() {
           lugarEntregaId: p.lugarEntregaId || '',
           unidades: 0,
         })),
+      };
+
+      setIsLoading(true);
+      let response;
+
+      if (isEditing && pedido) {
+        // Actualizar pedido existente
+        response = await new PedidoService(session.data?.user.token).actualizar(pedido.id, datos);
+        if (!response.error) {
+          toast({
+            title: 'Pedido actualizado correctamente',
+            description: 'Los cambios han sido guardados exitosamente'
+          });
+        }
+      } else {
+        // Crear nuevo pedido
+        response = await new PedidoService(session.data?.user.token).crear(datos);
+        if (!response.error) {
+          toast({
+            title: 'Pedido creado correctamente',
+            description: 'Se recomienda gestionar el pedido en funcionalidad Gestionar Pedido'
+          });
+        }
       }
-      setIsLoading(true)
-      const response = await new PedidoService(session.data?.user.token).crear(datos);
+
       if (response.error) {
-        return toast({ title: response.error.message })
+        return toast({ title: response.error.message });
       }
-      toast({
-        title: 'Pedido creado correctamente',
-        description: 'Se recomienda gestionar el pedido en funcionalidad Gestionar Pedido'
-      })
+      await RefreshPage(pathNameToRefresh || pathName)
+
+      // Redireccionar a la lista de pedidos después de un éxito
+      if (isGoBack) {
+        router.back();
+      }
+
     } catch (error) {
-      console.log(error)
+      console.error(error);
+      toast({
+        title: 'Error',
+        description: 'Ocurrió un error al procesar el pedido',
+        variant: 'destructive'
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
@@ -285,7 +337,14 @@ export function OrderForm() {
                         />
                       </div>
 
-                      <Button type="button" variant="ghost" size="sm" className="mt-4" onClick={() => remove(index)}>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="mt-4"
+                        onClick={() => remove(index)}
+                        disabled={fields.length === 1}
+                      >
                         <Trash2 className="h-4 w-4 mr-2" />
                         Eliminar Producto
                       </Button>
@@ -318,11 +377,19 @@ export function OrderForm() {
         <div className="flex justify-end gap-4">
           <Button
             type="button"
+            variant="outline"
+            size="lg"
+            onClick={() => router.back()}
+          >
+            Cancelar
+          </Button>
+          <Button
+            type="button"
             size="lg"
             isLoading={isLoading}
             onClick={onSubmit}
           >
-            Crear Pedido
+            {isEditing ? 'Actualizar Pedido' : 'Crear Pedido'}
           </Button>
         </div>
       </form>

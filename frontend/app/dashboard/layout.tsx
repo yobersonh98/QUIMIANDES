@@ -86,7 +86,7 @@ export default function DashboardLayout({
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen w-full">
+      <div className="flex w-full">
         <Sidebar className="border-r">
           <SidebarHeader className="border-b p-4">
             <h1 className="text-xl font-bold my-1">{companyInfo.name}</h1>

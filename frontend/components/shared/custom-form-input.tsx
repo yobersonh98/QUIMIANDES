@@ -33,6 +33,7 @@ export function CustomFormInput({
   description,
   required
 }: CustomFormInputProps) {
+  console.log(control)
   return (
     <FormField
       control={control}
@@ -41,8 +42,9 @@ export function CustomFormInput({
         <FormItem className={className}>
           <Label required={required}>{label}</Label>
           <FormControl>
-            <Input 
+            <Input
               {...field} 
+              value={field.value}
               type={type}
               placeholder={placeholder} 
               disabled={disabled}

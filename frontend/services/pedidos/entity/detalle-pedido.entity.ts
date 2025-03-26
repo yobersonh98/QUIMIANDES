@@ -1,7 +1,5 @@
-
 export interface DetallePedidoEntity {
-  id: string;
-
+  id: string
   pedidoId?: string;
 
   productoId: string;

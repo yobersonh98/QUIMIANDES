@@ -59,7 +59,11 @@ export class PedidoService {
       where: { id },
       include: {
         cliente: true,
-        detallesPedido: true,
+        detallesPedido: {
+          include: {
+            entregasDetallePedido: true
+          }
+        },
         entregas: true,
       },
     });
@@ -70,11 +74,33 @@ export class PedidoService {
   }
 
   async update(id: string, updatePedidoDto: UpdatePedidoDto) {
-    throw new InternalServerErrorException('Method not implmented')
-    return await this.prisma.pedido.update({
+    const {estado, pesoDespachado, fechaEntrega, observaciones, ordenCompra, detallesPedido} = updatePedidoDto;
+    const pedido =  await this.prisma.pedido.update({
       where: { id },
-      data: {}
+      data: {
+        estado,
+        pesoDespachado,
+        fechaEntrega,
+        observaciones,
+        ordenCompra,
+      },
     });
+    await Promise.all(
+      detallesPedido.map(dp =>
+        this.prisma.detallePedido.update({
+          where: { id: dp.id },
+          data: {
+            productoId: dp.productoId,
+            tipoEntrega: dp.tipoEntrega,
+            cantidad: dp.cantidad,
+            fechaEntrega: dp.fechaEntrega,
+            lugarEntregaId: dp.lugarEntregaId,
+            unidades: dp.unidades
+          }
+        })
+      )
+    );
+    return pedido
   }
 
   async remove(id: string) {
