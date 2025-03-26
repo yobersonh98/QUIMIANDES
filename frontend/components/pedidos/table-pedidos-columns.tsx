@@ -3,7 +3,7 @@ import DataTableDefaultRowAcciones from "@/components/shared/data-table-default-
 import { formatFecha } from "@/lib/utils";
 import { PedidoDataTable } from "@/services/pedidos/entity/pedido.entity";
 import { ColumnDef } from "@tanstack/react-table";
-import { PackageCheck, Pencil } from "lucide-react";
+import { PackageCheck } from "lucide-react";
 
 export const PedidoColumns: ColumnDef<PedidoDataTable>[] = [
   {header: 'ID',

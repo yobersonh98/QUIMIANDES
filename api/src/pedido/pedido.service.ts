@@ -61,9 +61,12 @@ export class PedidoService {
         cliente: true,
         detallesPedido: {
           include: {
+            producto: true,
+            lugarEntrega: true,
             entregasDetallePedido: true
           }
         },
+        
         entregas: true,
       },
     });

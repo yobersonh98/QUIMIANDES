@@ -1,4 +1,3 @@
-
 export interface DetallePedidoEntity {
   id: string;
 
@@ -6,11 +5,26 @@ export interface DetallePedidoEntity {
 
   productoId: string;
 
+  producto: {
+    nombre: string;
+    id: string;
+  };
+
   unidades: number;
 
   cantidad: number;
 
+  cantidadDespachada: number;
+
+  pesoRecibido: number;
+
   lugarEntregaId?: string;
+
+  LugarEntrega: {
+    nombre: string;
+    id: string;
+    ciudad: string;
+  };
 
   tipoEntrega: string;
 

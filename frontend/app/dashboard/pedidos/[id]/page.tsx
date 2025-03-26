@@ -1,3 +1,4 @@
+import TableDetallesPedidos from "@/components/pedidos/table-detalles-pedido"
 import BackButtonLayout from "@/components/shared/back-button-layout"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -6,94 +7,6 @@ import { PedidoService } from "@/services/pedidos/pedido.service"
 import { PageProps, PaginationSearchParamsPage } from "@/types/pagination"
 import { Pencil } from "lucide-react"
 import Link from "next/link"
-
-// En producción, estos datos vendrían de la base de datos
-const orderData = {
-  id: "PC-001",
-  orderDate: "20-dic",
-  client: {
-    name: "Aguas kapital",
-    document: "901234567-8",
-  },
-  requirementDate: "Diferentes Fechas",
-  status: "Entregado Parcialmente",
-  purchaseOrder: "OC-010931",
-  totalWeight: 53500,
-  totalValue: 121960000,
-  products: [
-    {
-      id: "PC-001.1",
-      name: "PHCA-20",
-      requirementDate: "29-dic",
-      presentation: "Granel",
-      unit: 1,
-      quantity: 34000,
-      dispatchedQuantity: 34000,
-      total: 34000,
-      receivedWeight: 34000,
-      deliveryType: "Entrega al Cliente",
-      deliveryLocation: "Planta Porfice",
-      city: "Cúcuta",
-    },
-    {
-      id: "PC-001.2",
-      name: "PAC-19",
-      requirementDate: "30-dic",
-      presentation: "Caneca 250kg",
-      unit: 250,
-      quantity: 20,
-      dispatchedQuantity: 5000,
-      total: 5000,
-      receivedWeight: 5000,
-      deliveryType: "Recoge en Planta",
-      deliveryLocation: "Planta Quimandes",
-      city: "Cúcuta",
-    },
-    {
-      id: "PC-001.3",
-      name: "Cloro Gaseoso",
-      requirementDate: "31-dic",
-      presentation: "Contenedor",
-      unit: 900,
-      quantity: 5,
-      dispatchedQuantity: 4500,
-      total: 4500,
-      receivedWeight: 4500,
-      deliveryType: "Entrega al Cliente",
-      deliveryLocation: "Planta Tonchala",
-      city: "Tonchala",
-    },
-    {
-      id: "PC-001.4",
-      name: "Soda Caustica",
-      requirementDate: "01-ene",
-      presentation: "Granel",
-      unit: 1,
-      quantity: 5000,
-      dispatchedQuantity: 5000,
-      total: 5000,
-      receivedWeight: 5000,
-      deliveryType: "Entrega al Cliente",
-      deliveryLocation: "Planta Bocatoma",
-      city: "Cúcuta",
-    },
-    {
-      id: "PC-001.5",
-      name: "Acido Clorhidrico",
-      requirementDate: "02-ene",
-      presentation: "Granel",
-      unit: 1,
-      quantity: 5000,
-      dispatchedQuantity: 5000,
-      total: 5000,
-      receivedWeight: 5000,
-      deliveryType: "Entrega al Cliente",
-      deliveryLocation: "Planta Porfice",
-      city: "Cúcuta",
-    },
-  ],
-  observations: "Entrega en diferentes fechas según programación",
-}
 
 export default async function OrderDetailsPage(props: PageProps<PaginationSearchParamsPage>) {
   const params = await props.params;
@@ -167,71 +80,20 @@ export default async function OrderDetailsPage(props: PageProps<PaginationSearch
             <CardTitle>Productos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="rounded-md border overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b bg-muted/50">
-                    <th className="p-2 text-left">ID</th>
-                    <th className="p-2 text-left">Producto</th>
-                    <th className="p-2 text-left">Fecha Req.</th>
-                    <th className="p-2 text-left">Presentación</th>
-                    <th className="p-2 text-right">Unidad</th>
-                    <th className="p-2 text-right">Cantidad</th>
-                    <th className="p-2 text-right">Cant. Despachada</th>
-                    <th className="p-2 text-right">Peso Recibido</th>
-                    <th className="p-2 text-left">Tipo Entrega</th>
-                    <th className="p-2 text-left">Lugar Entrega</th>
-                    <th className="p-2 text-left">Ciudad</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orderData.products.map((product) => (
-                    <tr key={product.id} className="border-b">
-                      <td className="p-2">{product.id}</td>
-                      <td className="p-2">{product.name}</td>
-                      <td className="p-2">{product.requirementDate}</td>
-                      <td className="p-2">{product.presentation}</td>
-                      <td className="p-2 text-right">{product.unit}</td>
-                      <td className="p-2 text-right">{product.quantity.toLocaleString()}</td>
-                      <td className="p-2 text-right">{product.dispatchedQuantity.toLocaleString()}</td>
-                      <td className="p-2 text-right">{product.receivedWeight.toLocaleString()}</td>
-                      <td className="p-2">{product.deliveryType}</td>
-                      <td className="p-2">{product.deliveryLocation}</td>
-                      <td className="p-2">{product.city}</td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr className="border-t bg-muted/50 font-medium">
-                    <td colSpan={5} className="p-2 text-right">
-                      Totales:
-                    </td>
-                    <td className="p-2 text-right">
-                      {orderData.products.reduce((sum, product) => sum + product.quantity, 0).toLocaleString()}
-                    </td>
-                    <td className="p-2 text-right">
-                      {orderData.products
-                        .reduce((sum, product) => sum + product.dispatchedQuantity, 0)
-                        .toLocaleString()}
-                    </td>
-                    <td className="p-2 text-right">
-                      {orderData.products.reduce((sum, product) => sum + product.receivedWeight, 0).toLocaleString()}
-                    </td>
-                    <td colSpan={3}></td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
+            {/* aqui va el componente hijo */}
+            <TableDetallesPedidos
+              detallesPedidos={pedido.detallesPedido}
+            />
           </CardContent>
         </Card>
 
-        {orderData.observations && (
+        {pedido.observaciones && (
           <Card className="md:col-span-2">
             <CardHeader>
               <CardTitle>Observaciones</CardTitle>
             </CardHeader>
             <CardContent>
-              <p>{orderData.observations}</p>
+              <p>{pedido.observaciones}</p>
             </CardContent>
           </Card>
         )}
