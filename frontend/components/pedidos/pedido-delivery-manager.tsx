@@ -2,12 +2,13 @@
 
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ProductDeliveryForm } from "./product-delivery-form"
 import { AlertCircle, CheckCircle2, Clock, Truck } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { PedidoEntity } from "@/services/pedidos/entity/pedido.entity"
+import PedidoInfoBasica from "./peido-info-basica"
 
 type Product = {
   id: string
@@ -44,11 +45,11 @@ type OrderData = {
 }
 
 type OrderDeliveryManagerProps = {
-  orderId: string
   initialData: OrderData
+  pedido: PedidoEntity
 }
 
-export function OrderDeliveryManager({ orderId, initialData }: OrderDeliveryManagerProps) {
+export function OrderDeliveryManager({ initialData, pedido }: OrderDeliveryManagerProps) {
   const [orderData, setOrderData] = useState<OrderData>(initialData)
 
   // Función para actualizar el estado de un producto
@@ -97,61 +98,9 @@ export function OrderDeliveryManager({ orderId, initialData }: OrderDeliveryMana
   return (
     <div className="space-y-6">
       <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Información del Cliente</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <div className="text-sm font-medium text-muted-foreground">Cliente</div>
-                <div>{orderData.client.name}</div>
-              </div>
-              <div>
-                <div className="text-sm font-medium text-muted-foreground">Documento</div>
-                <div>{orderData.client.document}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Información del Pedido</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <div className="text-sm font-medium text-muted-foreground">Fecha del Pedido</div>
-                <div>{orderData.orderDate}</div>
-              </div>
-              <div>
-                <div className="text-sm font-medium text-muted-foreground">Estado</div>
-                <div>
-                  <Badge
-                    variant={
-                      orderData.status === "Entregado"
-                        ? "default"
-                        : orderData.status === "Entregado Parcialmente"
-                          ? "secondary"
-                          : "outline"
-                    }
-                  >
-                    {orderData.status}
-                  </Badge>
-                </div>
-              </div>
-              <div>
-                <div className="text-sm font-medium text-muted-foreground">Orden de Compra</div>
-                <div>{orderData.purchaseOrder}</div>
-              </div>
-              <div>
-                <div className="text-sm font-medium text-muted-foreground">Fecha de Requerimiento</div>
-                <div>{orderData.requirementDate}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <PedidoInfoBasica 
+          pedido={pedido}
+        />
       </div>
 
       <Card>

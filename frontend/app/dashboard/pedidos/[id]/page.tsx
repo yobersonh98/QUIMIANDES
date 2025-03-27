@@ -1,8 +1,8 @@
+import PedidoInfoBasica from "@/components/pedidos/peido-info-basica"
 import TableDetallesPedidos from "@/components/pedidos/table-detalles-pedido"
 import BackButtonLayout from "@/components/shared/back-button-layout"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { formatFecha } from "@/lib/utils"
 import { PedidoService } from "@/services/pedidos/pedido.service"
 import { PageProps, PaginationSearchParamsPage } from "@/types/pagination"
 import { Pencil } from "lucide-react"
@@ -31,50 +31,9 @@ export default async function OrderDetailsPage(props: PageProps<PaginationSearch
         </Button>
       </div>}>
       <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Información del Cliente</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <div className="text-sm font-medium text-muted-foreground">Cliente</div>
-                <div>{pedido.cliente.nombre}</div>
-              </div>
-              <div>
-                <div className="text-sm font-medium text-muted-foreground">Documento</div>
-                <div>{pedido.cliente.documento}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Información del Pedido</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <div className="text-sm font-medium text-muted-foreground">Fecha del Pedido</div>
-                <div>{formatFecha(pedido.fechaRecibido)}</div>
-              </div>
-              <div>
-                <div className="text-sm font-medium text-muted-foreground">Estado</div>
-                <div>{pedido.estado}</div>
-              </div>
-              <div>
-                <div className="text-sm font-medium text-muted-foreground">Orden de Compra</div>
-                <div>{pedido.ordenCompra}</div>
-              </div>
-              <div>
-                <div className="text-sm font-medium text-muted-foreground">Fecha de Entrega</div>
-                <div>{formatFecha(pedido.fechaEntrega)}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
+        <PedidoInfoBasica
+          pedido={pedido}
+        />
         <Card className="md:col-span-2">
           <CardHeader>
             <CardTitle>Productos</CardTitle>

@@ -1,5 +1,7 @@
 import { OrderDeliveryManager } from "@/components/pedidos/pedido-delivery-manager"
 import BackButtonLayout from "@/components/shared/back-button-layout"
+import { PedidoService } from "@/services/pedidos/pedido.service";
+import { PageProps, PaginationSearchParamsPage } from "@/types/pagination"
 
 // En producción, estos datos vendrían de la base de datos
 const orderData = {
@@ -104,10 +106,17 @@ const orderData = {
   observations: "Entrega en diferentes fechas según programación",
 }
 
-export default function ManageOrderDeliveryPage({ params }: { params: { id: string } }) {
+export default async function ManageOrderDeliveryPage(props: PageProps<PaginationSearchParamsPage>) {
+  const params = await props.params;
+  const respones = await PedidoService.getServerIntance().consultar(params?.id || '');
+  if (!respones.data) {
+    return <div>
+      {respones.error?.message || 'No se econtro el pedido...'}
+    </div>
+  }
   return (
     <BackButtonLayout title="Gestionar Pedido">
-      <OrderDeliveryManager orderId={params.id} initialData={orderData} />
+      <OrderDeliveryManager initialData={orderData} pedido={respones.data} />
     </BackButtonLayout>
   )
 }
