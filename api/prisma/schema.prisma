@@ -194,6 +194,7 @@ model Entrega {
   observaciones   String?
   fechaCreacion DateTime @default(now())
   lugarEntrega    LugarEntrega @relation(fields: [lugarEntregaId], references: [id])
+  entregaProductos EntregaProducto[]
 }
 
 model EntregaProducto {
@@ -205,6 +206,8 @@ model EntregaProducto {
   cantidadDespachada Float         @default(0)
   fechaEntrega    DateTime?
   observaciones      String?
+
+  entrega Entrega @relation(fields: [entregaId], references: [id])
 }
 
 model LugarEntrega {
