@@ -1,7 +1,10 @@
 import { OrderDeliveryManager } from "@/components/pedidos/pedido-delivery-manager"
 import BackButtonLayout from "@/components/shared/back-button-layout"
+import { Button } from "@/components/ui/button";
 import { PedidoService } from "@/services/pedidos/pedido.service";
 import { PageProps, PaginationSearchParamsPage } from "@/types/pagination"
+import { Plus } from "lucide-react";
+import Link from "next/link";
 
 // En producción, estos datos vendrían de la base de datos
 const orderData = {
@@ -121,9 +124,21 @@ export default async function ManageOrderDeliveryPage(props: PageProps<Paginatio
       {respones.error?.message || 'No se econtro el pedido...'}
     </div>
   }
+
   return (
-    <BackButtonLayout title="Gestionar Pedido">
-      <OrderDeliveryManager initialData={orderData} pedido={respones.data} orderId={orderData.id}/>
+    <BackButtonLayout title={
+      <div className="w-full flex justify-between items-center">
+        <h2 className="m-0 p-0 text-xl text-center align-middle">
+          Gestionar Pedido
+        </h2>
+        <Link href={`/dashboard/pedidos/${params?.id}/gestionar/registrar-entrega`}>
+          <Button>
+            <Plus size={24} />
+            Registrar Entrega
+          </Button>
+        </Link>
+      </div>}>
+      <OrderDeliveryManager initialData={orderData} pedido={respones.data} orderId={orderData.id} />
     </BackButtonLayout>
   )
 }

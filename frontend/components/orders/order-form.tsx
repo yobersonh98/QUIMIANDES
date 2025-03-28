@@ -150,7 +150,7 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
                 name="idCliente"
                 render={({ field }) => (
                   <FormItem>
-                    <Label required>Cliente</Label>
+                    <Label required>Cliente</Label> 
                     <SelectWithSearch
                       endpoint="cliente/search"
                       value={field.value}
