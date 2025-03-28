@@ -188,12 +188,10 @@ model Entrega {
   vehiculoInterno String?
   vehiculoExterno String?
   entregadoPorA   String?
-  lugarEntregaId  String
   tipoEntrega     String?
   remision        String?
   observaciones   String?
   fechaCreacion DateTime @default(now())
-  lugarEntrega    LugarEntrega @relation(fields: [lugarEntregaId], references: [id])
   entregaProductos EntregaProducto[]
 }
 
@@ -220,7 +218,6 @@ model LugarEntrega {
 
   activo          Boolean         @default(true)
   cliente         Cliente         @relation(fields: [idCliente], references: [id])
-  entregas        Entrega[]
   ciudad          Municipio       @relation(fields: [idCiudad], references: [id])
   detallesPedidos DetallePedido[]
 
