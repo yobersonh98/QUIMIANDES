@@ -131,12 +131,6 @@ export default async function ManageOrderDeliveryPage(props: PageProps<Paginatio
         <h2 className="m-0 p-0 text-xl text-center align-middle">
           Gestionar Pedido
         </h2>
-        <Link href={`/dashboard/pedidos/${params?.id}/gestionar/registrar-entrega`}>
-          <Button>
-            <Plus size={24} />
-            Registrar Entrega
-          </Button>
-        </Link>
       </div>}>
       <OrderDeliveryManager initialData={orderData} pedido={respones.data} orderId={orderData.id} />
     </BackButtonLayout>

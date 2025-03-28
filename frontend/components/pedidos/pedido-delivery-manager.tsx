@@ -3,12 +3,14 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { AlertCircle} from "lucide-react"
+import { AlertCircle, Plus} from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { PedidoEntity } from "@/services/pedidos/entity/pedido.entity"
 import PedidoInfoBasica from "./peido-info-basica"
 import { ProductsList } from "./products-list"
 import { DeliveryHistory } from "./delivery-history"
+import Link from "next/link"
+import { Button } from "../ui/button"
 
 type DeliveryLocation = {
   id: string
@@ -145,12 +147,12 @@ export function OrderDeliveryManager({ initialData, pedido, orderId }: OrderDeli
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Estado de Entrega</CardTitle>
-          {/* <Button asChild>
-            <Link href={`/dashboard/pedidos/${orderId}/crear-entrega`}>
-              <Plus className="h-4 w-4 mr-2" />
-              Registrar Entrega
-            </Link>
-          </Button> */}
+          <Link href={`/dashboard/pedidos/${pedido?.id}/gestionar/registrar-entrega`}>
+          <Button>
+            <Plus size={24} />
+            Registrar Entrega
+          </Button>
+        </Link>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-4 gap-4 mb-6">

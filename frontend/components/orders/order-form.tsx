@@ -234,6 +234,7 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
                           <FormLabel>Lugar de Entrega Global</FormLabel>
                           <FormControl>
                             <SelectWithSearch
+                              disabled={form.getValues("tipoEntregaGlobal") === TipoEntregaProducto.RECOGE_EN_PLANTA}
                               endpoint="lugar-entrega/search"
                               onSelect={field.onChange}
                               value={field.value}
