@@ -20,10 +20,12 @@ export interface DetallePedidoEntity {
 
   lugarEntregaId?: string;
 
-  LugarEntrega: {
+  lugarEntrega: {
     nombre: string;
     id: string;
-    ciudad: string;
+    ciudad: {
+      nombre: string;
+    }
   };
 
   tipoEntrega: string;

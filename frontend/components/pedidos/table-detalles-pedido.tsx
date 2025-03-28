@@ -18,7 +18,7 @@ export default function TableDetallesPedidos({detallesPedidos}: DetallesPedidosP
                     <th className="p-2 text-center">Unidad</th>
                     <th className="p-2 text-center">Cantidad</th>
                     <th className="p-2 text-center">Cant. Despachada</th>
-                    <th className="p-2 text-center">Peso Recibido</th>
+                    {/* <th className="p-2 text-center">Peso Recibido</th> */}
                     <th className="p-2 text-center">Tipo Entrega</th>
                     <th className="p-2 text-center">Lugar Entrega</th>
                     <th className="p-2 text-center">Ciudad</th>
@@ -33,10 +33,10 @@ export default function TableDetallesPedidos({detallesPedidos}: DetallesPedidosP
                       <td className="p-2 text-center">{item.unidades}</td>
                       <td className="p-2 text-center">{item.cantidad}</td>
                       <td className="p-2 text-center">{item.cantidadDespachada}</td>
-                      <td className="p-2 text-center">{item.pesoRecibido}</td>
+                      {/* <td className="p-2 text-center">{item.pesoRecibido}</td> */}
                       <td className="p-2 text-center">{item.tipoEntrega}</td>
-                      <td className="p-2 text-center">{item.LugarEntrega?.nombre || 'N/A'}</td>
-                      <td className="p-2 text-center">{item.LugarEntrega?.ciudad || 'N/A'}</td>
+                      <td className="p-2 text-center">{item.lugarEntrega?.nombre || 'N/A'}</td>
+                      <td className="p-2 text-center">{item.lugarEntrega?.ciudad.nombre || 'N/A'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -53,9 +53,9 @@ export default function TableDetallesPedidos({detallesPedidos}: DetallesPedidosP
                         .reduce((sum, product) => sum + product.cantidadDespachada, 0)
                         .toLocaleString()}
                     </td>
-                    <td className="p-2 text-center">
+                    {/* <td className="p-2 text-center">
                       {detallesPedidos.reduce((sum, product) => sum + product.pesoRecibido, 0).toLocaleString()}
-                    </td>
+                    </td> */}
                     <td colSpan={3}></td>
                   </tr>
                 </tfoot>

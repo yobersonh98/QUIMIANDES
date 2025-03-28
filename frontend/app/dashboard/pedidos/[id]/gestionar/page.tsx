@@ -8,6 +8,7 @@ const orderData = {
   id: "PC-001",
   orderDate: "20-dic",
   client: {
+    id: "client-001",
     name: "Aguas kapital",
     document: "901234567-8",
   },
@@ -24,15 +25,16 @@ const orderData = {
       presentation: "Granel",
       unit: 1,
       quantity: 34000,
-      dispatchedQuantity: 34000,
+      dispatchedQuantity: 0,
       total: 34000,
-      receivedWeight: 34000,
+      receivedWeight: 0,
       deliveryType: "Entrega al Cliente",
-      deliveryLocation: "Planta Porfice",
-      city: "Cúcuta",
+      deliveryLocation: {
+        id: "loc-001",
+        name: "Planta Porfice",
+        city: "Cúcuta",
+      },
       deliveryStatus: "Pendiente",
-      deliveryDate: "",
-      deliveryNotes: "",
     },
     {
       id: "PC-001.2",
@@ -41,15 +43,16 @@ const orderData = {
       presentation: "Caneca 250kg",
       unit: 250,
       quantity: 20,
-      dispatchedQuantity: 5000,
+      dispatchedQuantity: 0,
       total: 5000,
-      receivedWeight: 5000,
+      receivedWeight: 0,
       deliveryType: "Recoge en Planta",
-      deliveryLocation: "Planta Quimandes",
-      city: "Cúcuta",
+      deliveryLocation: {
+        id: "loc-002",
+        name: "Planta Quimandes",
+        city: "Cúcuta",
+      },
       deliveryStatus: "Pendiente",
-      deliveryDate: "",
-      deliveryNotes: "",
     },
     {
       id: "PC-001.3",
@@ -58,15 +61,16 @@ const orderData = {
       presentation: "Contenedor",
       unit: 900,
       quantity: 5,
-      dispatchedQuantity: 4500,
+      dispatchedQuantity: 0,
       total: 4500,
-      receivedWeight: 4500,
+      receivedWeight: 0,
       deliveryType: "Entrega al Cliente",
-      deliveryLocation: "Planta Tonchala",
-      city: "Tonchala",
+      deliveryLocation: {
+        id: "loc-003",
+        name: "Planta Tonchala",
+        city: "Tonchala",
+      },
       deliveryStatus: "Pendiente",
-      deliveryDate: "",
-      deliveryNotes: "",
     },
     {
       id: "PC-001.4",
@@ -75,15 +79,16 @@ const orderData = {
       presentation: "Granel",
       unit: 1,
       quantity: 5000,
-      dispatchedQuantity: 5000,
+      dispatchedQuantity: 0,
       total: 5000,
-      receivedWeight: 5000,
+      receivedWeight: 0,
       deliveryType: "Entrega al Cliente",
-      deliveryLocation: "Planta Bocatoma",
-      city: "Cúcuta",
+      deliveryLocation: {
+        id: "loc-004",
+        name: "Planta Bocatoma",
+        city: "Cúcuta",
+      },
       deliveryStatus: "Pendiente",
-      deliveryDate: "",
-      deliveryNotes: "",
     },
     {
       id: "PC-001.5",
@@ -92,17 +97,19 @@ const orderData = {
       presentation: "Granel",
       unit: 1,
       quantity: 5000,
-      dispatchedQuantity: 5000,
+      dispatchedQuantity: 0,
       total: 5000,
-      receivedWeight: 5000,
+      receivedWeight: 0,
       deliveryType: "Entrega al Cliente",
-      deliveryLocation: "Planta Porfice",
-      city: "Cúcuta",
+      deliveryLocation: {
+        id: "loc-001",
+        name: "Planta Porfice",
+        city: "Cúcuta",
+      },
       deliveryStatus: "Pendiente",
-      deliveryDate: "",
-      deliveryNotes: "",
     },
   ],
+  deliveries: [],
   observations: "Entrega en diferentes fechas según programación",
 }
 
@@ -116,7 +123,7 @@ export default async function ManageOrderDeliveryPage(props: PageProps<Paginatio
   }
   return (
     <BackButtonLayout title="Gestionar Pedido">
-      <OrderDeliveryManager initialData={orderData} pedido={respones.data} />
+      <OrderDeliveryManager initialData={orderData} pedido={respones.data} orderId={orderData.id}/>
     </BackButtonLayout>
   )
 }

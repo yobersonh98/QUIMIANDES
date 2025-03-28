@@ -62,8 +62,12 @@ export class PedidoService {
         detallesPedido: {
           include: {
             producto: true,
-            lugarEntrega: true,
-            entregasDetallePedido: true
+            lugarEntrega: {
+              include:{
+                ciudad: true,
+              }
+            },
+            entregasDetallePedido: true,
           }
         },
         

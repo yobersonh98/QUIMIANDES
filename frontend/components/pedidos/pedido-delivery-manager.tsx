@@ -1,14 +1,20 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ProductDeliveryForm } from "./product-delivery-form"
-import { AlertCircle, CheckCircle2, Clock, Truck } from "lucide-react"
+import { AlertCircle} from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { PedidoEntity } from "@/services/pedidos/entity/pedido.entity"
 import PedidoInfoBasica from "./peido-info-basica"
+import { ProductsList } from "./products-list"
+import { DeliveryHistory } from "./delivery-history"
+
+type DeliveryLocation = {
+  id: string
+  name: string
+  city: string
+}
 
 type Product = {
   id: string
@@ -21,17 +27,35 @@ type Product = {
   total: number
   receivedWeight: number
   deliveryType: string
-  deliveryLocation: string
-  city: string
+  deliveryLocation: DeliveryLocation
   deliveryStatus: string
-  deliveryDate: string
-  deliveryNotes: string
+}
+
+type DeliveryProduct = {
+  productId: string
+  quantity: number
+  observations?: string
+}
+
+type Delivery = {
+  id: string
+  date: string
+  vehicleInternal?: string
+  vehicleExternal?: string
+  deliveredBy?: string
+  deliveryLocationId: string
+  deliveryLocationName: string
+  deliveryType: string
+  remission?: string
+  observations?: string
+  products: DeliveryProduct[]
 }
 
 type OrderData = {
   id: string
   orderDate: string
   client: {
+    id: string
     name: string
     document: string
   }
@@ -41,30 +65,52 @@ type OrderData = {
   totalWeight: number
   totalValue: number
   products: Product[]
+  deliveries: Delivery[]
   observations: string
 }
 
 type OrderDeliveryManagerProps = {
+  orderId: string
   initialData: OrderData
   pedido: PedidoEntity
 }
 
-export function OrderDeliveryManager({ initialData, pedido }: OrderDeliveryManagerProps) {
+
+
+export function OrderDeliveryManager({ initialData, pedido, orderId }: OrderDeliveryManagerProps) {
   const [orderData, setOrderData] = useState<OrderData>(initialData)
 
-  // Función para actualizar el estado de un producto
-  const updateProductDelivery = (productId: string, updatedProduct: Partial<Product>) => {
+  // Calcular el estado de entrega de cada producto basado en las entregas
+  useEffect(() => {
     const updatedProducts = orderData.products.map((product) => {
-      if (product.id === productId) {
-        return { ...product, ...updatedProduct }
+      // Calcular la cantidad total despachada para este producto
+      const totalDispatched = orderData.deliveries.reduce((sum, delivery) => {
+        const productDelivery = delivery.products.find((p) => p.productId === product.id)
+        return sum + (productDelivery?.quantity || 0)
+      }, 0)
+
+      // Actualizar la cantidad despachada
+      const updatedProduct = {
+        ...product,
+        dispatchedQuantity: totalDispatched,
       }
-      return product
+
+      // Determinar el estado de entrega
+      if (totalDispatched === 0) {
+        updatedProduct.deliveryStatus = "Pendiente"
+      } else if (totalDispatched >= product.quantity) {
+        updatedProduct.deliveryStatus = "Entregado"
+      } else {
+        updatedProduct.deliveryStatus = "Entregado Parcialmente"
+      }
+
+      return updatedProduct
     })
 
-    // Calcular el nuevo estado general del pedido basado en los estados de los productos
-    const allDelivered = updatedProducts.every((product) => product.deliveryStatus === "Entregado")
-    const anyPending = updatedProducts.some((product) => product.deliveryStatus === "Pendiente")
-    const anyPartial = updatedProducts.some((product) => product.deliveryStatus === "Entregado Parcialmente")
+    // Calcular el estado general del pedido
+    const allDelivered = updatedProducts.every((p) => p.deliveryStatus === "Entregado")
+    const anyPending = updatedProducts.some((p) => p.deliveryStatus === "Pendiente")
+    const anyPartial = updatedProducts.some((p) => p.deliveryStatus === "Entregado Parcialmente")
 
     let newStatus = "En entrega"
     if (allDelivered) {
@@ -73,19 +119,12 @@ export function OrderDeliveryManager({ initialData, pedido }: OrderDeliveryManag
       newStatus = "Entregado Parcialmente"
     }
 
-    setOrderData({
-      ...orderData,
+    setOrderData((prev) => ({
+      ...prev,
       products: updatedProducts,
       status: newStatus,
-    })
-  }
-
-  // Función para guardar todos los cambios
-  const saveChanges = () => {
-    // Aquí iría la lógica para guardar los cambios en la base de datos
-    console.log("Guardando cambios:", orderData)
-    alert("Cambios guardados correctamente")
-  }
+    }))
+  }, [orderData.deliveries])
 
   // Obtener estadísticas de entrega
   const deliveryStats = {
@@ -98,14 +137,20 @@ export function OrderDeliveryManager({ initialData, pedido }: OrderDeliveryManag
   return (
     <div className="space-y-6">
       <div className="grid gap-6 md:grid-cols-2">
-        <PedidoInfoBasica 
+        <PedidoInfoBasica
           pedido={pedido}
         />
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Estado de Entrega</CardTitle>
+          {/* <Button asChild>
+            <Link href={`/dashboard/pedidos/${orderId}/crear-entrega`}>
+              <Plus className="h-4 w-4 mr-2" />
+              Registrar Entrega
+            </Link>
+          </Button> */}
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-4 gap-4 mb-6">
@@ -139,79 +184,26 @@ export function OrderDeliveryManager({ initialData, pedido }: OrderDeliveryManag
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Información</AlertTitle>
             <AlertDescription>
-              El estado general del pedido se actualiza automáticamente según el estado de entrega de cada producto.
+              El estado general del pedido se actualiza automáticamente según las entregas registradas.
             </AlertDescription>
           </Alert>
 
-          <Tabs defaultValue="all" className="w-full">
-            <TabsList className="grid grid-cols-4 mb-4">
-              <TabsTrigger value="all">Todos</TabsTrigger>
-              <TabsTrigger value="pending" className="flex items-center gap-2">
-                <Clock className="h-4 w-4" /> Pendientes
-              </TabsTrigger>
-              <TabsTrigger value="partial" className="flex items-center gap-2">
-                <Truck className="h-4 w-4" /> Parciales
-              </TabsTrigger>
-              <TabsTrigger value="delivered" className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4" /> Entregados
-              </TabsTrigger>
+          <Tabs defaultValue="products" className="w-full">
+            <TabsList className="grid grid-cols-2 mb-4">
+              <TabsTrigger value="products">Productos</TabsTrigger>
+              <TabsTrigger value="deliveries">Historial de Entregas</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="all" className="space-y-4">
-              {orderData.products.map((product) => (
-                <ProductDeliveryForm
-                  key={product.id}
-                  product={product}
-                  onUpdate={(updatedProduct) => updateProductDelivery(product.id, updatedProduct)}
-                />
-              ))}
+            <TabsContent value="products">
+              <ProductsList products={orderData.products} />
             </TabsContent>
 
-            <TabsContent value="pending" className="space-y-4">
-              {orderData.products
-                .filter((product) => product.deliveryStatus === "Pendiente")
-                .map((product) => (
-                  <ProductDeliveryForm
-                    key={product.id}
-                    product={product}
-                    onUpdate={(updatedProduct) => updateProductDelivery(product.id, updatedProduct)}
-                  />
-                ))}
-            </TabsContent>
-
-            <TabsContent value="partial" className="space-y-4">
-              {orderData.products
-                .filter((product) => product.deliveryStatus === "Entregado Parcialmente")
-                .map((product) => (
-                  <ProductDeliveryForm
-                    key={product.id}
-                    product={product}
-                    onUpdate={(updatedProduct) => updateProductDelivery(product.id, updatedProduct)}
-                  />
-                ))}
-            </TabsContent>
-
-            <TabsContent value="delivered" className="space-y-4">
-              {orderData.products
-                .filter((product) => product.deliveryStatus === "Entregado")
-                .map((product) => (
-                  <ProductDeliveryForm
-                    key={product.id}
-                    product={product}
-                    onUpdate={(updatedProduct) => updateProductDelivery(product.id, updatedProduct)}
-                  />
-                ))}
+            <TabsContent value="deliveries">
+              <DeliveryHistory orderId={orderId} deliveries={orderData.deliveries} products={orderData.products} />
             </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
-
-      <div className="flex justify-end">
-        <Button size="lg" onClick={saveChanges}>
-          Guardar Cambios
-        </Button>
-      </div>
     </div>
   )
 }
-
