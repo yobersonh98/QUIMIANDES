@@ -1,78 +1,19 @@
 "use client"
 
-import Link from "next/link"
-
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { useState, useEffect } from "react"
+import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { PedidoEntity } from "@/services/pedidos/entity/pedido.entity"
 import { CustomFormDatePicker } from "../shared/custom-form-date-picker"
-
-// En producción, estos datos vendrían de tu API
-const getDetallesPedido = (pedidoId: string) => {
-  return {
-    id: pedidoId,
-    cliente: {
-      id: "CLI001",
-      nombre: "Empresa ABC",
-    },
-    lugaresEntrega: [
-      {
-        id: "LE001",
-        nombre: "Bodega Principal",
-        direccion: "Calle 123 #45-67, Zona Industrial",
-        ciudad: "Bogotá",
-      },
-      {
-        id: "LE002",
-        nombre: "Sucursal Norte",
-        direccion: "Avenida 89 #12-34, Centro Comercial Norte",
-        ciudad: "Bogotá",
-      },
-    ],
-    productos: [
-      {
-        id: "PROD001",
-        detallePedidoId: "DP001",
-        nombre: "Cemento Portland",
-        cantidad: 20,
-        cantidadPendiente: 20,
-        unidades: "Bultos",
-        tipoEntrega: "ENTREGA_AL_CLIENTE",
-        lugarEntregaId: "LE001",
-      },
-      {
-        id: "PROD002",
-        detallePedidoId: "DP002",
-        nombre: 'Varilla Corrugada 1/2"',
-        cantidad: 50,
-        cantidadPendiente: 50,
-        unidades: "Unidades",
-        tipoEntrega: "ENTREGA_AL_CLIENTE",
-        lugarEntregaId: "LE001",
-      },
-      {
-        id: "PROD003",
-        detallePedidoId: "DP003",
-        nombre: "Arena Fina",
-        cantidad: 5,
-        cantidadPendiente: 5,
-        unidades: "m³",
-        tipoEntrega: "RECOGE_EN_PLANTA",
-        lugarEntregaId: null,
-      },
-    ],
-  }
-}
+import { DetallePedidoEntity } from "@/services/detalle-pedido/entity/detalle-pedido.entity"
 
 const formSchema = z.object({
   lugarEntregaId: z.string({
@@ -97,13 +38,8 @@ const formSchema = z.object({
   ),
 })
 
-export function CrearEntregaForm({ pedidoId, pedido }: { pedidoId: string, pedido: PedidoEntity }) {
-  const [pedidoDetalle, setPedidoDetalle] = useState<any>(null)
+export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
   const router = useRouter()
-  useEffect(() => {
-    // En producción, aquí harías una llamada a tu API
-    setPedidoDetalle(getDetallesPedido(pedidoId))
-  }, [pedidoId])
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -118,18 +54,21 @@ export function CrearEntregaForm({ pedidoId, pedido }: { pedidoId: string, pedid
   })
 
   useEffect(() => {
-    if (pedidoDetalle) {
-      // Inicializar los productos en el formulario
-      form.setValue(
-        "productos",
-        pedidoDetalle.productos.map((p: any) => ({
-          detallePedidoId: p.detallePedidoId,
-          cantidadDespachada: p.cantidadPendiente,
-          incluir: true,
-        })),
-      )
+    // Inicializar los productos en el formulario
+    form.setValue(
+      "productos",
+      pedido.detallesPedido.map((detalle: DetallePedidoEntity) => ({
+        detallePedidoId: detalle.id,
+        cantidadDespachada: detalle.cantidad - detalle.cantidadDespachada,
+        incluir: true,
+      }))
+    )
+
+    // Establecer el lugar de entrega del primer detalle de pedido (si existe)
+    if (pedido.detallesPedido.length > 0) {
+      form.setValue("lugarEntregaId", pedido.detallesPedido[0].lugarEntregaId || "")
     }
-  }, [pedidoDetalle, form])
+  }, [pedido, form])
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     // En producción, aquí enviarías los datos a tu API
@@ -138,8 +77,6 @@ export function CrearEntregaForm({ pedidoId, pedido }: { pedidoId: string, pedid
     // Redirigir a la lista de entregas
     window.location.href = "/entregas"
   }
-
-  if (!pedidoDetalle) return <div>Cargando...</div>
 
   return (
     <Form {...form}>
@@ -151,7 +88,6 @@ export function CrearEntregaForm({ pedidoId, pedido }: { pedidoId: string, pedid
               <CardDescription>Datos generales para la programación de la entrega</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-
               <CustomFormDatePicker
                 control={form.control}
                 name="fechaEntrega"
@@ -248,10 +184,10 @@ export function CrearEntregaForm({ pedidoId, pedido }: { pedidoId: string, pedid
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {pedidoDetalle.productos.map((producto: any, index: number) => (
-                  <div key={producto.id} className="flex flex-col space-y-2 p-4 border rounded-lg">
+                {pedido.detallesPedido.map((detalle: DetallePedidoEntity, index: number) => (
+                  <div key={detalle.id} className="flex flex-col space-y-2 p-4 border rounded-lg">
                     <div className="flex items-start justify-between">
-                      <div className="font-medium">{producto.nombre}</div>
+                      <div className="font-medium">{detalle.producto.nombre}</div>
                       <FormField
                         control={form.control}
                         name={`productos.${index}.incluir`}
@@ -268,14 +204,13 @@ export function CrearEntregaForm({ pedidoId, pedido }: { pedidoId: string, pedid
                       />
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      Cantidad total: {producto.cantidad} {producto.unidades}
+                      Cantidad total: {detalle.cantidad} unidades
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      Pendiente por despachar: {producto.cantidadPendiente} {producto.unidades}
+                      Pendiente por despachar: {detalle.cantidad - detalle.cantidadDespachada} unidades
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      Tipo de entrega:{" "}
-                      {producto.tipoEntrega === "ENTREGA_AL_CLIENTE" ? "Entrega al Cliente" : "Recoge en Planta"}
+                      Tipo de entrega: {detalle.tipoEntrega}
                     </div>
 
                     <FormField
@@ -289,12 +224,12 @@ export function CrearEntregaForm({ pedidoId, pedido }: { pedidoId: string, pedid
                               type="number"
                               {...field}
                               min={0}
-                              max={producto.cantidadPendiente}
+                              max={detalle.cantidad - detalle.cantidadDespachada}
                               disabled={!form.watch(`productos.${index}.incluir`)}
                             />
                           </FormControl>
                           <FormDescription>
-                            Cantidad a incluir en esta entrega (máximo: {producto.cantidadPendiente})
+                            Cantidad a incluir en esta entrega (máximo: {detalle.cantidad - detalle.cantidadDespachada})
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -304,7 +239,7 @@ export function CrearEntregaForm({ pedidoId, pedido }: { pedidoId: string, pedid
                     <FormField
                       control={form.control}
                       name={`productos.${index}.detallePedidoId`}
-                      render={({ field }) => <input type="hidden" {...field} value={producto.detallePedidoId} />}
+                      render={({ field }) => <input type="hidden" {...field} value={detalle.id} />}
                     />
                   </div>
                 ))}
@@ -314,16 +249,13 @@ export function CrearEntregaForm({ pedidoId, pedido }: { pedidoId: string, pedid
         </div>
 
         <div className="flex justify-end gap-4">
-
           <Button variant="outline" type="button" onClick={() => router.back()}>
             Cancelar
           </Button>
 
-
-          <Button type="submit">Programar Entrega</Button>
+          <Button type="submit">Registrar</Button>
         </div>
       </form>
     </Form>
   )
 }
-
