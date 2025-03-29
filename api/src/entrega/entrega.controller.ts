@@ -3,11 +3,11 @@ import { EntregaService } from './entrega.service';
 import { CreateEntregaDto } from './dto/create-entrega.dto';
 import { UpdateEntregaDto } from './dto/update-entrega.dto';
 
-@Controller('entrega')
+@Controller('entregas')
 export class EntregaController {
   constructor(private readonly entregaService: EntregaService) {}
 
-  @Post()
+  @Post() 
   create(@Body() createEntregaDto: CreateEntregaDto) {
     return this.entregaService.create(createEntregaDto);
   }

@@ -11,19 +11,28 @@ export class EntregaService {
   ) {}
 
   async create(createEntregaDto: CreateEntregaDto) {
-    const {pedidoId, lugarEntregaId,vehiculoExterno, vehiculoInterno,remision,entregadoPorA, observaciones, entregasProducto} = createEntregaDto;
+    const {pedidoId,vehiculoExterno, vehiculoInterno,remision,entregadoPorA, observaciones, entregasProducto} = createEntregaDto;
+    console.log('Entrengas' ,entregasProducto)
     const entrega  =  await this.prisma.entrega.create({
         data: {
           pedidoId,
-          lugarEntregaId,
           vehiculoExterno,
           vehiculoInterno,
           remision,
           entregadoPorA,
-          observaciones
+          observaciones,
+          entregaProductos: {
+            createMany: {
+              data: entregasProducto.map(p => ({
+                detallePedidoId: p.detallePedidoId,
+                cantidadDespachada: p.cantidadDespachada,
+                fechaEntrega: p.fechaEntrega,
+                observaciones: p.observaciones,
+              }))
+            }
+          }
         }
     });
-    await this.entregraProductoService.createMany(entregasProducto)
     return entrega;
   }
 

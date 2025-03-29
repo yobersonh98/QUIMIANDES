@@ -1,5 +1,6 @@
-import { IsString, IsOptional } from 'class-validator';
+import { IsString, IsOptional, ValidateNested, IsArray } from 'class-validator';
 import { CreateEntregaProductoDto } from '../../entrega-producto/dto/create-entrega-producto.dto';
+import { Type } from 'class-transformer';
 
 export class CreateEntregaDto {
   @IsString()
@@ -16,10 +17,6 @@ export class CreateEntregaDto {
   @IsString()
   entregadoPorA: string;
 
-  @IsString()
-  lugarEntregaId: string;
-
-
   @IsOptional()
   @IsString()
   remision?: string;
@@ -28,6 +25,9 @@ export class CreateEntregaDto {
   @IsString()
   observaciones?: string;
 
-
+  @IsOptional() // ✅ Hace que detallesPedido sea opcional
+  @IsArray() // ✅ Asegura que sea un array
+  @ValidateNested({ each: true }) // ✅ Valida cada elemento dentro del array
+  @Type(() => CreateEntregaProductoDto) // ✅ Transforma los datos al tipo esperado
   entregasProducto?: CreateEntregaProductoDto[]
 }

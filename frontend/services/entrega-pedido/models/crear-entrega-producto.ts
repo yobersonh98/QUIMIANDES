@@ -1,8 +1,7 @@
 export interface CrearEntregaProductoModel {
-  id:string 
-  entregaId:   string
+  entregaId?:   string
   detallePedidoId: string
-  cantidadDespachada: number 
+  cantidadDespachada: number
   fechaEntrega?: string
   observaciones?:  string
 }

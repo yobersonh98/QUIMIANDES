@@ -1,13 +1,13 @@
 import { ErrorResponse, ServiceResponse, SuccessResponse } from "@/core/service/service.response";
 import { ApiService } from "../api/ApiService";
 import { EntregaEntity } from "./entities/entrega.entity";
-import { CrearEntregaProductoModel } from "./models/crear-entrega-producto";
+import { CrearEntregaModel } from "./models/crear-entrega.model";
 
 export class EntregaPedidoService extends ApiService{
   constructor(token?:string) {
     super('entregas', token)
   }
-  async crearEntrega(entregaPedidoModel: CrearEntregaProductoModel): Promise<ServiceResponse<EntregaEntity>>{
+  async crearEntrega(entregaPedidoModel: CrearEntregaModel): Promise<ServiceResponse<EntregaEntity>>{
     try {
       const data = await this.makeRequest<EntregaEntity>({
         method: 'post',

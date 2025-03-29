@@ -70,7 +70,6 @@ export class PedidoService {
             entregasDetallePedido: true,
           }
         },
-        
         entregas: true,
       },
     });

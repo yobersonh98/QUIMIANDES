@@ -9,16 +9,17 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { PedidoEntity } from "@/services/pedidos/entity/pedido.entity"
 import { CustomFormDatePicker } from "../shared/custom-form-date-picker"
 import { DetallePedidoEntity } from "@/services/detalle-pedido/entity/detalle-pedido.entity"
+import { CrearEntregaModel } from "@/services/entrega-pedido/models/crear-entrega.model"
+import { useSession } from "next-auth/react"
+import { EntregaPedidoService } from "@/services/entrega-pedido/entrega-pedido.service"
+import { useToast } from "@/hooks/use-toast"
+import { ConfirmButton } from "../shared/confirm-botton"
 
 const formSchema = z.object({
-  lugarEntregaId: z.string({
-    required_error: "Selecciona un lugar de entrega",
-  }),
   fechaEntrega: z.date({
     required_error: "Selecciona una fecha de entrega",
   }),
@@ -34,13 +35,15 @@ const formSchema = z.object({
       detallePedidoId: z.string(),
       cantidadDespachada: z.coerce.number().min(0),
       incluir: z.boolean().default(true),
+      observaciones: z.string().optional()
     }),
   ),
 })
 
 export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
   const router = useRouter()
-
+  const session = useSession();
+  const toast = useToast()
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -49,38 +52,46 @@ export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
       entregadoPorA: "",
       remision: "",
       observaciones: "",
-      productos: [],
+      productos:   pedido.detallesPedido.map((detalle: DetallePedidoEntity) => ({
+        detallePedidoId: detalle.id,
+        cantidadDespachada: detalle.cantidad- detalle.cantidadDespachada,
+        incluir: true,
+        observaciones: ''
+      }))
     },
   })
 
-  useEffect(() => {
-    // Inicializar los productos en el formulario
-    form.setValue(
-      "productos",
-      pedido.detallesPedido.map((detalle: DetallePedidoEntity) => ({
-        detallePedidoId: detalle.id,
-        cantidadDespachada: detalle.cantidad - detalle.cantidadDespachada,
-        incluir: true,
+  async function onSubmit() {
+    const values = form.getValues();
+    const dataEntrega: CrearEntregaModel = {
+      ...values,
+      pedidoId: pedido.id,
+      entregasProducto: values.productos.map(p => ({
+          ...p,
       }))
-    )
-
-    // Establecer el lugar de entrega del primer detalle de pedido (si existe)
-    if (pedido.detallesPedido.length > 0) {
-      form.setValue("lugarEntregaId", pedido.detallesPedido[0].lugarEntregaId || "")
     }
-  }, [pedido, form])
+    const response = await new EntregaPedidoService(session.data?.user.token || '').crearEntrega(dataEntrega);
+    if (!response.data) {
+      return toast.toast({
+        title: 'Error',
+        description: response.error?.message || 'Error generando la entrega.',
+        variant: 'destructive'
+      })
+    }
+    toast.toast({
+      title: 'Exitoso',
+      description: 'Entrega gestionada correctamente.'
+    })
+    router.back();
+  }
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // En producción, aquí enviarías los datos a tu API
-    console.log(values)
-    alert("Entrega programada con éxito")
-    // Redirigir a la lista de entregas
-    window.location.href = "/entregas"
+  const handleSubmit = async () => {
+    await  onSubmit() 
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
@@ -253,7 +264,11 @@ export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
             Cancelar
           </Button>
 
-          <Button type="submit">Registrar</Button>
+          <ConfirmButton
+            onClick={handleSubmit}
+          >
+            Registrar
+          </ConfirmButton>
         </div>
       </form>
     </Form>

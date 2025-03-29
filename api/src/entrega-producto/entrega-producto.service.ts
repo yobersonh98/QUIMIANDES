@@ -38,11 +38,6 @@ export class EntregaProductoService {
       data:updateEntregaProductoDto
     })
   }
-  createMany(createEntregaProductoDto:CreateEntregaProductoDto[]){
-    return this.prisma.entregaProducto.createMany({
-      data:createEntregaProductoDto,
-    })
-  }
   remove(id: string) {
     return `This action removes a #${id} entregaProducto`;
   }
