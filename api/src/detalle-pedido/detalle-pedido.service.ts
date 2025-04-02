@@ -3,6 +3,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateDetallePedidoDto } from './dto/create-detalle-pedido.dto';
 import { UpdateDetallePedidoDto } from './dto/update-detalle-pedido.dto';
 import { IdGeneratorService } from './../services/IdGeneratorService';
+import { esVacio } from './../common/utils/string.util';
+import { Prisma, PrismaClient } from '@prisma/client';
 
 @Injectable()
 export class DetallePedidoService {
@@ -16,6 +18,7 @@ export class DetallePedidoService {
     const detallePedido = await this.prisma.detallePedido.create({
       data: {
         ...createDetallePedidoDto,
+        lugarEntregaId: esVacio(createDetallePedidoDto.lugarEntregaId) ? undefined : createDetallePedidoDto.lugarEntregaId,
         id: idDetallePeido,
       },
     });

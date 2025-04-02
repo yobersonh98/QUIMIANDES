@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -6,38 +6,54 @@ import { PaginationDto } from './../common/dtos/pagination.dto';
 import { PrismaGenericPaginationService } from './../prisma/prisma-generic-pagination.service';
 import { IdGeneratorService } from './../services/IdGeneratorService';
 import { DetallePedidoService } from './../detalle-pedido/detalle-pedido.service';
+import { esVacio } from './../common/utils/string.util';
 
 @Injectable()
 export class PedidoService {
-  constructor(private readonly prisma: PrismaService,
+  private logger = new Logger(PedidoService.name)
+  constructor(
+    private readonly prisma: PrismaService,
     private paginationService: PrismaGenericPaginationService,
     private idGeneratorService: IdGeneratorService,
-    private detallePedidoService: DetallePedidoService,
-  ) {}
-  async create({detallesPedido, ...infoPedido}: CreatePedidoDto) {
-    const pedidoId = await this.idGeneratorService.generarIdPedido();
-    const pedido = await this.prisma.pedido.create({
-      data: {
-        id: pedidoId,
-        ...infoPedido,
+  ) { }
+  async create({ detallesPedido, ...infoPedido }: CreatePedidoDto) {
+    return this.prisma.$transaction(async (prisma) => {
+      try {
+        const pedidoId = await this.idGeneratorService.generarIdPedido();
+        const pedido = await prisma.pedido.create({
+          data: {
+            id: pedidoId,
+            ...infoPedido,
+          }
+        });
+        const detallesPedidoSaved = [];
+        if (detallesPedido && detallesPedido.length > 0) {
+          for await (const detalle of detallesPedido) {
+            const idDetallePeido = await this.idGeneratorService.generarIdDetallePedido(pedidoId);
+            const detallePedido = await prisma.detallePedido.create({
+              data: {
+                ...detalle,
+                pedidoId,
+                lugarEntregaId: esVacio(detalle.lugarEntregaId) ? undefined : detalle.lugarEntregaId,
+                id: idDetallePeido,
+              },
+            });
+            detallesPedidoSaved.push(detallePedido)
+          }
+        }
+        return {
+          ...pedido,
+          detallesPedido
+        }
+      } catch (error) {
+        this.logger.error(error)
+        throw new BadRequestException("Error al crear el pedido")
       }
-    });
-    const detallesPedidoSaved = [];
-    if (detallesPedido && detallesPedido.length > 0) {
-      for await(const detalle of detallesPedido) {
-        detalle.pedidoId = pedidoId
-        const detallePeido = await this.detallePedidoService.create(detalle);
-        detallesPedidoSaved.push(detallePeido)
-      }
-    }
-    return {
-      ...pedido,
-      detallesPedido
-    }
+    })
   }
 
-  async findAll(findAllPeiddosDto: PaginationDto){
-    const response = await this.paginationService.paginate('Pedido',{
+  async findAll(findAllPeiddosDto: PaginationDto) {
+    const response = await this.paginationService.paginate('Pedido', {
       select: {
         id: true,
         estado: true,
@@ -48,9 +64,9 @@ export class PedidoService {
         },
         fechaRecibido: true,
         idCliente: true,
-        ordenCompra: true,  
+        ordenCompra: true,
       }
-    },findAllPeiddosDto);
+    }, findAllPeiddosDto);
     return response
   }
 
@@ -63,7 +79,7 @@ export class PedidoService {
           include: {
             producto: true,
             lugarEntrega: {
-              include:{
+              include: {
                 ciudad: true,
               }
             },
@@ -80,8 +96,8 @@ export class PedidoService {
   }
 
   async update(id: string, updatePedidoDto: UpdatePedidoDto) {
-    const {estado, pesoDespachado, fechaEntrega, observaciones, ordenCompra, detallesPedido} = updatePedidoDto;
-    const pedido =  await this.prisma.pedido.update({
+    const { estado, pesoDespachado, fechaEntrega, observaciones, ordenCompra, detallesPedido } = updatePedidoDto;
+    const pedido = await this.prisma.pedido.update({
       where: { id },
       data: {
         estado,

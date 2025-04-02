@@ -10,7 +10,6 @@ export class PedidoController {
 
   @Post()
   create(@Body() createPedidoDto: CreatePedidoDto) {
-    console.log(createPedidoDto)
     return this.pedidoService.create(createPedidoDto);
   }
 

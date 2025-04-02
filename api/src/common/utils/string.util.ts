@@ -19,5 +19,5 @@ export const quitarAcentosYEspecialesString = (str:string) => {
 }
 
 export const esVacio = (str:string) => {
-    return !str || str.length === 0;
+    return !str || str.length === 0 || str.trim().length === 0;
 }
