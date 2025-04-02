@@ -25,9 +25,11 @@ export class DetallePedidoService {
     return detallePedido;
   }
 
-  async findAll() {
+  async findAll(pedidoId:string) {
     return await this.prisma.detallePedido.findMany({
-      include: { pedido: true, producto: true },
+      where: {
+        pedidoId,
+      },
     });
   }
 

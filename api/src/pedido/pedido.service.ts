@@ -5,7 +5,6 @@ import { PrismaService } from '../prisma/prisma.service';
 import { PaginationDto } from './../common/dtos/pagination.dto';
 import { PrismaGenericPaginationService } from './../prisma/prisma-generic-pagination.service';
 import { IdGeneratorService } from './../services/IdGeneratorService';
-import { DetallePedidoService } from './../detalle-pedido/detalle-pedido.service';
 import { esVacio } from './../common/utils/string.util';
 
 @Injectable()

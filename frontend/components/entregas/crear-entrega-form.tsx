@@ -33,7 +33,7 @@ const formSchema = z.object({
   productos: z.array(
     z.object({
       detallePedidoId: z.string(),
-      cantidadDespachada: z.coerce.number().min(0),
+      cantidadDespachada: z.coerce.number().min(1),
       incluir: z.boolean().default(true),
       observaciones: z.string().optional()
     }),
@@ -41,6 +41,7 @@ const formSchema = z.object({
 })
 
 export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
+  console.log(pedido)
   const router = useRouter()
   const session = useSession();
   const toast = useToast()
@@ -52,9 +53,9 @@ export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
       entregadoPorA: "",
       remision: "",
       observaciones: "",
-      productos:   pedido.detallesPedido.map((detalle: DetallePedidoEntity) => ({
+      productos: pedido.detallesPedido.map((detalle: DetallePedidoEntity) => ({
         detallePedidoId: detalle.id,
-        cantidadDespachada: detalle.cantidad- detalle.cantidadDespachada,
+        cantidadDespachada: detalle.cantidad - detalle.cantidadDespachada,
         incluir: true,
         observaciones: ''
       }))
@@ -67,8 +68,9 @@ export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
       ...values,
       pedidoId: pedido.id,
       entregasProducto: values.productos.map(p => ({
-          ...p,
-      }))
+        ...p,
+        cantidadDespachada: parseFloat(p.cantidadDespachada.toString())
+      })).filter(p => p.incluir)
     }
     const response = await new EntregaPedidoService(session.data?.user.token || '').crearEntrega(dataEntrega);
     if (!response.data) {
@@ -86,7 +88,15 @@ export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
   }
 
   const handleSubmit = async () => {
-    await  onSubmit() 
+    const esAlgunProductoConCantidadCero = form.getValues().productos.some(p=> p.cantidadDespachada <= 0 && p.incluir);
+    if (esAlgunProductoConCantidadCero) {
+      toast.toast({
+        variant: "destructive",
+        description: "La cantidad a despachar de los productos debe ser mayor a cero."
+      })
+      return
+    }
+    await onSubmit()
   }
 
   return (
@@ -251,6 +261,23 @@ export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
                       control={form.control}
                       name={`productos.${index}.detallePedidoId`}
                       render={({ field }) => <input type="hidden" {...field} value={detalle.id} />}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`productos.${index}.observaciones`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Observaciones</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Instrucciones especiales para la entrega"
+                              className="resize-none"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
                   </div>
                 ))}

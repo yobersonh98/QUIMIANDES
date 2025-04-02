@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { DetallePedidoService } from './detalle-pedido.service';
 import { CreateDetallePedidoDto } from './dto/create-detalle-pedido.dto';
 import { UpdateDetallePedidoDto } from './dto/update-detalle-pedido.dto';
@@ -13,8 +13,8 @@ export class DetallePedidoController {
   }
 
   @Get()
-  findAll() {
-    return this.detallePedidoService.findAll();
+  findAll(@Query('pedidoId') pedidoId: string) {
+    return this.detallePedidoService.findAll(pedidoId);
   }
 
   @Get(':id')
