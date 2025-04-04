@@ -33,7 +33,7 @@ const formSchema = z.object({
   productos: z.array(
     z.object({
       detallePedidoId: z.string(),
-      cantidadDespachada: z.coerce.number().min(1),
+      cantidadDespachar: z.coerce.number().min(1),
       incluir: z.boolean().default(true),
       observaciones: z.string().optional()
     }),
@@ -55,7 +55,7 @@ export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
       observaciones: "",
       productos: pedido.detallesPedido.map((detalle: DetallePedidoEntity) => ({
         detallePedidoId: detalle.id,
-        cantidadDespachada: detalle.cantidad - detalle.cantidadDespachada,
+        cantidadDespachar: detalle.cantidad - detalle.cantidadDespachada,
         incluir: true,
         observaciones: ''
       }))
@@ -69,7 +69,7 @@ export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
       pedidoId: pedido.id,
       entregasProducto: values.productos.map(p => ({
         ...p,
-        cantidadDespachada: parseFloat(p.cantidadDespachada.toString())
+        cantidadDespachar: parseFloat(p.cantidadDespachar.toString())
       })).filter(p => p.incluir)
     }
     const response = await new EntregaPedidoService(session.data?.user.token || '').crearEntrega(dataEntrega);
@@ -88,7 +88,7 @@ export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
   }
 
   const handleSubmit = async () => {
-    const esAlgunProductoConCantidadCero = form.getValues().productos.some(p=> p.cantidadDespachada <= 0 && p.incluir);
+    const esAlgunProductoConCantidadCero = form.getValues().productos.some(p=> p.cantidadDespachar <= 0 && p.incluir);
     if (esAlgunProductoConCantidadCero) {
       toast.toast({
         variant: "destructive",
@@ -236,7 +236,7 @@ export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
 
                     <FormField
                       control={form.control}
-                      name={`productos.${index}.cantidadDespachada`}
+                      name={`productos.${index}.cantidadDespachar`}
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Cantidad a Despachar</FormLabel>

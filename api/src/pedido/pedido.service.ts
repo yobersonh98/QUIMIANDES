@@ -6,6 +6,7 @@ import { PaginationDto } from './../common/dtos/pagination.dto';
 import { PrismaGenericPaginationService } from './../prisma/prisma-generic-pagination.service';
 import { IdGeneratorService } from './../services/IdGeneratorService';
 import { esVacio } from './../common/utils/string.util';
+import { PrismaTransacction } from './../common/types';
 
 @Injectable()
 export class PedidoService {
@@ -16,7 +17,7 @@ export class PedidoService {
     private idGeneratorService: IdGeneratorService,
   ) { }
   async create({ detallesPedido, ...infoPedido }: CreatePedidoDto) {
-    return this.prisma.$transaction(async (prisma) => {
+    const response  = await this.prisma.$transaction(async (prisma) => {
       try {
         const pedidoId = await this.idGeneratorService.generarIdPedido();
         const pedido = await prisma.pedido.create({
@@ -25,30 +26,22 @@ export class PedidoService {
             ...infoPedido,
           }
         });
-        const detallesPedidoSaved = [];
-        if (detallesPedido && detallesPedido.length > 0) {
-          for await (const detalle of detallesPedido) {
-            const idDetallePeido = await this.idGeneratorService.generarIdDetallePedido(pedidoId);
-            const detallePedido = await prisma.detallePedido.create({
-              data: {
-                ...detalle,
-                pedidoId,
-                lugarEntregaId: esVacio(detalle.lugarEntregaId) ? undefined : detalle.lugarEntregaId,
-                id: idDetallePeido,
-              },
-            });
-            detallesPedidoSaved.push(detallePedido)
-          }
-        }
+        const detallesPedidoConId = this.idGeneratorService.mapearDetallesPedidoConIdsEnCreacion(pedidoId, detallesPedido);
+
+        const detallesPedidoSaved = await prisma.detallePedido.createMany({
+          data:detallesPedidoConId
+        })
         return {
           ...pedido,
-          detallesPedido
-        }
+          detallesPedido: detallesPedidoSaved,
+        };
       } catch (error) {
         this.logger.error(error)
         throw new BadRequestException("Error al crear el pedido")
+      } finally {
       }
-    })
+    }, {timeout: 20000 })
+    return response;
   }
 
   async findAll(findAllPeiddosDto: PaginationDto) {
@@ -64,6 +57,9 @@ export class PedidoService {
         fechaRecibido: true,
         idCliente: true,
         ordenCompra: true,
+      },
+      orderBy: {
+        fechaRecibido: 'desc'
       }
     }, findAllPeiddosDto);
     return response
@@ -93,10 +89,21 @@ export class PedidoService {
     }
     return pedido;
   }
-
-  async update(id: string, updatePedidoDto: UpdatePedidoDto) {
-    const { estado, pesoDespachado, fechaEntrega, observaciones, ordenCompra, detallesPedido } = updatePedidoDto;
-    const pedido = await this.prisma.pedido.update({
+  findOneBasicInfo(id: string) {
+    return this.prisma.pedido.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        estado: true,
+        fechaRecibido: true,
+        idCliente: true,
+        ordenCompra: true,
+      }
+    });
+  }
+  async update(id: string, updatePedidoDto: UpdatePedidoDto, tx: PrismaTransacction = this.prisma) {
+    const { estado, pesoDespachado, fechaEntrega, observaciones, ordenCompra, detallesPedido=[] } = updatePedidoDto;
+    const pedido = await tx.pedido.update({
       where: { id },
       data: {
         estado,
@@ -108,7 +115,7 @@ export class PedidoService {
     });
     await Promise.all(
       detallesPedido.map(dp =>
-        this.prisma.detallePedido.update({
+        tx.detallePedido.update({
           where: { id: dp.id },
           data: {
             productoId: dp.productoId,

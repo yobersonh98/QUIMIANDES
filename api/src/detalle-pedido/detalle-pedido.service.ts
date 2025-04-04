@@ -1,13 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateDetallePedidoDto } from './dto/create-detalle-pedido.dto';
 import { UpdateDetallePedidoDto } from './dto/update-detalle-pedido.dto';
 import { IdGeneratorService } from './../services/IdGeneratorService';
 import { esVacio } from './../common/utils/string.util';
-import { Prisma, PrismaClient } from '@prisma/client';
+import { DetallePedido } from '@prisma/client';
+import { PrismaTransacction } from './../common/types';
 
 @Injectable()
 export class DetallePedidoService {
+  private logger = new Logger(DetallePedidoService.name)
   constructor(private readonly prisma: PrismaService,
     private idGeneratorService: IdGeneratorService,
 
@@ -25,7 +27,7 @@ export class DetallePedidoService {
     return detallePedido;
   }
 
-  async findAll(pedidoId:string) {
+  async findAll(pedidoId:string): Promise<DetallePedido[]> {
     return await this.prisma.detallePedido.findMany({
       where: {
         pedidoId,
@@ -44,11 +46,29 @@ export class DetallePedidoService {
     return detalle;
   }
 
-  async update(id: string, updateDetallePedidoDto: UpdateDetallePedidoDto) {
-    return await this.prisma.detallePedido.update({
+  async update(id: string, updateDetallePedidoDto: UpdateDetallePedidoDto, tx: PrismaTransacction = this.prisma) {
+    return await tx.detallePedido.update({
       where: { id },
       data: updateDetallePedidoDto,
     });
+  }
+
+  public esCantidadTotalDespachada (detallesPedido: DetallePedido[] = []): boolean {
+      const esCantidadTotalDespachada = detallesPedido.every(dp => {
+        console.log('dp', dp)
+        return dp.cantidadDespachada >= dp.cantidad
+      })
+      console.log('EnCantidadTotalDespachada: ', esCantidadTotalDespachada)
+      return esCantidadTotalDespachada
+  }
+  async enCantidadTotalDespachadaPedido (pedidoId: string):Promise<boolean> {
+    try {
+      const detallesPedido = await this.findAll(pedidoId);
+      return this.esCantidadTotalDespachada(detallesPedido)
+    } catch (error) {
+      this.logger.error(error)
+      return false
+    }
   }
 
   async remove(id: string) {

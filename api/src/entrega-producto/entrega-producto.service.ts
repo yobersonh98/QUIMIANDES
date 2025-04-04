@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateEntregaProductoDto } from './dto/create-entrega-producto.dto';
 import { UpdateEntregaProductoDto } from './dto/update-entrega-producto.dto';
 import { PrismaService } from './../prisma/prisma.service';
+import { PrismaTransacction } from './../common/types';
 
 @Injectable()
 export class EntregaProductoService {
@@ -22,6 +23,13 @@ export class EntregaProductoService {
     })
   }
 
+  listarPorEntregaId(entregaId: string) {
+    return this.prisma.entregaProducto.findMany({
+      where: {
+        entregaId,
+      }
+    })
+  }
   findOne(id: string) {
     return this.prisma.entregaProducto.findUnique({
       where: {
@@ -30,8 +38,8 @@ export class EntregaProductoService {
     })
   }
 
-  update(id: string, updateEntregaProductoDto: UpdateEntregaProductoDto) {
-    return this.prisma.entregaProducto.update({
+  update(id: string, updateEntregaProductoDto: UpdateEntregaProductoDto, tx: PrismaTransacction = this.prisma) {
+    return tx.entregaProducto.update({
       where: {
         id
       },

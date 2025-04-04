@@ -5,33 +5,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CheckCircle2, Clock, Truck } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
-
-type DeliveryLocation = {
-  id: string
-  name: string
-  city: string
-}
-
-type Product = {
-  id: string
-  name: string
-  requirementDate: string
-  presentation: string
-  unit: number
-  quantity: number
-  dispatchedQuantity: number
-  total: number
-  receivedWeight: number
-  deliveryType: string
-  deliveryLocation: DeliveryLocation
-  deliveryStatus: string
-}
+import { DetallePedidoEntity } from "@/services/detalle-pedido/entity/detalle-pedido.entity"
 
 type ProductsListProps = {
-  products: Product[]
+  detallesPedido: DetallePedidoEntity[]
 }
 
-export function ProductsList({ products }: ProductsListProps) {
+export function ProductsList({ detallesPedido }: ProductsListProps) {
+  const products = detallesPedido.map(transformDetalleToProduct)
+
   return (
     <div className="space-y-4">
       <Tabs defaultValue="all">
@@ -82,7 +64,7 @@ export function ProductsList({ products }: ProductsListProps) {
   )
 }
 
-function ProductCard({ product }: { product: Product }) {
+function ProductCard({ product }: { product: ReturnType<typeof transformDetalleToProduct> }) {
   const getStatusIcon = () => {
     switch (product.deliveryStatus) {
       case "Entregado":
@@ -177,3 +159,33 @@ function ProductCard({ product }: { product: Product }) {
   )
 }
 
+// Helper function to transform DetallePedidoEntity to Product format
+function transformDetalleToProduct(detalle: DetallePedidoEntity) {
+  return {
+    id: detalle.id,
+    name: detalle.producto.nombre,
+    requirementDate: detalle.fechaEntrega ? new Date(detalle.fechaEntrega).toLocaleDateString() : 'No especificada',
+    presentation: 'No especificado',
+    unit: detalle.unidades,
+    quantity: detalle.cantidad,
+    dispatchedQuantity: detalle.cantidadDespachada || 0,
+    total: detalle.cantidad,
+    receivedWeight: detalle.pesoRecibido || 0,
+    deliveryType: detalle.tipoEntrega || 'No especificado',
+    deliveryLocation: {
+      id: detalle.lugarEntrega?.id || '',
+      name: detalle.lugarEntrega?.nombre || 'No especificado',
+      city: detalle.lugarEntrega?.ciudad?.nombre || 'No especificada'
+    },
+    deliveryStatus: calculateDeliveryStatus(detalle)
+  }
+}
+
+function calculateDeliveryStatus(detalle: DetallePedidoEntity): string {
+  if (detalle.cantidadDespachada >= detalle.cantidad) {
+    return "Entregado"
+  } else if (detalle.cantidadDespachada > 0) {
+    return "Entregado Parcialmente"
+  }
+  return "Pendiente"
+}

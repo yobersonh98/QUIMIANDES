@@ -1,3 +1,5 @@
+import { ProductoEntregaEntity } from "@/services/entrega-pedido/entities/producto-entrega.entity";
+
 export interface DetallePedidoEntity {
   id: string;
 
@@ -15,11 +17,13 @@ export interface DetallePedidoEntity {
   cantidad: number;
 
   cantidadDespachada: number;
+  cantidadEntregada: number;
 
   pesoRecibido: number;
 
   lugarEntregaId?: string;
 
+  entregasDetallePedido: ProductoEntregaEntity[];
   lugarEntrega: {
     nombre: string;
     id: string;

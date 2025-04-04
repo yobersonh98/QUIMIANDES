@@ -11,7 +11,13 @@ export class CreateEntregaProductoDto {
 
   @IsNumber()
   @Min(1)
+  @IsOptional()
   cantidadDespachada: number 
+
+
+  @IsNumber()
+  @Min(1)
+  cantidadDespachar: number 
 
   @IsDateString()
   @IsOptional()

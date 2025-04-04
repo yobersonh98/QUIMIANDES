@@ -8,7 +8,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { PedidoEntity } from "@/services/pedidos/entity/pedido.entity"
 import PedidoInfoBasica from "./peido-info-basica"
 import { ProductsList } from "./products-list"
-import { DeliveryHistory } from "./delivery-history"
 import Link from "next/link"
 import { Button } from "../ui/button"
 
@@ -72,68 +71,22 @@ type OrderData = {
 }
 
 type OrderDeliveryManagerProps = {
-  orderId: string
   initialData: OrderData
   pedido: PedidoEntity
 }
 
 
 
-export function OrderDeliveryManager({ initialData, pedido, orderId }: OrderDeliveryManagerProps) {
+export function OrderDeliveryManager({ initialData, pedido }: OrderDeliveryManagerProps) {
   const [orderData, setOrderData] = useState<OrderData>(initialData)
 
-  // Calcular el estado de entrega de cada producto basado en las entregas
-  useEffect(() => {
-    const updatedProducts = orderData.products.map((product) => {
-      // Calcular la cantidad total despachada para este producto
-      const totalDispatched = orderData.deliveries.reduce((sum, delivery) => {
-        const productDelivery = delivery.products.find((p) => p.productId === product.id)
-        return sum + (productDelivery?.quantity || 0)
-      }, 0)
-
-      // Actualizar la cantidad despachada
-      const updatedProduct = {
-        ...product,
-        dispatchedQuantity: totalDispatched,
-      }
-
-      // Determinar el estado de entrega
-      if (totalDispatched === 0) {
-        updatedProduct.deliveryStatus = "Pendiente"
-      } else if (totalDispatched >= product.quantity) {
-        updatedProduct.deliveryStatus = "Entregado"
-      } else {
-        updatedProduct.deliveryStatus = "Entregado Parcialmente"
-      }
-
-      return updatedProduct
-    })
-
-    // Calcular el estado general del pedido
-    const allDelivered = updatedProducts.every((p) => p.deliveryStatus === "Entregado")
-    const anyPending = updatedProducts.some((p) => p.deliveryStatus === "Pendiente")
-    const anyPartial = updatedProducts.some((p) => p.deliveryStatus === "Entregado Parcialmente")
-
-    let newStatus = "En entrega"
-    if (allDelivered) {
-      newStatus = "Entregado"
-    } else if (anyPartial || (!anyPending && !allDelivered)) {
-      newStatus = "Entregado Parcialmente"
-    }
-
-    setOrderData((prev) => ({
-      ...prev,
-      products: updatedProducts,
-      status: newStatus,
-    }))
-  }, [orderData.deliveries])
 
   // Obtener estadísticas de entrega
   const deliveryStats = {
-    total: orderData.products.length,
-    delivered: orderData.products.filter((p) => p.deliveryStatus === "Entregado").length,
-    partial: orderData.products.filter((p) => p.deliveryStatus === "Entregado Parcialmente").length,
-    pending: orderData.products.filter((p) => p.deliveryStatus === "Pendiente").length,
+    total: pedido.detallesPedido?.length,
+    delivered: pedido.detallesPedido.filter((p) => p.cantidadDespachada >= p.cantidad).length,
+    partial: pedido.detallesPedido.filter((p) => p.cantidadDespachada > 0 && p.cantidadDespachada < p.cantidad).length,
+    pending: pedido.detallesPedido.filter((p) => p.cantidadDespachada === 0).length,
   }
 
   return (
@@ -182,6 +135,7 @@ export function OrderDeliveryManager({ initialData, pedido, orderId }: OrderDeli
             </Card>
           </div>
 
+
           <Alert className="mb-6">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Información</AlertTitle>
@@ -197,11 +151,11 @@ export function OrderDeliveryManager({ initialData, pedido, orderId }: OrderDeli
             </TabsList>
 
             <TabsContent value="products">
-              <ProductsList products={orderData.products} />
+              <ProductsList detallesPedido={pedido.detallesPedido || []} />
             </TabsContent>
 
             <TabsContent value="deliveries">
-              <DeliveryHistory orderId={orderId} deliveries={orderData.deliveries} products={orderData.products} />
+              {/* <DeliveryHistory orderId={orderId} deliveries={orderData.deliveries} products={orderData.products} /> */}
             </TabsContent>
           </Tabs>
         </CardContent>
