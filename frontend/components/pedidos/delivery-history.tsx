@@ -6,124 +6,21 @@ import { Button } from "@/components/ui/button"
 import { ChevronDown, ChevronUp, Eye, FileText, Truck } from "lucide-react"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
-
-type DeliveryProduct = {
-  productId: string
-  quantity: number
-  observations?: string
-}
-
-type Delivery = {
-  id: string
-  date: string
-  vehicleInternal?: string
-  vehicleExternal?: string
-  deliveredBy?: string
-  deliveryLocationId: string
-  deliveryLocationName: string
-  deliveryType: string
-  remission?: string
-  observations?: string
-  products: DeliveryProduct[]
-}
-
-type Product = {
-  id: string
-  name: string
-  requirementDate: string
-  presentation: string
-  unit: number
-  quantity: number
-  dispatchedQuantity: number
-  total: number
-  receivedWeight: number
-  deliveryType: string
-  deliveryLocation: {
-    id: string
-    name: string
-    city: string
-  }
-  deliveryStatus: string
-}
+import { EntregaEntity } from "@/services/entrega-pedido/entities/entrega.entity"
+import { DetallePedidoEntity } from "@/services/detalle-pedido/entity/detalle-pedido.entity"
+import { format } from "date-fns"
+import { es } from "date-fns/locale"
+import { PedidoEntity } from "@/services/pedidos/entity/pedido.entity"
 
 type DeliveryHistoryProps = {
-  orderId: string
-  deliveries: Delivery[]
-  products: Product[]
+  pedido: PedidoEntity
 }
 
-// Datos de ejemplo para el historial de entregas
-const exampleDeliveries: Delivery[] = [
-  {
-    id: "delivery-1",
-    date: "25-dic-2023",
-    vehicleInternal: "Camión #123",
-    deliveredBy: "Juan Pérez",
-    deliveryLocationId: "loc-001",
-    deliveryLocationName: "Planta Porfice, Cúcuta",
-    deliveryType: "Entrega al Cliente",
-    remission: "REM-001",
-    observations: "Entrega realizada sin novedad",
-    products: [
-      {
-        productId: "PC-001.1",
-        quantity: 20000,
-        observations: "Producto entregado en buenas condiciones",
-      },
-      {
-        productId: "PC-001.5",
-        quantity: 3000,
-        observations: "Entrega parcial según acuerdo con el cliente",
-      },
-    ],
-  },
-  {
-    id: "delivery-2",
-    date: "28-dic-2023",
-    vehicleExternal: "Placa ABC-123",
-    deliveredBy: "Carlos Rodríguez",
-    deliveryLocationId: "loc-002",
-    deliveryLocationName: "Planta Quimandes, Cúcuta",
-    deliveryType: "Recoge en Planta",
-    remission: "REM-002",
-    products: [
-      {
-        productId: "PC-001.2",
-        quantity: 15,
-        observations: "",
-      },
-    ],
-  },
-  {
-    id: "delivery-3",
-    date: "02-ene-2024",
-    vehicleInternal: "Camión #456",
-    deliveredBy: "María López",
-    deliveryLocationId: "loc-003",
-    deliveryLocationName: "Planta Tonchala, Tonchala",
-    deliveryType: "Entrega al Cliente",
-    remission: "REM-003",
-    observations: "Cliente solicitó entrega urgente",
-    products: [
-      {
-        productId: "PC-001.3",
-        quantity: 5,
-        observations: "Entrega completa",
-      },
-      {
-        productId: "PC-001.4",
-        quantity: 5000,
-        observations: "Entrega completa según orden de compra",
-      },
-    ],
-  },
-]
+export function DeliveryHistory({ pedido }: DeliveryHistoryProps) {
+  // Verificar si hay entregas disponibles
+  const entregas = pedido.entregas || []
 
-export function DeliveryHistory({ orderId, deliveries, products }: DeliveryHistoryProps) {
-  // Usar los datos de ejemplo si no hay entregas reales
-  const displayDeliveries = deliveries.length > 0 ? deliveries : exampleDeliveries
-
-  if (displayDeliveries.length === 0) {
+  if (entregas.length === 0) {
     return (
       <Card>
         <CardContent className="p-6 text-center">
@@ -139,37 +36,76 @@ export function DeliveryHistory({ orderId, deliveries, products }: DeliveryHisto
 
   return (
     <div className="space-y-4">
-      {displayDeliveries.map((delivery, index) => (
-        <DeliveryCard key={delivery.id} delivery={delivery} products={products} index={index} orderId={orderId} />
+      {entregas.map((entrega, index) => (
+        <DeliveryCard 
+          key={entrega.id} 
+          entrega={entrega} 
+          detallesPedido={pedido.detallesPedido}
+          index={index} 
+          pedidoId={pedido.id} 
+        />
       ))}
     </div>
   )
 }
 
 function DeliveryCard({
-  delivery,
-  products,
+  entrega,
+  detallesPedido,
   index,
-  orderId,
+  pedidoId,
 }: {
-  delivery: Delivery
-  products: Product[]
+  entrega: EntregaEntity
+  detallesPedido: DetallePedidoEntity[]
   index: number
-  orderId: string
+  pedidoId: string
 }) {
   const [isOpen, setIsOpen] = useState(false)
 
-  // Función para obtener el nombre del producto a partir de su ID
-  const getProductName = (productId: string) => {
-    const product = products.find((p) => p.id === productId)
-    return product ? product.name : "Producto desconocido"
+  // Obtener los productos de esta entrega
+  const productosEntrega = detallesPedido
+    .flatMap(detalle => 
+      detalle.entregasDetallePedido?.filter(producto => 
+        producto.entregaId === entrega.id
+      )
+    )
+
+  // Función para obtener el nombre del producto a partir de su ID de detalle
+  const getProductName = (detalleId: string) => {
+    const detalle = detallesPedido.find(d => d.id === detalleId)
+    return detalle ? detalle.producto.nombre : "Producto desconocido"
   }
 
+  // Obtener lugar de entrega
+  const getLugarEntrega = () => {
+    const lugarId = entrega.lugarEntregaId
+    const detalle = detallesPedido.find(d => d.lugarEntregaId === lugarId)
+    return detalle?.lugarEntrega?.nombre || "Lugar no especificado"
+  }
+  
   // Calcular el total de productos entregados
-  const totalProductsDelivered = delivery.products.length
+  const totalProductsDelivered = productosEntrega.length
 
   // Calcular la cantidad total entregada
-  const totalQuantityDelivered = delivery.products.reduce((sum, product) => sum + product.quantity, 0)
+  const totalQuantityDelivered = productosEntrega.reduce(
+    (sum, producto) => sum + (producto?.cantidadEntregada || 0), 0
+  )
+
+  // Formatear fecha de entrega si está disponible
+  const fechaEntrega = entrega.id 
+    ? format(new Date(), "dd-MMM-yyyy", { locale: es })
+    : "Fecha no disponible"
+
+  // Estado de la entrega como badge
+  // const getEstadoBadge = (estado: string) => {
+  //   const variants = {
+  //     "PENDIENTE": "outline",
+  //     "EN_TRANSITO": "secondary",
+  //     "ENTREGADO": "success",
+  //     "CANCELADO": "destructive"
+  //   }
+  //   return variants[estado as keyof typeof variants] || "default"
+  // }
 
   return (
     <Card className="overflow-hidden">
@@ -181,19 +117,21 @@ function DeliveryCard({
           <div>
             <h3 className="font-medium">Entrega {index + 1}</h3>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>{delivery.date}</span>
+              <span>{fechaEntrega}</span>
               <span>•</span>
-              <span>{delivery.deliveryLocationName}</span>
+              <span>{getLugarEntrega()}</span>
               <span>•</span>
-              <Badge variant="outline" className="text-xs">
-                {delivery.remission || "Sin remisión"}
+              <Badge
+                // variant={getEstadoBadge(entrega.estado)}
+              >
+                {entrega.estado}
               </Badge>
             </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm">
-            <Link href={`/dashboard/pedidos/${orderId}/entregas/${delivery.id}`}>
+            <Link href={`/dashboard/pedidos/${pedidoId}/entregas/${entrega.id}`}>
               <Eye className="h-4 w-4 mr-2" />
               Ver Detalles
             </Link>
@@ -211,19 +149,19 @@ function DeliveryCard({
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <div className="text-sm font-medium text-muted-foreground">Fecha de Entrega</div>
-                <div>{delivery.date}</div>
+                <div>{fechaEntrega}</div>
               </div>
               <div>
                 <div className="text-sm font-medium text-muted-foreground">Lugar de Entrega</div>
-                <div>{delivery.deliveryLocationName}</div>
+                <div>{getLugarEntrega()}</div>
               </div>
               <div>
-                <div className="text-sm font-medium text-muted-foreground">Tipo de Entrega</div>
-                <div>{delivery.deliveryType}</div>
+                <div className="text-sm font-medium text-muted-foreground">Estado</div>
+                <div>{entrega.estado}</div>
               </div>
               <div>
                 <div className="text-sm font-medium text-muted-foreground">Remisión</div>
-                <div>{delivery.remission || "N/A"}</div>
+                <div>{entrega.remision || "N/A"}</div>
               </div>
             </div>
 
@@ -236,24 +174,24 @@ function DeliveryCard({
                 <div className="text-sm font-medium text-muted-foreground">Cantidad Total</div>
                 <div>{totalQuantityDelivered.toLocaleString()}</div>
               </div>
-              {delivery.deliveredBy && (
+              {entrega.entregadoPorA && (
                 <div>
                   <div className="text-sm font-medium text-muted-foreground">Entregado Por</div>
-                  <div>{delivery.deliveredBy}</div>
+                  <div>{entrega.entregadoPorA}</div>
                 </div>
               )}
-              {(delivery.vehicleInternal || delivery.vehicleExternal) && (
+              {(entrega.vehiculoInterno || entrega.vehiculoExterno) && (
                 <div>
                   <div className="text-sm font-medium text-muted-foreground">Vehículo</div>
-                  <div>{delivery.vehicleInternal || delivery.vehicleExternal}</div>
+                  <div>{entrega.vehiculoInterno || entrega.vehiculoExterno}</div>
                 </div>
               )}
             </div>
 
-            {delivery.observations && (
+            {entrega.observaciones && (
               <div>
                 <div className="text-sm font-medium text-muted-foreground">Observaciones</div>
-                <div className="text-sm">{delivery.observations}</div>
+                <div className="text-sm">{entrega.observaciones}</div>
               </div>
             )}
 
@@ -269,11 +207,11 @@ function DeliveryCard({
                     </tr>
                   </thead>
                   <tbody>
-                    {delivery.products.map((product) => (
-                      <tr key={product.productId} className="border-b last:border-0">
-                        <td className="p-2">{getProductName(product.productId)}</td>
-                        <td className="p-2 text-right">{product.quantity.toLocaleString()}</td>
-                        <td className="p-2">{product.observations || "-"}</td>
+                    {productosEntrega.map((producto) => (
+                      <tr key={producto?.id} className="border-b last:border-0">
+                        <td className="p-2">{getProductName(producto?.detallePedidoId || "")}</td>
+                        <td className="p-2 text-right">{producto?.cantidadEntregada.toLocaleString()}</td>
+                        <td className="p-2">{producto?.observaciones || "-"}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -293,4 +231,3 @@ function DeliveryCard({
     </Card>
   )
 }
-

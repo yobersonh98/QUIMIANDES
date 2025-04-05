@@ -1,6 +1,4 @@
 "use client"
-
-import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AlertCircle, Plus} from "lucide-react"
@@ -10,83 +8,23 @@ import PedidoInfoBasica from "./peido-info-basica"
 import { ProductsList } from "./products-list"
 import Link from "next/link"
 import { Button } from "../ui/button"
-
-type DeliveryLocation = {
-  id: string
-  name: string
-  city: string
-}
-
-type Product = {
-  id: string
-  name: string
-  requirementDate: string
-  presentation: string
-  unit: number
-  quantity: number
-  dispatchedQuantity: number
-  total: number
-  receivedWeight: number
-  deliveryType: string
-  deliveryLocation: DeliveryLocation
-  deliveryStatus: string
-}
-
-type DeliveryProduct = {
-  productId: string
-  quantity: number
-  observations?: string
-}
-
-type Delivery = {
-  id: string
-  date: string
-  vehicleInternal?: string
-  vehicleExternal?: string
-  deliveredBy?: string
-  deliveryLocationId: string
-  deliveryLocationName: string
-  deliveryType: string
-  remission?: string
-  observations?: string
-  products: DeliveryProduct[]
-}
-
-type OrderData = {
-  id: string
-  orderDate: string
-  client: {
-    id: string
-    name: string
-    document: string
-  }
-  requirementDate: string
-  status: string
-  purchaseOrder: string
-  totalWeight: number
-  totalValue: number
-  products: Product[]
-  deliveries: Delivery[]
-  observations: string
-}
+import { DeliveryHistory } from "./delivery-history"
 
 type OrderDeliveryManagerProps = {
-  initialData: OrderData
   pedido: PedidoEntity
 }
 
 
 
-export function OrderDeliveryManager({ initialData, pedido }: OrderDeliveryManagerProps) {
-  const [orderData, setOrderData] = useState<OrderData>(initialData)
-
+export function OrderDeliveryManager({ pedido }: OrderDeliveryManagerProps) {
 
   // Obtener estadísticas de entrega
   const deliveryStats = {
     total: pedido.detallesPedido?.length,
-    delivered: pedido.detallesPedido.filter((p) => p.cantidadDespachada >= p.cantidad).length,
-    partial: pedido.detallesPedido.filter((p) => p.cantidadDespachada > 0 && p.cantidadDespachada < p.cantidad).length,
-    pending: pedido.detallesPedido.filter((p) => p.cantidadDespachada === 0).length,
+    delivered: pedido.detallesPedido.filter((p) => p.estado === 'ENTREGADO').length,
+    partial: pedido.detallesPedido.filter((p) => p.estado === 'PARCIAL').length,
+    pending: pedido.detallesPedido.filter((p) => p.estado === 'PENDIENTE').length,
+    inTransit: pedido.detallesPedido.filter((p) => p.estado === 'EN_TRANSITO').length,
   }
 
   return (
@@ -155,7 +93,7 @@ export function OrderDeliveryManager({ initialData, pedido }: OrderDeliveryManag
             </TabsContent>
 
             <TabsContent value="deliveries">
-              {/* <DeliveryHistory orderId={orderId} deliveries={orderData.deliveries} products={orderData.products} /> */}
+              <DeliveryHistory pedido={pedido} />
             </TabsContent>
           </Tabs>
         </CardContent>

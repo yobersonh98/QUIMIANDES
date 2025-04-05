@@ -4,10 +4,10 @@ import { CreateEntregaDto } from './dto/create-entrega.dto';
 import { UpdateEntregaDto } from './dto/update-entrega.dto';
 import { EntregaProductoService } from './../entrega-producto/entrega-producto.service';
 import { DetallePedidoService } from './../detalle-pedido/detalle-pedido.service';
-import { EstadoEntrega, EstadoPedido } from '@prisma/client';
+import { EstadoDetallePedido, EstadoEntrega, EstadoPedido, TipoEntregaProducto } from '@prisma/client';
 import { PedidoService } from './../pedido/pedido.service';
 import { RegistrarDespachoDetallePedidoDto } from './../entrega-producto/dto/registrar-despacho-detalle-pedido.dto';
-import { FinalizarEntregaDto } from './dto/finalizar-entrega.dto';
+import { CompletarEntregaDto } from './dto/finalizar-entrega.dto';
 import { PrismaTransacction } from './../common/types';
 
 @Injectable()
@@ -56,6 +56,13 @@ export class EntregaService {
     });
   }
 
+  /**
+   *  Confirma el despacho de entrega de un pedido. Actualiza el estado de los detalles de pedido y la entrega.
+   * @param RegistrarDespachoDetallePedidoDto dto de despacho de entrega
+   * @param entregaId id de la entrega
+   * @param despachosEntregaProducto lista de despachos de entrega
+   * @returns  entrega actualizada
+   */
   async confirmarDespachoEntrega({ entregaId, despachosEntregaProducto }: RegistrarDespachoDetallePedidoDto) {
     const entrega = await this.prisma.entrega.findUnique({
       where: { id: entregaId },
@@ -80,18 +87,26 @@ export class EntregaService {
           if (!detallePedido) {
             throw new NotFoundException(`Detalle de pedido con id ${entregaProducto.detallePedidoId} no encontrado`);
           }
-          if (!detallePedido) {
-            throw new NotFoundException(`Detalle de pedido con id ${entregaProductoId} no encontrado`);
-          }
-          const entregaProductoSaved = await this.entregraProductoService.update(entregaProductoId, {
-            cantidadDespachada
-          }, tx);
           const cantidadTotalDespachada = detallePedido.cantidadDespachada + cantidadDespachada;
           if (cantidadTotalDespachada > detallePedido.cantidad) {
             throw new BadRequestException(`La cantidad despachada (${cantidadTotalDespachada}) supera la cantidad total (${detallePedido.cantidad})`);
           }
+          const esEntregaEnPlanta = detallePedido.tipoEntrega === TipoEntregaProducto.RECOGE_EN_PLANTA;
+          const entregaProductoSaved = await this.entregraProductoService.update(entregaProductoId, {
+            cantidadDespachada,
+            cantidadEntregada: esEntregaEnPlanta && cantidadDespachada
+          }, tx);
+
+          if (esEntregaEnPlanta) {
+            detallePedido.estado = EstadoDetallePedido.ENTREGADO;
+            detallePedido.cantidadEntregada = cantidadTotalDespachada;
+          } else {
+            detallePedido.estado = cantidadTotalDespachada === detallePedido.cantidad ? EstadoDetallePedido.EN_TRANSITO : EstadoDetallePedido.PARCIAL;
+          }
           await this.detallePedidoService.update(detallePedido.id, {
-            cantidadDespachada: cantidadTotalDespachada
+            cantidadDespachada: cantidadTotalDespachada,
+            estado: detallePedido.estado,
+            cantidadEntregada: detallePedido.cantidadEntregada,
           }, tx);
           return entregaProductoSaved;
         })
@@ -103,30 +118,72 @@ export class EntregaService {
     });
   }
 
-  async finalizarEntrega({entregaId, entregaProductos }: FinalizarEntregaDto) {
+  /**
+   *  Completa la entrega de un pedido. Actualiza el estado de los detalles de pedido y la entrega.
+   * @param CompletarEntregaDto dto de completar entrega
+   * @returns entrega actualizada
+   * @throws NotFoundException si la entrega no existe
+   * @throws BadRequestException si la cantidad entregada supera la cantidad total
+   * @throws BadRequestException si el detalle de pedido ya está en estado entregado o cancelado
+   * @throws BadRequestException si la cantidad entregada es menor a la cantidad despachada
+   */
+  async completarEntrega({entregaId, entregaProductos }: CompletarEntregaDto) {
     const entrega = await this.prisma.entrega.findUnique({
       where: { id: entregaId },
     });
     if (!entrega) {
       throw new NotFoundException(`Entrega con id ${entregaId} no encontrada`);
     }
+    const detallesPedido = await this.detallePedidoService.findAll(entrega.pedidoId);
+    const detallesPedidoActualizados = entregaProductos.map(({ detallePedidoId, cantidadEntregada }) => {
+      const detallePedido = detallesPedido.find(dp => dp.id === detallePedidoId);
+      const cantidadTotalEntregadoDetallePedido = detallePedido.cantidadEntregada + cantidadEntregada;
+
+      if (cantidadTotalEntregadoDetallePedido > detallePedido.cantidad) {
+        throw new BadRequestException(`La cantidad entregada (${cantidadTotalEntregadoDetallePedido})
+          supera la cantidad total (${detallePedido.cantidad}) en el detalle de pedido con id ${detallePedidoId}`);
+      }
+      if (!detallePedido) {
+        throw new NotFoundException(`Detalle de pedido con id ${detallePedidoId} no encontrado`);
+      }
+      if (detallePedido.estado == EstadoDetallePedido.ENTREGADO || detallePedido.estado == EstadoDetallePedido.CANCELADO) {
+        throw new BadRequestException(`El detalle de pedido con id ${detallePedidoId} ya está en estado entregado o cancelado`);
+      }
+      if (detallePedido.cantidad === cantidadTotalEntregadoDetallePedido) {
+        detallePedido.estado = EstadoDetallePedido.ENTREGADO;
+      }
+      if (detallePedido.cantidad < cantidadTotalEntregadoDetallePedido) {
+        detallePedido.estado = EstadoDetallePedido.PARCIAL;
+      }
+      return detallePedido
+    })
+
     return this.prisma.$transaction(async (tx) => {
+      await Promise.all(
+        detallesPedidoActualizados.map(async (detallePedido) => {
+          await this.detallePedidoService.update(detallePedido.id, {
+            cantidadEntregada: detallePedido.cantidadEntregada,
+            estado: detallePedido.estado,
+            cantidadDespachada: detallePedido.cantidadDespachada,
+          }, tx);
+        })
+      );
       const entregaFinalizada = await tx.entrega.update({
         where: { id: entregaId },
         data: {
           estado: EstadoPedido.ENTREGADO,
           entregaProductos: {
-            updateMany: entregaProductos.map(({ entregaProductoId, cantidadEntregada }) => ({
+            updateMany: entregaProductos.map(({ entregaProductoId, cantidadEntregada, observaciones }) => ({
               where: { id: entregaProductoId },
               data: {
-                cantidadEntregada
+                cantidadEntregada,
+                observaciones,
               }
             }))
           }
         },
       });
-      const detallesPedido = await this.detallePedidoService.findAll(entrega.pedidoId); 
-
+      
       return entregaFinalizada;
     });
   }
@@ -140,9 +197,51 @@ export class EntregaService {
   async findOne(id: string) {
     const entrega = await this.prisma.entrega.findUnique({
       where: { id },
-      include: { pedido: true, entregaProductos: { include: { detallePedido: {
-        include: { producto: true, lugarEntrega: { include: { ciudad: true } } }
-      } } } },
+      select: {
+        id: true,
+        estado: true,
+        vehiculoExterno: true,
+        vehiculoInterno: true,
+        remision: true,
+        entregadoPorA: true,
+        observaciones: true,
+        pedidoId: true,
+        pedido: {
+          select: {
+            id: true,
+            estado: true,
+            fechaRecibido: true,
+            ordenCompra: true,
+          }
+        },
+        entregaProductos: {
+          select: {
+            id: true,
+            cantidadDespachada: true,
+            cantidadEntregada: true,
+            cantidadDespachar: true,
+            observaciones: true,
+            detallePedidoId: true,
+            detallePedido: {
+              select: {
+                id: true,
+                cantidad: true,
+                cantidadDespachada: true,
+                cantidadEntregada: true,
+                estado: true,
+                productoId: true,
+                tipoEntrega: true,
+                producto: {
+                  select: {
+                    id: true,
+                    nombre: true,
+                  }
+                },
+              }
+            }
+          }
+        }
+      }
     });
     if (!entrega) {
       throw new NotFoundException(`Entrega con id ${id} no encontrada`);

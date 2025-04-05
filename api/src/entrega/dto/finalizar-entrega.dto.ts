@@ -7,6 +7,10 @@ export class FinalizarEntregaProductoDto {
   entregaProductoId: string;
 
   @IsString()
+  @IsNotEmpty()
+  detallePedidoId: string;
+
+  @IsString()
   observaciones?: string;
 
   @IsNumber()
@@ -14,7 +18,7 @@ export class FinalizarEntregaProductoDto {
   cantidadEntregada: number;
 }
 
-export class FinalizarEntregaDto {
+export class CompletarEntregaDto {
   @IsString()
   @IsNotEmpty()
   entregaId: string;

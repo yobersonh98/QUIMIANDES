@@ -55,19 +55,59 @@ export class DetallePedidoService {
 
   public esCantidadTotalDespachada (detallesPedido: DetallePedido[] = []): boolean {
       const esCantidadTotalDespachada = detallesPedido.every(dp => {
-        console.log('dp', dp)
         return dp.cantidadDespachada >= dp.cantidad
       })
-      console.log('EnCantidadTotalDespachada: ', esCantidadTotalDespachada)
       return esCantidadTotalDespachada
   }
+
+  public esCantidadTotalEntregada (detallesPedido: DetallePedido[] = []): boolean {
+    const esCantidadTotalEntregada = detallesPedido.every(dp => {
+      return dp.cantidadEntregada >= dp.cantidad
+    })
+    return esCantidadTotalEntregada
+  }
+
+  async esCantidadTotalEntregadaPedido(pedidoId: string): Promise<boolean> {
+    try {
+      const [result]: { cantidadTotal: number | null, cantidadEntregadaTotal: number | null }[] =
+        await this.prisma.$queryRaw`
+          SELECT 
+            SUM("cantidad") as "cantidadTotal", 
+            SUM("cantidadEntregada") as "cantidadEntregadaTotal"
+          FROM "DetallePedido"
+          WHERE "pedidoId" = ${pedidoId}
+        `;
+  
+      if (!result?.cantidadTotal || !result?.cantidadEntregadaTotal) {
+        return false;
+      }
+
+      return result.cantidadTotal === result.cantidadEntregadaTotal;
+    } catch (error) {
+      this.logger.error(error);
+      return false;
+    }
+  }
+  
   async enCantidadTotalDespachadaPedido (pedidoId: string):Promise<boolean> {
     try {
-      const detallesPedido = await this.findAll(pedidoId);
-      return this.esCantidadTotalDespachada(detallesPedido)
+      const [result]: { cantidadTotal: number | null, cantidadDespachadaTotal: number | null }[] =
+        await this.prisma.$queryRaw`
+          SELECT 
+            SUM("cantidad") as "cantidadTotal", 
+            SUM("cantidadDespachada") as "cantidadDespachadaTotal"
+          FROM "DetallePedido"
+          WHERE "pedidoId" = ${pedidoId}
+        `;
+
+      if (!result?.cantidadTotal || !result?.cantidadDespachadaTotal) {
+        return false;
+      }
+
+      return result.cantidadTotal === result.cantidadDespachadaTotal;
     } catch (error) {
-      this.logger.error(error)
-      return false
+      this.logger.error(error);
+      return false;
     }
   }
 

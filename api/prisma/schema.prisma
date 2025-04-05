@@ -46,7 +46,6 @@ enum EstadoPedido {
   EN_PROCESO
   ENTREGADO
   CANCELADO
-  APLAZADO
 }
 
 enum UnidadMedida {
@@ -155,7 +154,13 @@ model Pedido {
   cliente        Cliente         @relation(fields: [idCliente], references: [id])
 }
 
-
+enum EstadoDetallePedido {
+  PENDIENTE
+  EN_TRANSITO
+  PARCIAL
+  ENTREGADO
+  CANCELADO
+}
 model DetallePedido {
   id             String       @id @default(cuid())
   pedido         Pedido       @relation(fields: [pedidoId], references: [id])
@@ -169,6 +174,7 @@ model DetallePedido {
   remision       String?
   unidades       Float          @default(0)
   cantidad       Float        @default(0)
+  estado       EstadoDetallePedido @default(PENDIENTE)
   tipoEntrega    TipoEntregaProducto @default(ENTREGA_AL_CLIENTE)
   precioUnitario        Float             @default(0) // el precio en el que se genero el producto
   cantidadDespachada    Float             @default(0)

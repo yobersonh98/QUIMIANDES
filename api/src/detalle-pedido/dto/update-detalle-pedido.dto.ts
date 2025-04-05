@@ -1,6 +1,7 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateDetallePedidoDto } from './create-detalle-pedido.dto';
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { EstadoDetallePedido } from '@prisma/client';
 
 export class UpdateDetallePedidoDto extends PartialType(CreateDetallePedidoDto) {
   @IsString()
@@ -8,5 +9,11 @@ export class UpdateDetallePedidoDto extends PartialType(CreateDetallePedidoDto) 
   id?: string
   
   @IsNumber()
-  cantidadDespachada: number
+  cantidadDespachada?: number
+
+  @IsNumber()
+  cantidadEntregada?: number
+
+  @IsEnum(EstadoDetallePedido)
+  estado?: EstadoDetallePedido
 }

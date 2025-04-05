@@ -1,5 +1,12 @@
 import { ProductoEntregaEntity } from "@/services/entrega-pedido/entities/producto-entrega.entity";
 
+export type EstadoDetallePedido = 
+  | "PENDIENTE"
+  | "EN_TRANSITO"
+  | "PARCIAL"
+  | "ENTREGADO"
+  | "CANCELADO";
+
 export interface DetallePedidoEntity {
   id: string;
 
@@ -11,7 +18,7 @@ export interface DetallePedidoEntity {
     nombre: string;
     id: string;
   };
-
+  estado: EstadoDetallePedido;
   unidades: number;
 
   cantidad: number;
@@ -23,7 +30,7 @@ export interface DetallePedidoEntity {
 
   lugarEntregaId?: string;
 
-  entregasDetallePedido: ProductoEntregaEntity[];
+  entregasDetallePedido?: ProductoEntregaEntity[];
   lugarEntrega: {
     nombre: string;
     id: string;

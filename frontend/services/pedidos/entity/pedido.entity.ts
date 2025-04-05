@@ -1,4 +1,5 @@
 import { DetallePedidoEntity } from "@/services/detalle-pedido/entity/detalle-pedido.entity";
+import { EntregaEntity } from "@/services/entrega-pedido/entities/entrega.entity";
 
 export interface PedidoEntity {
   id: string;
@@ -11,6 +12,7 @@ export interface PedidoEntity {
   tiempoEntrega?: number;
   pesoDespachado?: number;
   detallesPedido: DetallePedidoEntity[];
+  entregas?: EntregaEntity[];
   cliente: {
     nombre: string;
     id: string;
