@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ChevronDown, ChevronUp, Eye, FileText, Truck } from "lucide-react"
+import { ChevronDown, ChevronUp, Truck } from "lucide-react"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { EntregaEntity } from "@/services/entrega-pedido/entities/entrega.entity"
@@ -37,12 +37,12 @@ export function DeliveryHistory({ pedido }: DeliveryHistoryProps) {
   return (
     <div className="space-y-4">
       {entregas.map((entrega, index) => (
-        <DeliveryCard 
-          key={entrega.id} 
-          entrega={entrega} 
+        <DeliveryCard
+          key={entrega.id}
+          entrega={entrega}
           detallesPedido={pedido.detallesPedido}
-          index={index} 
-          pedidoId={pedido.id} 
+          index={index}
+          pedidoId={pedido.id}
         />
       ))}
     </div>
@@ -64,8 +64,8 @@ function DeliveryCard({
 
   // Obtener los productos de esta entrega
   const productosEntrega = detallesPedido
-    .flatMap(detalle => 
-      detalle.entregasDetallePedido?.filter(producto => 
+    .flatMap(detalle =>
+      detalle.entregasDetallePedido?.filter(producto =>
         producto.entregaId === entrega.id
       )
     )
@@ -76,13 +76,7 @@ function DeliveryCard({
     return detalle ? detalle.producto.nombre : "Producto desconocido"
   }
 
-  // Obtener lugar de entrega
-  const getLugarEntrega = () => {
-    const lugarId = entrega.lugarEntregaId
-    const detalle = detallesPedido.find(d => d.lugarEntregaId === lugarId)
-    return detalle?.lugarEntrega?.nombre || "Lugar no especificado"
-  }
-  
+
   // Calcular el total de productos entregados
   const totalProductsDelivered = productosEntrega.length
 
@@ -92,7 +86,7 @@ function DeliveryCard({
   )
 
   // Formatear fecha de entrega si está disponible
-  const fechaEntrega = entrega.id 
+  const fechaEntrega = entrega.id
     ? format(new Date(), "dd-MMM-yyyy", { locale: es })
     : "Fecha no disponible"
 
@@ -106,7 +100,11 @@ function DeliveryCard({
   //   }
   //   return variants[estado as keyof typeof variants] || "default"
   // }
-
+  const esPediente = entrega.estado === "PENDIENTE"
+  const esEnTransito = entrega.estado === "EN_TRANSITO"
+  const esEntregado = entrega.estado === "ENTREGADO"
+  // const esEntregado = entrega.estado === "ENTREGADO"
+  // const esCancelado = entrega.estado === "CANCELADO"
   return (
     <Card className="overflow-hidden">
       <div className="bg-muted/50 p-4 flex justify-between items-center">
@@ -119,10 +117,9 @@ function DeliveryCard({
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <span>{fechaEntrega}</span>
               <span>•</span>
-              <span>{getLugarEntrega()}</span>
               <span>•</span>
               <Badge
-                // variant={getEstadoBadge(entrega.estado)}
+              // variant={getEstadoBadge(entrega.estado)}
               >
                 {entrega.estado}
               </Badge>
@@ -130,12 +127,22 @@ function DeliveryCard({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            <Link href={`/dashboard/pedidos/${pedidoId}/entregas/${entrega.id}`}>
-              <Eye className="h-4 w-4 mr-2" />
-              Ver Detalles
+          {esPediente && (
+            <Link href={`/dashboard/pedidos/${pedidoId}/gestionar/entregas/${entrega.id}/despacho`}>
+              <Button variant="outline" size="sm">
+                Confirmar Despacho
+              </Button>
             </Link>
-          </Button>
+          )}
+
+          {esEnTransito && (
+            <Link href={`/dashboard/pedidos/${pedidoId}/gestionar/entregas/${entrega.id}/finalizar-entrega`}>
+            <Button variant="outline" size="sm">
+              Finalizar Entrega
+            </Button>
+          </Link>
+          )}
+
           <Button variant="ghost" size="sm" onClick={() => setIsOpen(!isOpen)}>
             {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             <span className="sr-only">Toggle</span>
@@ -150,10 +157,6 @@ function DeliveryCard({
               <div>
                 <div className="text-sm font-medium text-muted-foreground">Fecha de Entrega</div>
                 <div>{fechaEntrega}</div>
-              </div>
-              <div>
-                <div className="text-sm font-medium text-muted-foreground">Lugar de Entrega</div>
-                <div>{getLugarEntrega()}</div>
               </div>
               <div>
                 <div className="text-sm font-medium text-muted-foreground">Estado</div>
@@ -220,10 +223,9 @@ function DeliveryCard({
             </div>
 
             <div className="flex justify-end">
-              <Button variant="outline" size="sm" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Imprimir Remisión
-              </Button>
+              {/* <Button variant="outline" size="sm" className="flex items-center gap-2">
+                Cancelar Entrega
+              </Button> */}
             </div>
           </div>
         </CardContent>

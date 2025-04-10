@@ -212,6 +212,14 @@ export class EntregaService {
             estado: true,
             fechaRecibido: true,
             ordenCompra: true,
+            cliente: {
+              select: {
+                id: true,
+                nombre: true,
+                direccion: true,
+                telefono: true,
+              }
+            }
           }
         },
         entregaProductos: {
@@ -231,10 +239,20 @@ export class EntregaService {
                 estado: true,
                 productoId: true,
                 tipoEntrega: true,
+                lugarEntregaId: true,
+                lugarEntrega: {
+                  select: {
+                    id: true,
+                    nombre: true,
+                    ciudad: true,
+                  }
+                },
                 producto: {
                   select: {
                     id: true,
                     nombre: true,
+                    unidadMedida: true,
+                    presentacion: true,
                   }
                 },
               }
