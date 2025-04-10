@@ -1,3 +1,5 @@
+import { PedidoEntity } from "@/services/pedidos/entity/pedido.entity";
+import { EntregaProdcutoEntity } from "./entrega-producto.entity";
 
 export type EstadoEntrega =
   | "PENDIENTE"
@@ -11,8 +13,11 @@ export interface EntregaEntity {
   vehiculoInterno?: string;
   vehiculoExterno?: string;
   entregadoPorA: string;
-  lugarEntregaId: string;
   estado: EstadoEntrega;
   remision?: string;
   observaciones?: string;
+
+  pedido?:PedidoEntity
+
+  entregaProductos?: EntregaProdcutoEntity[]
 }

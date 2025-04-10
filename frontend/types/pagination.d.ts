@@ -24,10 +24,10 @@ export interface PaginationResponse<T> {
   meta: PaginationMetadata;
 }
 
-
-export interface PageProps<T extends PaginationSearchParamsPage> {
+export interface ParamsPage {
+  id?: string
+}
+export interface PageProps<T extends PaginationSearchParamsPage,P extends ParamsPage = ParamsPage> {
   searchParams?: T
-  params?:  {
-    id: string
-  }
+  params?: P
 }

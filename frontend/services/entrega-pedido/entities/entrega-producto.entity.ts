@@ -1,4 +1,6 @@
-export interface ProductoEntregaEntity {
+import { DetallePedidoEntity } from "@/services/detalle-pedido/entity/detalle-pedido.entity";
+
+export interface EntregaProdcutoEntity {
   id: string;
   entregaId: string;
   detallePedidoId: string;
@@ -6,4 +8,6 @@ export interface ProductoEntregaEntity {
   cantidadDespachar: number;
   cantidadEntregada: number;
   observaciones?: string;
+
+  detallePedido?: DetallePedidoEntity
 }

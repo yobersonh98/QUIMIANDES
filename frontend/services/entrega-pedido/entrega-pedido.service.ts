@@ -3,7 +3,7 @@ import { ApiService } from "../api/ApiService";
 import { EntregaEntity } from "./entities/entrega.entity";
 import { CrearEntregaModel } from "./models/crear-entrega.model";
 
-export class EntregaPedidoService extends ApiService{
+export class EntregaPedidoService extends ApiService {
   constructor(token?:string) {
     super('entregas', token)
   }
@@ -28,5 +28,24 @@ export class EntregaPedidoService extends ApiService{
     } catch (error) {
       return ErrorResponse.fromUnknownError(error)
     }
+  }
+
+  async consultar(id: string): Promise<ServiceResponse<EntregaEntity>> {
+    try {
+      const response = await this.makeRequest<EntregaEntity>({
+        endpoint: `/${id}`
+      })
+      return new SuccessResponse(response)
+    } catch (error) {
+      return ErrorResponse.fromUnknownError(error)
+    }
+  }
+
+  static instance: EntregaPedidoService; 
+  static getServerIntance() {
+    if (!this.instance) {
+      this.instance = new EntregaPedidoService()
+    }
+    return this.instance
   }
 }

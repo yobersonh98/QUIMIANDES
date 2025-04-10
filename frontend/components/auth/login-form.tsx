@@ -13,9 +13,9 @@ export function LoginForm({
   ...props
 }: React.ComponentPropsWithoutRef<"form">) {
   const [errors, setErrors] = useState<string[]>([]);
-  const [email, setEmail] = useState<string>("test@test.com");
-  const [password, setPassword] = useState<string>("123123");
-  const router = useRouter();
+  const [email, setEmail] = useState<string>("admin@gmail.com");
+  const [password, setPassword] = useState<string>("123456789");
+  const router = useRouter(); 
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
