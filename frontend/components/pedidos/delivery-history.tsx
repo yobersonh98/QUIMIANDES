@@ -102,9 +102,6 @@ function DeliveryCard({
   // }
   const esPediente = entrega.estado === "PENDIENTE"
   const esEnTransito = entrega.estado === "EN_TRANSITO"
-  const esEntregado = entrega.estado === "ENTREGADO"
-  // const esEntregado = entrega.estado === "ENTREGADO"
-  // const esCancelado = entrega.estado === "CANCELADO"
   return (
     <Card className="overflow-hidden">
       <div className="bg-muted/50 p-4 flex justify-between items-center">
@@ -223,9 +220,6 @@ function DeliveryCard({
             </div>
 
             <div className="flex justify-end">
-              {/* <Button variant="outline" size="sm" className="flex items-center gap-2">
-                Cancelar Entrega
-              </Button> */}
             </div>
           </div>
         </CardContent>

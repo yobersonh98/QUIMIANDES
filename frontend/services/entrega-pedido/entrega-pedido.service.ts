@@ -2,6 +2,8 @@ import { ErrorResponse, ServiceResponse, SuccessResponse } from "@/core/service/
 import { ApiService } from "../api/ApiService";
 import { EntregaEntity } from "./entities/entrega.entity";
 import { CrearEntregaModel } from "./models/crear-entrega.model";
+import { ConfirmarEntregaModel } from "./models/confirmar-despacho..model";
+import { CompletarEntregaModel } from "./models/completar-entrega-model";
 
 export class EntregaPedidoService extends ApiService {
   constructor(token?:string) {
@@ -34,6 +36,32 @@ export class EntregaPedidoService extends ApiService {
     try {
       const response = await this.makeRequest<EntregaEntity>({
         endpoint: `/${id}`
+      })
+      return new SuccessResponse(response)
+    } catch (error) {
+      return ErrorResponse.fromUnknownError(error)
+    }
+  }
+
+  async confirmarEntrega(data:ConfirmarEntregaModel): Promise<ServiceResponse<EntregaEntity>> {
+    try {
+      const response = await this.makeRequest<EntregaEntity>({
+        method: 'patch',
+        endpoint: '/confirmar-entrega',
+        data
+      })
+      return new SuccessResponse(response)
+    } catch (error) {
+      return ErrorResponse.fromUnknownError(error)
+    }
+  }
+
+  async completarEntrega(data: CompletarEntregaModel): Promise<ServiceResponse<EntregaEntity>> {
+    try {
+      const response = await this.makeRequest<EntregaEntity>({
+        method: 'patch',
+        endpoint: '/completar-entrega',
+        data
       })
       return new SuccessResponse(response)
     } catch (error) {

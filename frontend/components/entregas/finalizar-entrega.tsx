@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { Check, MapPin, Package, CheckCircle } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -16,6 +15,11 @@ import { useToast } from "@/hooks/use-toast"
 import { EntregaEntity, EstadoEntrega } from "@/services/entrega-pedido/entities/entrega.entity"
 import { EntregaProdcutoEntity } from "@/services/entrega-pedido/entities/entrega-producto.entity"
 import EntregaResumen from "./entrega-resumen"
+import { useSession } from "next-auth/react"
+import { EntregaPedidoService } from "@/services/entrega-pedido/entrega-pedido.service"
+import { ConfirmButton } from "../shared/confirm-botton"
+import { CompletarEntregaModel } from "@/services/entrega-pedido/models/completar-entrega-model"
+import RefreshPage from "@/actions/refresh-page"
 
 interface FinalizarEntregaProps {
   entrega: EntregaEntity
@@ -25,6 +29,7 @@ interface FinalizarEntregaProps {
 export default function FinalizarEntrega({ entrega: initialEntrega, onSave }: FinalizarEntregaProps) {
   const { toast } = useToast()
   const [entrega, setEntrega] = useState<EntregaEntity>(initialEntrega)
+  const token = useSession().data?.user?.token
   const [deliveredQuantities, setDeliveredQuantities] = useState<Record<string, number>>(
     entrega.entregaProductos?.reduce(
       (acc, producto) => {
@@ -58,7 +63,7 @@ export default function FinalizarEntrega({ entrega: initialEntrega, onSave }: Fi
     }))
   }
 
-  const handleFinalizeDelivery = () => {
+  const handleFinalizeDelivery = async () => {
     // Check if all products have been fully delivered
     const allFullyDelivered = entrega.entregaProductos?.every(
       (producto) => deliveredQuantities[producto.id] === producto.cantidadDespachar,
@@ -76,14 +81,33 @@ export default function FinalizarEntrega({ entrega: initialEntrega, onSave }: Fi
       estado: allFullyDelivered ? "ENTREGADO" : "EN_TRANSITO" as EstadoEntrega, // Using EN_TRANSITO since PARCIAL is not in the new type
       entregaProductos: updatedEntregaProductos,
     }
+    const data: CompletarEntregaModel = {
+      entregaId: entrega.id,
+      entregaProductos: updatedEntregaProductos?.map(etp=> ({
+        entregaProductoId: etp.id,
+        cantidadEntregada: etp.cantidadEntregada,
+        detallePedidoId: etp.detallePedidoId,
+        observaciones: etp.observaciones,
+      })) || []
+    }
+    const {error} = await new EntregaPedidoService(token).completarEntrega(data)
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      })
+      return
+    }
 
     setEntrega(updatedEntrega)
+  
 
     // Call the onSave callback if provided
     if (onSave) {
       onSave(updatedEntrega)
     }
-
+    RefreshPage(`/dashboard/pedidos/${entrega.pedidoId}/gestionar`)
     toast({
       title: "Entrega finalizada",
       description: `La entrega ha sido marcada como ${allFullyDelivered ? "ENTREGADO" : "EN_TRANSITO"}.`,
@@ -101,10 +125,8 @@ export default function FinalizarEntrega({ entrega: initialEntrega, onSave }: Fi
     <div className="container mx-auto py-6">
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Left side - Delivery Information */}
         <EntregaResumen entrega={entrega} />
 
-        {/* Right side - Products to finalize */}
         <Card>
           <CardHeader>
             <CardTitle>Productos Entregados</CardTitle>
@@ -182,10 +204,15 @@ export default function FinalizarEntrega({ entrega: initialEntrega, onSave }: Fi
             </div>
           </CardContent>
           <CardFooter className="flex justify-end">
-            <Button onClick={handleFinalizeDelivery}>
+            <ConfirmButton 
+              title="Confirmar Entrega"
+              description="Confirma la entrega de los productos seleccionados"
+              onClick={handleFinalizeDelivery}
+              disabled={entrega.estado !== "EN_TRANSITO"}
+            >
               <Check className="mr-2 h-4 w-4" />
               Finalizar Entrega
-            </Button>
+            </ConfirmButton>
           </CardFooter>
         </Card>
       </div>

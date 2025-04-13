@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { Check, Info, MapPin, Package } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,14 +12,20 @@ import { useToast } from "@/hooks/use-toast"
 // Import the entity types
 import { EntregaEntity, EstadoEntrega } from "@/services/entrega-pedido/entities/entrega.entity"
 import EntregaResumen from "./entrega-resumen"
+import { ConfirmarEntregaModel } from "@/services/entrega-pedido/models/confirmar-despacho..model"
+import { ConfirmButton } from "../shared/confirm-botton"
+import { useSession } from "next-auth/react"
+import { EntregaPedidoService } from "@/services/entrega-pedido/entrega-pedido.service"
+import RefreshPage from "@/actions/refresh-page"
 interface ConfirmacionEntregaProps {
   entrega: EntregaEntity
   onSave?: (updatedEntrega: EntregaEntity) => void
 }
 
-export default function ConfirmacionEntrega({ entrega: initialEntrega, onSave }: ConfirmacionEntregaProps) {
+export default function ConfirmacionEntrega({ entrega: initialEntrega }: ConfirmacionEntregaProps) {
   const [entrega, setEntrega] = useState<EntregaEntity>(initialEntrega)
   const { toast } = useToast()
+  const token = useSession().data?.user?.token
   const [dispatchQuantities, setDispatchQuantities] = useState<Record<string, number>>(
     entrega.entregaProductos?.reduce(
       (acc, producto) => {
@@ -38,7 +43,7 @@ export default function ConfirmacionEntrega({ entrega: initialEntrega, onSave }:
     }))
   }
 
-  const handleConfirmDispatch = () => {
+  const handleConfirmDispatch = async () => {
     // Update the entrega object with the new dispatch quantities
     const updatedEntregaProductos = entrega.entregaProductos?.map((producto) => ({
       ...producto,
@@ -51,13 +56,26 @@ export default function ConfirmacionEntrega({ entrega: initialEntrega, onSave }:
       entregaProductos: updatedEntregaProductos,
     }
 
-    setEntrega(updatedEntrega)
-
-    // Call the onSave callback if provided
-    if (onSave) {
-      onSave(updatedEntrega)
+    const dataConfirmacionEntrega: ConfirmarEntregaModel = {
+      entregaId: updatedEntrega.id,
+      despachosEntregaProducto: updatedEntrega.entregaProductos?.map((producto) => ({
+        entregaProductoId: producto.id,
+        cantidadDespachada: producto.cantidadDespachada,
+        observaciones: producto.observaciones,
+      })) || []
     }
-
+    const {error} = await new EntregaPedidoService(token).confirmarEntrega(dataConfirmacionEntrega)
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      })
+      return
+    }
+    setEntrega(updatedEntrega)
+    // Call the onSave callback if provided
+    RefreshPage(`/dashboard/pedidos/${entrega.pedidoId}/gestionar`)
     toast({
       title: "Despacho confirmado",
       description: "Las cantidades despachadas han sido actualizadas correctamente.",
@@ -132,10 +150,15 @@ export default function ConfirmacionEntrega({ entrega: initialEntrega, onSave }:
             </div>
           </CardContent>
           <CardFooter className="flex justify-end">
-            <Button onClick={handleConfirmDispatch}>
+            <ConfirmButton 
+            title="Confirmar Despacho"
+            description="Confirma el despacho de los productos seleccionados"
+            onClick={handleConfirmDispatch}
+            disabled={entrega.estado !== "PENDIENTE"}
+            >
               <Check className="mr-2 h-4 w-4" />
               Confirmar Despacho
-            </Button>
+            </ConfirmButton>
           </CardFooter>
         </Card>
       </div>

@@ -11,9 +11,8 @@ type ProductsListProps = {
   detallesPedido: DetallePedidoEntity[]
 }
 
-export function ProductsList({ detallesPedido }: ProductsListProps) {
-  const products = detallesPedido.map(transformDetalleToProduct)
 
+export function ProductsList({ detallesPedido }: ProductsListProps) {
   return (
     <div className="space-y-4">
       <Tabs defaultValue="all">
@@ -31,81 +30,74 @@ export function ProductsList({ detallesPedido }: ProductsListProps) {
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
+          {detallesPedido.map((detalle) => (
+            <ProductCard key={detalle.id} detalle={detalle} />
           ))}
         </TabsContent>
 
         <TabsContent value="pending" className="space-y-4">
-          {products
-            .filter((product) => product.deliveryStatus === "Pendiente")
-            .map((product) => (
-              <ProductCard key={product.id} product={product} />
+          {detallesPedido
+            .filter((d) => d.estado === "PENDIENTE")
+            .map((detalle) => (
+              <ProductCard key={detalle.id} detalle={detalle} />
             ))}
         </TabsContent>
 
         <TabsContent value="partial" className="space-y-4">
-          {products
-            .filter((product) => product.deliveryStatus === "Entregado Parcialmente")
-            .map((product) => (
-              <ProductCard key={product.id} product={product} />
+          {detallesPedido
+            .filter((d) => d.estado === "PARCIAL")
+            .map((detalle) => (
+              <ProductCard key={detalle.id} detalle={detalle} />
             ))}
         </TabsContent>
 
         <TabsContent value="delivered" className="space-y-4">
-          {products
-            .filter((product) => product.deliveryStatus === "Entregado")
-            .map((product) => (
-              <ProductCard key={product.id} product={product} />
+          {detallesPedido
+            .filter((d) => d.estado === "ENTREGADO")
+            .map((detalle) => (
+              <ProductCard key={detalle.id} detalle={detalle} />
             ))}
         </TabsContent>
       </Tabs>
     </div>
   )
 }
+function ProductCard({ detalle }: { detalle: DetallePedidoEntity }) {
+  console.log(detalle)
+  const estadoDetallePedido = detalle.estado;
+  const porcentaje = Math.min(Math.round((detalle.cantidadEntregada / detalle.cantidad) * 100), 100)
 
-function ProductCard({ product }: { product: ReturnType<typeof transformDetalleToProduct> }) {
-  const getStatusIcon = () => {
-    switch (product.deliveryStatus) {
-      case "Entregado":
+  const getIconoEstado = () => {
+    switch (estadoDetallePedido) {
+      case "ENTREGADO":
         return <CheckCircle2 className="h-4 w-4 text-green-500" />
-      case "Entregado Parcialmente":
+      case "PARCIAL":
         return <Truck className="h-4 w-4 text-yellow-500" />
       default:
         return <Clock className="h-4 w-4 text-blue-500" />
     }
   }
 
-  const getStatusBadge = () => {
+  const getBadgeEstado = () => {
     let variant: "default" | "secondary" | "outline" = "outline"
-
-    switch (product.deliveryStatus) {
-      case "Entregado":
-        variant = "default"
-        break
-      case "Entregado Parcialmente":
-        variant = "secondary"
-        break
-    }
+    if (estadoDetallePedido === "ENTREGADO") variant = "default"
+    else if (estadoDetallePedido === estadoDetallePedido) variant = "secondary"
 
     return (
       <Badge variant={variant} className="flex items-center gap-1">
-        {getStatusIcon()}
-        {product.deliveryStatus}
+        {getIconoEstado()}
+        {estadoDetallePedido}
       </Badge>
     )
   }
-
-  // Calcular el porcentaje de entrega
-  const deliveryPercentage = Math.min(Math.round((product.dispatchedQuantity / product.quantity) * 100), 100)
 
   return (
     <Card
       className={cn(
         "border-l-4",
-        product.deliveryStatus === "Entregado"
+        estadoDetallePedido === "ENTREGADO"
           ? "border-l-green-500"
-          : product.deliveryStatus === "Entregado Parcialmente"
+          : estadoDetallePedido === "PARCIAL"
             ? "border-l-yellow-500"
             : "border-l-blue-500",
       )}
@@ -115,33 +107,37 @@ function ProductCard({ product }: { product: ReturnType<typeof transformDetalleT
           <div className="flex justify-between items-center">
             <div>
               <h3 className="text-lg font-medium flex items-center gap-2">
-                {product.name}
-                <span className="text-sm font-normal text-muted-foreground">({product.id})</span>
+                {detalle.producto.nombre}
+                <span className="text-sm font-normal text-muted-foreground">({detalle.id})</span>
               </h3>
               <p className="text-sm text-muted-foreground">
-                {product.presentation} - Requerido para: {product.requirementDate}
+                Requerido para: {detalle.fechaEntrega ? new Date(detalle.fechaEntrega).toLocaleDateString() : "No especificada"}
               </p>
             </div>
-            <div>{getStatusBadge()}</div>
+            <div>{getBadgeEstado()}</div>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
               <div className="text-sm font-medium text-muted-foreground">Cantidad Solicitada</div>
-              <div>{product.quantity.toLocaleString()}</div>
+              <div>{detalle.cantidad.toLocaleString()}</div>
             </div>
             <div>
               <div className="text-sm font-medium text-muted-foreground">Cantidad Despachada</div>
-              <div>{product.dispatchedQuantity.toLocaleString()}</div>
+              <div>{(detalle.cantidadDespachada || 0).toLocaleString()}</div>
+            </div>
+            <div>
+              <div className="text-sm font-medium text-muted-foreground">Cantidad Entregada</div>
+              <div>{(detalle.cantidadEntregada || 0).toLocaleString()}</div>
             </div>
             <div>
               <div className="text-sm font-medium text-muted-foreground">Tipo de Entrega</div>
-              <div>{product.deliveryType}</div>
+              <div>{detalle.tipoEntrega || "No especificado"}</div>
             </div>
             <div>
               <div className="text-sm font-medium text-muted-foreground">Lugar de Entrega</div>
               <div>
-                {product.deliveryLocation.name}, {product.deliveryLocation.city}
+                {detalle.lugarEntrega?.nombre || "No especificado"}, {detalle.lugarEntrega?.ciudad?.nombre || "No especificada"}
               </div>
             </div>
           </div>
@@ -149,43 +145,12 @@ function ProductCard({ product }: { product: ReturnType<typeof transformDetalleT
           <div className="space-y-1">
             <div className="flex justify-between text-sm">
               <span>Progreso de entrega</span>
-              <span>{deliveryPercentage}%</span>
+              <span>{porcentaje}%</span>
             </div>
-            <Progress value={deliveryPercentage} className="h-2" />
+            <Progress value={porcentaje} className="h-2" />
           </div>
         </div>
       </CardContent>
     </Card>
   )
-}
-
-// Helper function to transform DetallePedidoEntity to Product format
-function transformDetalleToProduct(detalle: DetallePedidoEntity) {
-  return {
-    id: detalle.id,
-    name: detalle.producto.nombre,
-    requirementDate: detalle.fechaEntrega ? new Date(detalle.fechaEntrega).toLocaleDateString() : 'No especificada',
-    presentation: 'No especificado',
-    unit: detalle.unidades,
-    quantity: detalle.cantidad,
-    dispatchedQuantity: detalle.cantidadDespachada || 0,
-    total: detalle.cantidad,
-    receivedWeight: detalle.pesoRecibido || 0,
-    deliveryType: detalle.tipoEntrega || 'No especificado',
-    deliveryLocation: {
-      id: detalle.lugarEntrega?.id || '',
-      name: detalle.lugarEntrega?.nombre || 'No especificado',
-      city: detalle.lugarEntrega?.ciudad?.nombre || 'No especificada'
-    },
-    deliveryStatus: calculateDeliveryStatus(detalle)
-  }
-}
-
-function calculateDeliveryStatus(detalle: DetallePedidoEntity): string {
-  if (detalle.cantidadDespachada >= detalle.cantidad) {
-    return "Entregado"
-  } else if (detalle.cantidadDespachada > 0) {
-    return "Entregado Parcialmente"
-  }
-  return "Pendiente"
 }

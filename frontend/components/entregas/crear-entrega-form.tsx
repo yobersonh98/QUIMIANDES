@@ -18,6 +18,7 @@ import { useSession } from "next-auth/react"
 import { EntregaPedidoService } from "@/services/entrega-pedido/entrega-pedido.service"
 import { useToast } from "@/hooks/use-toast"
 import { ConfirmButton } from "../shared/confirm-botton"
+import RefreshPage from "@/actions/refresh-page"
 
 const formSchema = z.object({
   fechaEntrega: z.date({
@@ -84,6 +85,8 @@ export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
       title: 'Exitoso',
       description: 'Entrega gestionada correctamente.'
     })
+    await RefreshPage(`/dashboard/pedidos/${pedido.id}/gestionar`)
+
     router.back();
   }
 
