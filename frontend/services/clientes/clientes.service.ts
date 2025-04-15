@@ -1,6 +1,5 @@
 import { ErrorResponse, SuccessResponse } from "@/core/service/service.response";
 import { ClienteEntity } from "./entities/cliente.entity";
-import {  UnknownError } from "@/core/errors/errors";
 import { CrearClienteModel } from "./models/crear-cliente.model";
 import { ApiService } from "../api/ApiService";
 import { ActualizarClienteModel } from "./models/actualizar-cliente.model";
@@ -22,7 +21,7 @@ export class ClienteService  extends ApiService {
       });
       return new SuccessResponse(response);
     } catch (e) {
-      return e as ErrorResponse<PaginationResponse<ClienteEntity[]>>;
+      return ErrorResponse.fromUnknownError(e);
     }
   }
 
@@ -31,7 +30,7 @@ export class ClienteService  extends ApiService {
       const response = await this.makeRequest<ClienteEntity>({ endpoint: `/${id}`});
       return new SuccessResponse(response);
     } catch (e) {
-      return e as ErrorResponse<ClienteEntity>;
+      return ErrorResponse.fromUnknownError(e);
     }
   }
 
@@ -41,7 +40,7 @@ export class ClienteService  extends ApiService {
       const data = await this.makeRequest<ClienteEntity>({ method: "post", data: cliente });
       return new SuccessResponse(data);
     } catch (e) {
-      return e as ErrorResponse<ClienteEntity>;
+      return ErrorResponse.fromUnknownError(e);
     }
   }
 
@@ -50,7 +49,7 @@ export class ClienteService  extends ApiService {
       const response = await this.makeRequest<ClienteEntity>({ method: "put", data: cliente, endpoint: `/${cliente.id}` });
       return new SuccessResponse(response);
     } catch (e) {
-      return e as ErrorResponse<ClienteEntity>;
+      return ErrorResponse.fromUnknownError(e);
     }
   }
   async eliminar(id: string):Promise<SuccessResponse<ClienteEntity>> {
@@ -58,8 +57,7 @@ export class ClienteService  extends ApiService {
       const response = await this.makeRequest<ClienteEntity>({ method: "delete", endpoint: `/${id}` });
       return new SuccessResponse(response);
     } catch (e) {
-      console.error(e);
-      return new ErrorResponse(new UnknownError("Error eliminando cliente"));
+      return ErrorResponse.fromUnknownError(e);
     }
   }
 

@@ -59,6 +59,29 @@ export class PedidoService extends ApiService {
     }
   }
 
+  async finalizarEntregaPedido(pedidoId:string): Promise<ServiceResponse<PedidoEntity>> {
+    try {
+      const data = await this.makeRequest<PedidoEntity>({
+        method: 'post',
+        endpoint: `/${pedidoId}/finalizar-entrega`,
+      })
+      return new SuccessResponse(data);
+    } catch (error) {
+      return ErrorResponse.fromUnknownError(error)
+    }
+  }
+  async cancelarPedido(pedidoId:string): Promise<ServiceResponse<PedidoEntity>> {
+    try {
+      const data = await this.makeRequest<PedidoEntity>({
+        method: 'post',
+        endpoint: `/${pedidoId}/cancelar`,
+      })
+      return new SuccessResponse(data);
+    } catch (error) {
+      return ErrorResponse.fromUnknownError(error)
+    }
+  }
+
   private static instance: PedidoService
 
   public static getServerIntance(): PedidoService{

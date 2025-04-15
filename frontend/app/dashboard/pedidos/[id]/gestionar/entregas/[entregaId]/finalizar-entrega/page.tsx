@@ -22,7 +22,7 @@ export default async function FinalizarEntregaPage(props: PageProps<PaginationSe
     <BackButtonLayout
       title="Finalizar Entrega"
     >
-      <FinalizarEntrega />
+      <FinalizarEntrega entrega={entrega.data}/>
     </BackButtonLayout>
   )
 }

@@ -23,12 +23,13 @@ export default async function OrderDetailsPage(props: PageProps<PaginationSearch
         <div className="space-y-1">
           <h2 className="text-3xl font-bold tracking-tight">Pedido {params?.id}</h2>
         </div>
-        <Button>
-          <Link href={`/dashboard/pedidos/${params?.id}/editar}`}>
-            <Pencil className="h-4 w-4 mr-2" />
+        <Link href={`/dashboard/pedidos/${params?.id}/editar`}>
+        <Button className="gap-2 flex">
+          <Pencil className="h-4 w-4 mr-2" />
             Editar Pedido
-          </Link>
         </Button>
+        </Link>
+
       </div>}>
       <div className="grid gap-6 md:grid-cols-2">
         <PedidoInfoBasica

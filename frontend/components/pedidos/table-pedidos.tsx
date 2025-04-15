@@ -15,10 +15,23 @@ export default async function TablePedidos(paginationDto: PaginationSearchParams
   }
   const pedidos = response.data.data;
   return (
-     <DataTable
+    <DataTable
       columns={PedidoColumns}
       data={pedidos}
+      isShowSearchInput={true}
       pagination={response.data.meta}
-     />
+      columnToVariantFilter={{
+        'keyToVariant': 'estado',
+        'isSearchParam': true,
+        'title': 'Estado',
+        variants: [
+          { value: 'TODOS', label: 'Todos' },
+          { value: 'PENDIENTE', label: 'Pendiente' },
+          { value: 'ENTREGADO', label: 'Entregado' },
+          { value: 'EN_PROCESO', label: 'En proceso' },
+          { value: 'CANCELADO', label: 'Cancelado' },
+        ]
+      }}
+    />
   )
 }
