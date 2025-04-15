@@ -9,6 +9,12 @@ import { ProductsList } from "./products-list"
 import Link from "next/link"
 import { Button } from "../ui/button"
 import { DeliveryHistory } from "./delivery-history"
+import { ConfirmButton } from "../shared/confirm-botton"
+import { useSession } from "next-auth/react"
+import { useToast } from "@/hooks/use-toast"
+import { PedidoService } from "@/services/pedidos/pedido.service"
+import { usePathname } from "next/navigation"
+import RefreshPage from "@/actions/refresh-page"
 
 type OrderDeliveryManagerProps = {
   pedido: PedidoEntity
@@ -42,17 +48,72 @@ const DeliveryStatCard = ({ label, value, className = "", textColor = "" }: Deli
 
 export function OrderDeliveryManager({ pedido }: OrderDeliveryManagerProps) {
   const deliveryStats = getDeliveryStats(pedido.detallesPedido)
+  const token = useSession().data?.user?.token
+  const pathName = usePathname()
+  const {toast} = useToast()
+  const handleFinalizarPedido = async () => {
+    const response = await new PedidoService(token).finalizarEntregaPedido(pedido.id)
+    if (response.error) {
+      toast({
+        title: "Error",
+        description: response.error.message,
+        variant: "destructive",
+      })
+      return;
+    }
+    if (response.data) {
+      toast({
+        title: "Éxito",
+        description: "Pedido finalizado correctamente.",
+        variant: "default",
+      })
+      await RefreshPage(pathName)
+    } else {
+      toast({
+        title: "Error",
+        description: "No se pudo finalizar el pedido.",
+        variant: "destructive",
+      })
+      return;
+    }
+  }
 
+  const handleCancelarPedido = async () => {
+    const response = await new PedidoService(token).cancelarPedido(pedido.id)
+    if (response.error) {
+      toast({
+        title: "Error",
+        description: response.error.message,
+        variant: "destructive",
+      })
+      return;
+    }
+    if (response.data) {
+      toast({
+        title: "Éxito",
+        description: "Pedido cancelado correctamente.",
+        variant: "default",
+      })
+      await RefreshPage(pathName)
+    } else {
+      toast({
+        title: "Error",
+        description: "No se pudo cancelar el pedido.",
+        variant: "destructive",
+      })
+      return;
+    }
+  }
   return (
     <div className="space-y-6">
       <div className="grid gap-6 md:grid-cols-2 my-6">
         <PedidoInfoBasica pedido={pedido} />
       </div>
-
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Estado de Entrega</CardTitle>
-          {pedido.estado !== 'ENTREGADO' && (
+          <div className="flex items-center gap-2">
+          {((pedido.estado !== 'ENTREGADO') && (pedido.estado !== 'CANCELADO')) && (
             <Link href={`/dashboard/pedidos/${pedido?.id}/gestionar/registrar-entrega`}>
               <Button>
                 <Plus size={24} />
@@ -60,6 +121,30 @@ export function OrderDeliveryManager({ pedido }: OrderDeliveryManagerProps) {
               </Button>
             </Link>
           )}
+          {pedido.estado === 'EN_PROCESO' && (
+            <ConfirmButton
+              className="ml-2"
+              title="¿Finalizar pedido?"
+              description="Esta acción marcará el pedido como entregado y no podrá ser revertida."
+              onClick={handleFinalizarPedido}
+              variant={"secondary"}
+            >
+              Finalizar Entrega Pedido
+            </ConfirmButton>
+          )}
+          {pedido.estado !== 'EN_PROCESO' && (
+            <ConfirmButton
+              className="ml-2"
+              title="¿Cancelar pedido?"
+              description="Esta acción cancelará el pedido y no podrá ser revertida."
+              onClick={handleCancelarPedido}
+              disabled={pedido.estado === 'CANCELADO'}
+              variant={"destructive"}
+            >
+              Cancelar Pedido
+            </ConfirmButton>
+          )}
+        </div>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-4 gap-4 mb-6">

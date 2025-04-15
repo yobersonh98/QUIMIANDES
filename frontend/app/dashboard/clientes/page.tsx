@@ -22,7 +22,7 @@ export default async function ClientsPage(props: PageProps<PaginationSearchParam
             <Link href={"/dashboard/clientes/crear"} >
               <Button className="gap-2">
                 <PlusCircle className="h-4 w-4" />
-                Nuevo Proveedor
+                Nuevo Cliente
               </Button>
             </Link>
           </Button>

@@ -64,10 +64,6 @@ export default function FinalizarEntrega({ entrega: initialEntrega, onSave }: Fi
   }
 
   const handleFinalizeDelivery = async () => {
-    // Check if all products have been fully delivered
-    const allFullyDelivered = entrega.entregaProductos?.every(
-      (producto) => deliveredQuantities[producto.id] === producto.cantidadDespachar,
-    )
 
     // Update the entrega object with the new delivered quantities
     const updatedEntregaProductos = entrega.entregaProductos?.map((producto) => ({
@@ -78,7 +74,7 @@ export default function FinalizarEntrega({ entrega: initialEntrega, onSave }: Fi
 
     const updatedEntrega = {
       ...entrega,
-      estado: allFullyDelivered ? "ENTREGADO" : "EN_TRANSITO" as EstadoEntrega, // Using EN_TRANSITO since PARCIAL is not in the new type
+      estado: "ENTREGADO" as EstadoEntrega, // Using EN_TRANSITO since PARCIAL is not in the new type
       entregaProductos: updatedEntregaProductos,
     }
     const data: CompletarEntregaModel = {
@@ -101,7 +97,6 @@ export default function FinalizarEntrega({ entrega: initialEntrega, onSave }: Fi
     }
 
     setEntrega(updatedEntrega)
-  
 
     // Call the onSave callback if provided
     if (onSave) {
@@ -110,7 +105,7 @@ export default function FinalizarEntrega({ entrega: initialEntrega, onSave }: Fi
     RefreshPage(`/dashboard/pedidos/${entrega.pedidoId}/gestionar`)
     toast({
       title: "Entrega finalizada",
-      description: `La entrega ha sido marcada como ${allFullyDelivered ? "ENTREGADO" : "EN_TRANSITO"}.`,
+      description: `La entrega ha sido marcada como ENTREGADO.`,
     })
   }
 

@@ -19,7 +19,7 @@ export interface PedidoEntity {
     documento: string;
   }
 }
-export type EstadoPedido = "PENDIENTE" | "DESPACHADO" | "EN_TRANSITO" | "ENTREGADO" | "CANCELADO" | "APLAZADO" | "DEVUELTO"
+export type EstadoPedido = "PENDIENTE" | "EN_PROCESO"  | "ENTREGADO" | "CANCELADO" ;
 export interface PedidoDataTable {
   id?:string;
   cliente?: {

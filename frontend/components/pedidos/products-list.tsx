@@ -16,10 +16,13 @@ export function ProductsList({ detallesPedido }: ProductsListProps) {
   return (
     <div className="space-y-4">
       <Tabs defaultValue="all">
-        <TabsList className="grid grid-cols-4 mb-4">
+        <TabsList className="grid grid-cols-5 mb-4">
           <TabsTrigger value="all">Todos</TabsTrigger>
           <TabsTrigger value="pending" className="flex items-center gap-2">
             <Clock className="h-4 w-4" /> Pendientes
+          </TabsTrigger>
+          <TabsTrigger value='inTransit' className="flex items-center gap-2">
+            <Truck className="h-4 w-4" /> En Tránsito
           </TabsTrigger>
           <TabsTrigger value="partial" className="flex items-center gap-2">
             <Truck className="h-4 w-4" /> Parciales
@@ -27,6 +30,7 @@ export function ProductsList({ detallesPedido }: ProductsListProps) {
           <TabsTrigger value="delivered" className="flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4" /> Entregados
           </TabsTrigger>
+
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
@@ -34,10 +38,18 @@ export function ProductsList({ detallesPedido }: ProductsListProps) {
             <ProductCard key={detalle.id} detalle={detalle} />
           ))}
         </TabsContent>
-
+  
         <TabsContent value="pending" className="space-y-4">
           {detallesPedido
             .filter((d) => d.estado === "PENDIENTE")
+            .map((detalle) => (
+              <ProductCard key={detalle.id} detalle={detalle} />
+            ))}
+        </TabsContent>
+      
+        <TabsContent value="inTransit" className="space-y-4">
+          {detallesPedido
+            .filter((d) => d.estado === "EN_TRANSITO")
             .map((detalle) => (
               <ProductCard key={detalle.id} detalle={detalle} />
             ))}

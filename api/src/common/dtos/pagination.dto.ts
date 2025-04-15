@@ -1,4 +1,4 @@
-import { IsNumber, IsOptional } from "class-validator";
+import { IsNumber, IsOptional, IsString } from "class-validator";
 import { PaginationMetadata, PaginationResponse } from "../interfaces/IPaginationResponse";
 import { Type } from "class-transformer";
 
@@ -57,10 +57,13 @@ export class PaginationDto {
     @IsOptional()
     @Type(() => Number)
     limit?: number = 10
+    
     @IsNumber()
     @IsOptional()
     @Type(() => Number)
     offset?: number = 0
 
+    @IsString()
+    @IsOptional()
     search?: string;
 }

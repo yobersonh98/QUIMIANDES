@@ -46,6 +46,13 @@ export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
   const router = useRouter()
   const session = useSession();
   const toast = useToast()
+  const detallesPedidosPendientesPorDespachar = pedido.detallesPedido.map((detalle: DetallePedidoEntity) => {
+      return {
+        ...detalle,
+        cantidadDespachar: detalle.cantidad - detalle.cantidadDespachada,
+      }
+  }).filter((detalle) => detalle.cantidadDespachar > 0)
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -54,11 +61,11 @@ export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
       entregadoPorA: "",
       remision: "",
       observaciones: "",
-      productos: pedido.detallesPedido.map((detalle: DetallePedidoEntity) => ({
+      productos: detallesPedidosPendientesPorDespachar.map((detalle) => ({
         detallePedidoId: detalle.id,
-        cantidadDespachar: detalle.cantidad - detalle.cantidadDespachada,
+        cantidadDespachar: detalle.cantidadDespachar,
         incluir: true,
-        observaciones: ''
+        observaciones: '',
       }))
     },
   })
@@ -96,6 +103,17 @@ export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
       toast.toast({
         variant: "destructive",
         description: "La cantidad a despachar de los productos debe ser mayor a cero."
+      })
+      return
+    }
+    const esAlugnoSuperandoEl = form.getValues().productos.some(p => {
+      const detallePedido = pedido.detallesPedido.find(d => d.id === p.detallePedidoId);
+      return detallePedido && p.cantidadDespachar > (detallePedido.cantidad - detallePedido.cantidadDespachada)
+    })
+    if (esAlugnoSuperandoEl) {
+      toast.toast({
+        variant: "destructive",
+        description: "La cantidad a despachar de los productos no puede ser mayor a la cantidad pendiente por despachar."
       })
       return
     }
@@ -208,7 +226,7 @@ export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {pedido.detallesPedido.map((detalle: DetallePedidoEntity, index: number) => (
+                {detallesPedidosPendientesPorDespachar.map((detalle: DetallePedidoEntity, index: number) => (
                   <div key={detalle.id} className="flex flex-col space-y-2 p-4 border rounded-lg">
                     <div className="flex items-start justify-between">
                       <div className="font-medium">{detalle.producto.nombre}</div>

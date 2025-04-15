@@ -33,17 +33,17 @@ export function DataTableFacetedFilter<TData, TValue>({
   keyToVariant,
   allSearchsParams
 }: DataTableFacetedFilterProps<TData, TValue>) {
-  const { handleUpdateSearchParams} = useUpdateSearchParams({ searchParamsInPage: allSearchsParams});
+  const { handleUpdateSearchParams } = useUpdateSearchParams({ searchParamsInPage: allSearchsParams});
   return (
-    <Select   onValueChange={(value)=>{
-      if(isSearchParam){
-        handleUpdateSearchParams([{key:keyToVariant?.toString() ??"",value}] )
+    <Select onValueChange={(value) => {
+      if (isSearchParam) {
+        handleUpdateSearchParams([{key:keyToVariant?.toString() ?? "" ,value}] )
       } else {
         column?.setFilterValue(value)
       }
     }}>
       <SelectTrigger className="w-[180px]">
-        <SelectValue placeholder={`Select ${title}`} />
+        <SelectValue placeholder={`Seleccione ${title}`} />
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>

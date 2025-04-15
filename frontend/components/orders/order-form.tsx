@@ -21,6 +21,7 @@ import { Label } from "../ui/label"
 import { PedidoEntity } from "@/services/pedidos/entity/pedido.entity"
 import { usePathname, useRouter } from "next/navigation"
 import RefreshPage from "@/actions/refresh-page"
+import { CompactFileUploader } from "../shared/compact-file-uploader"
 
 type OrderFormProps = {
   pedido?: PedidoEntity,
@@ -35,6 +36,7 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
   const { toast } = useToast();
   const isEditing = !!pedido;
   const pathName = usePathname()
+  const [files, setFiles] = useState<File[]>([]);
   // Inicializar el formulario con valores por defecto o con los del pedido si está en modo edición
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(OrderFormSchema),
@@ -140,8 +142,8 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
   }
 
   return (
-    <Form {...form}>
-      <form className="space-y-8">
+    <Form {...form} >
+      <form className="space-y-8 mt-6">
         <Card>
           <CardContent className="pt-6">
             <div className="grid gap-3 md:grid-cols-2">
@@ -175,6 +177,14 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
                 name="ordenCompra"
                 label="Orden de Compra"
                 placeholder="Ingrese el número de orden de compra"
+              />
+            </div>
+            <div className="mt-2">
+              <label className="text-sm font-medium">Archivos Adjuntos</label>
+              <p className="text-xs mb-2 text-muted-foreground">Adjunte archivos relevantes para el pedido (PDF, imágenes)</p>
+              <CompactFileUploader 
+                onChange={setFiles}
+                multiple
               />
             </div>
           </CardContent>
@@ -384,6 +394,7 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
           >
             Cancelar
           </Button>
+
           <Button
             type="button"
             size="lg"
