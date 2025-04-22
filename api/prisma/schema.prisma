@@ -265,3 +265,17 @@ model Pais {
 
   @@index([nombre])
 }
+
+
+model Document {
+  id          String   @id @default(uuid())
+  fileName    String
+  originalName String
+  mimeType    String
+  size        Int
+  path        String   @unique
+  url         String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

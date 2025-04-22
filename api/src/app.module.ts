@@ -22,7 +22,8 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { PresentacionModule } from './presentacion/presentacion.module';
 import { ServicesModule } from './services/services.module';
 import { EntregaProductoModule } from './entrega-producto/entrega-producto.module';
-
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 @Module({
   imports: [
     UserModule,
@@ -46,7 +47,11 @@ import { EntregaProductoModule } from './entrega-producto/entrega-producto.modul
     LugarEntregaModule,
     PresentacionModule,
     ServicesModule,
-    EntregaProductoModule
+    EntregaProductoModule,
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
+    }),
   ],
   controllers: [AppController],
   exports: [PrismaModule],
