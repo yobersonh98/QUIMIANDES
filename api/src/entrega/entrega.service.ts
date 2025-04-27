@@ -90,9 +90,6 @@ export class EntregaService {
       }
 
       const cantidadTotalDespachada = detallePedido.cantidadDespachada + cantidadDespachada;
-      if (cantidadTotalDespachada > detallePedido.cantidad) {
-        throw new BadRequestException(`La cantidad despachada (${cantidadTotalDespachada}) supera la cantidad total (${detallePedido.cantidad})`);
-      }
 
       const esEntregaEnPlanta = detallePedido.tipoEntrega === TipoEntregaProducto.RECOGE_EN_PLANTA;
       const estado =
@@ -162,7 +159,6 @@ export class EntregaService {
    */
   async completarEntrega({ entregaId, entregaProductos }: CompletarEntregaDto): Promise<Entrega> {
     this.logger.log(`Finalizando entrega con id ${entregaId}`);
-    this.logger.log('entregaProductos', entregaProductos);
 
     const entrega = await this.prisma.entrega.findUnique({
       where: { id: entregaId },
@@ -178,11 +174,7 @@ export class EntregaService {
       if (!detallePedido) {
         throw new NotFoundException(`Detalle de pedido con id ${detallePedidoId} no encontrado`);
       }
-      if (cantidadTotalEntregadoDetallePedido > detallePedido.cantidad) {
-        throw new BadRequestException(`La cantidad entregada (${cantidadTotalEntregadoDetallePedido})
-          supera la cantidad total (${detallePedido.cantidad}) en el detalle de pedido con id ${detallePedidoId}`);
-      }
-
+  
       if (detallePedido.estado == EstadoDetallePedido.ENTREGADO || detallePedido.estado == EstadoDetallePedido.CANCELADO) {
         throw new BadRequestException(`El detalle de pedido con id ${detallePedidoId} ya está en estado entregado o cancelado`);
       }

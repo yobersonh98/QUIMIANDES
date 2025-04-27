@@ -1,4 +1,4 @@
-import { OrderForm } from '@/components/orders/order-form';
+import { OrderForm } from '@/components/pedidos/order-form';
 import BackButtonLayout from '@/components/shared/back-button-layout';
 import { PedidoService } from '@/services/pedidos/pedido.service';
 import { PageProps, PaginationSearchParamsPage } from '@/types/pagination'

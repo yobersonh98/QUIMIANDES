@@ -9,15 +9,13 @@ import {
   UseInterceptors,
   UploadedFile,
   Res,
-  Query,
-  StreamableFile,
+  BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { DocumentsService } from './document.service';
 import { CreateDocumentDto } from './dto/create-document.dto';
 import { UpdateDocumentDto } from './dto/update-document.dto';
 import { Response } from 'express';
-import { createReadStream } from 'fs';
 
 @Controller('documents')
 export class DocumentsController {
@@ -29,6 +27,7 @@ export class DocumentsController {
     @UploadedFile() file: Express.Multer.File,
     @Body() createDocumentDto: CreateDocumentDto,
   ) {
+    if (!file) throw new BadRequestException('Archivo no recibido');
     return this.documentsService.create(file, createDocumentDto.description);
   }
 
@@ -48,14 +47,13 @@ export class DocumentsController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const { path, mimeType } = await this.documentsService.getFileByName(fileName);
-    const file = createReadStream(path);
-    
+
     res.set({
       'Content-Type': mimeType,
       'Content-Disposition': `attachment; filename="${fileName}"`,
     });
-    
-    return new StreamableFile(file);
+
+    return this.documentsService.streamFile(path);
   }
 
   @Get('view/:fileName')
@@ -64,14 +62,14 @@ export class DocumentsController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const { path, mimeType } = await this.documentsService.getFileByName(fileName);
-    const file = createReadStream(path);
-    
+
     res.set({
       'Content-Type': mimeType,
       'Content-Disposition': 'inline',
+      'Cache-Control': 'public, max-age=86400',
     });
-    
-    return new StreamableFile(file);
+
+    return this.documentsService.streamFile(path);
   }
 
   @Patch(':id')

@@ -13,6 +13,7 @@ export interface PedidoEntity {
   pesoDespachado?: number;
   detallesPedido: DetallePedidoEntity[];
   entregas?: EntregaEntity[];
+  pedidoDocumentos?: PedidoDocumentoEntity[]
   cliente: {
     nombre: string;
     id: string;
@@ -30,4 +31,23 @@ export interface PedidoDataTable {
   ordenCompra?: string
   estado?: EstadoPedido
   cantidadDetallesPedido?: number;
+}
+
+
+export interface DocumentoEntity {
+  id: string
+  fileName: string
+  originalName: string
+  mimeType: string
+  size: number
+  url: string
+  path: string
+  description?: string
+  tipo?:string
+  fechaCreacion?: string
+}
+export interface PedidoDocumentoEntity {
+  documentoId:string
+  pedidoId:string
+  documento: DocumentoEntity
 }

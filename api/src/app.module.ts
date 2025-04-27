@@ -24,6 +24,8 @@ import { ServicesModule } from './services/services.module';
 import { EntregaProductoModule } from './entrega-producto/entrega-producto.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { DocumentModule } from './document/document.module';
+import { PedidoDocumentoService } from './pedido-documento/pedido-documento.service';
 @Module({
   imports: [
     UserModule,
@@ -52,6 +54,7 @@ import { join } from 'path';
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/uploads',
     }),
+    DocumentModule
   ],
   controllers: [AppController],
   exports: [PrismaModule],
@@ -59,7 +62,8 @@ import { join } from 'path';
     {
       provide: 'APP_GUARD',
       useClass: JwtAuthGuard
-    }
+    },
+    PedidoDocumentoService
   ],
 })
 export class AppModule { }
