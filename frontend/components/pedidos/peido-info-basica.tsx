@@ -2,6 +2,7 @@ import React from 'react'
 import { PedidoEntity } from '@/services/pedidos/entity/pedido.entity'
 import { formatFecha } from '@/lib/utils'
 import DynamicInfo from '../shared/dynamic-info'
+import { DocumentosLista } from '../shared/documentos-lista'
 
 type PedidoInfoBasicaProps = {
   pedido: PedidoEntity
@@ -41,10 +42,13 @@ export default function PedidoInfoBasica({pedido}: PedidoInfoBasicaProps) {
         title="Información del Cliente" 
         items={clienteItems} 
       />
-      
       <DynamicInfo 
         title="Información del Pedido" 
         items={pedidoItems} 
+      />
+      <DocumentosLista 
+        titulo='Adjuntos'
+        documentos={pedido.pedidoDocumentos?.map(i=>i.documento) || []}
       />
     </>
   )

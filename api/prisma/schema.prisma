@@ -152,6 +152,15 @@ model Pedido {
   entregas       Entrega[]
   ordenCompra    String?
   cliente        Cliente         @relation(fields: [idCliente], references: [id])
+  pedidoDocumentos PedidoDocumento[]
+}
+
+model PedidoDocumento {
+  id           String   @id @default(uuid())
+  documentoId  String
+  pedidoId     String
+  pedido       Pedido   @relation(fields: [pedidoId], references: [id])
+  documento    Document @relation(fields: [documentoId], references: [id], onDelete: Cascade)
 }
 
 enum EstadoDetallePedido {
@@ -278,4 +287,6 @@ model Document {
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  pedidoDocumentos PedidoDocumento[]
 }

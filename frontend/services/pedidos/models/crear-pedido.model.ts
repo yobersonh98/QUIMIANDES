@@ -15,4 +15,6 @@ export interface CrearPedidoModel {
 
   detallesPedido: CrearDetallePedidoModel[]
 
+  pedidoDocumentoIds?: string[];
+
 }

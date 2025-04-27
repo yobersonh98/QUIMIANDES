@@ -18,10 +18,11 @@ import { useState } from "react"
 import { TipoEntregaProducto, TiposEntrega } from "@/core/constantes/pedido"
 import { OrderFormSchema, OrderFormValues } from "./schemas/order-form-schema"
 import { Label } from "../ui/label"
-import { PedidoEntity } from "@/services/pedidos/entity/pedido.entity"
+import { DocumentoEntity, PedidoEntity } from "@/services/pedidos/entity/pedido.entity"
 import { usePathname, useRouter } from "next/navigation"
 import RefreshPage from "@/actions/refresh-page"
 import { CompactFileUploader } from "../shared/compact-file-uploader"
+
 
 type OrderFormProps = {
   pedido?: PedidoEntity,
@@ -36,7 +37,7 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
   const { toast } = useToast();
   const isEditing = !!pedido;
   const pathName = usePathname()
-  const [files, setFiles] = useState<File[]>([]);
+  const [files, setFiles] = useState<DocumentoEntity[]>(pedido?.pedidoDocumentos?.map(i=> i.documento) || []);
   // Inicializar el formulario con valores por defecto o con los del pedido si está en modo edición
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(OrderFormSchema),
@@ -52,7 +53,7 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
         fechaEntrega: dp.fechaEntrega,
         lugarEntregaId: dp.lugarEntregaId,
         tipoEntrega: dp.tipoEntrega
-      })) || [{}]
+      })) || [{}],
     },
   });
 
@@ -85,6 +86,7 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
       const datos: CrearPedidoModel = {
         ...data,
         fechaRecibido: data.fechaRecibido,
+        pedidoDocumentoIds: files?.map(i => i.id),
         detallesPedido: data.detallesPedido.map(p => ({
           id: p.id,
           productoId: p.productoId || '',
@@ -185,6 +187,7 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
               <CompactFileUploader 
                 onChange={setFiles}
                 multiple
+                value={files}
               />
             </div>
           </CardContent>

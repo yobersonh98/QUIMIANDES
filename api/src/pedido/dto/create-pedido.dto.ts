@@ -35,4 +35,9 @@ export class CreatePedidoDto {
   @ValidateNested({ each: true }) // ✅ Valida cada elemento dentro del array
   @Type(() => CreateDetallePedidoDto) // ✅ Transforma los datos al tipo esperado
   detallesPedido?: CreateDetallePedidoDto[];
+
+  @IsOptional()
+  @IsArray()
+  pedidoDocumentoIds?: string[]
+  
 }

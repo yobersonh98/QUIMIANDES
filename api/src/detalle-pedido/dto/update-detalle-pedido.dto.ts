@@ -9,11 +9,14 @@ export class UpdateDetallePedidoDto extends PartialType(CreateDetallePedidoDto) 
   id?: string
   
   @IsNumber()
+  @IsOptional()
   cantidadDespachada?: number
 
   @IsNumber()
+  @IsOptional()
   cantidadEntregada?: number
 
   @IsEnum(EstadoDetallePedido)
+  @IsOptional()
   estado?: EstadoDetallePedido
 }

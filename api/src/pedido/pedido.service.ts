@@ -8,6 +8,7 @@ import { getEnumValueOrUndefined } from './../common/utils/string.util';
 import { PrismaTransacction } from './../common/types';
 import { ListarPedidoDto } from './dto/listar-pedido.dto';
 import { EstadoPedido } from '@prisma/client';
+import { PedidoDocumentoService } from './../pedido-documento/pedido-documento.service';
 
 @Injectable()
 export class PedidoService {
@@ -16,8 +17,9 @@ export class PedidoService {
     private readonly prisma: PrismaService,
     private paginationService: PrismaGenericPaginationService,
     private idGeneratorService: IdGeneratorService,
+    private pedidoDocumentoService: PedidoDocumentoService
   ) { }
-  async create({ detallesPedido, ...infoPedido }: CreatePedidoDto) {
+  async create({ detallesPedido, pedidoDocumentoIds, ...infoPedido }: CreatePedidoDto) {
     const response  = await this.prisma.$transaction(async (prisma) => {
       try {
         const pedidoId = await this.idGeneratorService.generarIdPedido();
@@ -25,6 +27,13 @@ export class PedidoService {
           data: {
             id: pedidoId,
             ...infoPedido,
+            pedidoDocumentos: {
+              createMany: {
+                data: pedidoDocumentoIds?.map(documentoId=>({
+                  documentoId
+                }))
+              }
+            }
           }
         });
         const detallesPedidoConId = this.idGeneratorService.mapearDetallesPedidoConIdsEnCreacion(pedidoId, detallesPedido);
@@ -96,6 +105,20 @@ export class PedidoService {
             entregasDetallePedido: true,
           }
         },
+        pedidoDocumentos: {
+          select: {
+            documentoId: true,
+            documento:{
+              select: {
+                id:true,
+                url:true,
+                originalName: true,
+                mimeType: true,
+                size: true
+              }
+            }
+          }
+        },
         entregas: true,
       },
     });
@@ -117,7 +140,7 @@ export class PedidoService {
     });
   }
   async update(id: string, updatePedidoDto: UpdatePedidoDto, tx: PrismaTransacction = this.prisma) {
-    const { estado, pesoDespachado, fechaEntrega, observaciones, ordenCompra, detallesPedido=[] } = updatePedidoDto;
+    const { estado, pesoDespachado, fechaEntrega, observaciones, ordenCompra, detallesPedido=[], pedidoDocumentoIds= []} = updatePedidoDto;
     const pedido = await tx.pedido.update({
       where: { id },
       data: {
@@ -125,9 +148,10 @@ export class PedidoService {
         pesoDespachado,
         fechaEntrega,
         observaciones,
-        ordenCompra,
+        ordenCompra
       },
     });
+    await this.pedidoDocumentoService.crearMuchos(pedido.id,pedidoDocumentoIds)
     await Promise.all(
       detallesPedido.map(dp =>
         tx.detallePedido.update({

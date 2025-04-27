@@ -29,4 +29,7 @@ export class UpdatePedidoDto  {
     @Type(() => UpdateDetallePedidoDto)
     detallesPedido?: UpdateDetallePedidoDto[]; // ✅ Transforma los datos al tipo esperado
 
+    @IsArray()
+    @IsOptional()
+    pedidoDocumentoIds?: string[]
 }
