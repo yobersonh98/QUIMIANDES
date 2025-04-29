@@ -204,7 +204,7 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
                 onClick={() => append({
                   cantidad: '1',
                   fechaEntrega: new Date(),
-                  tipoEntrega: "",
+                  tipoEntrega: TipoEntregaProducto.ENTREGA_AL_CLIENTE,
                   lugarEntregaId: "",
                   productoId: "",
                 })}>
@@ -318,7 +318,6 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
                                 onChange={field.onChange}
                                 value={field.value}
                                 placeholder="Seleccione tipo de entrega"
-                                defaultValue={TipoEntregaProducto.ENTREGA_AL_CLIENTE}
                               />
                               <FormMessage />
                             </FormItem>

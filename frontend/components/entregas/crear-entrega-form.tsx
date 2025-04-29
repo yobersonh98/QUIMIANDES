@@ -106,17 +106,6 @@ export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
       })
       return
     }
-    const esAlugnoSuperandoEl = form.getValues().productos.some(p => {
-      const detallePedido = pedido.detallesPedido.find(d => d.id === p.detallePedidoId);
-      return detallePedido && p.cantidadDespachar > (detallePedido.cantidad - detallePedido.cantidadDespachada)
-    })
-    if (esAlugnoSuperandoEl) {
-      toast.toast({
-        variant: "destructive",
-        description: "La cantidad a despachar de los productos no puede ser mayor a la cantidad pendiente por despachar."
-      })
-      return
-    }
     await onSubmit()
   }
 
