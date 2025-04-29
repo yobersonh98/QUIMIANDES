@@ -1,5 +1,5 @@
 import { TipoDocumento } from '@prisma/client';
-import { IsBoolean, IsOptional, IsString, Validate, ValidateIf } from 'class-validator';
+import { IsBoolean, IsNumber, IsNumberString, IsOptional, IsString, Validate, ValidateIf } from 'class-validator';
 
 export class CreateProveedorDto {
   @IsString()
@@ -20,4 +20,8 @@ export class CreateProveedorDto {
   @IsBoolean()
   @IsOptional()
   facturaIva: boolean;
+
+  @IsNumberString()
+  @IsOptional()
+  telefono: string
 }

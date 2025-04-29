@@ -95,7 +95,7 @@ export class EntregaService {
       const estado =
         esEntregaEnPlanta
           ? EstadoDetallePedido.ENTREGADO
-          : cantidadTotalDespachada === detallePedido.cantidad
+          : cantidadTotalDespachada >= detallePedido.cantidad
             ? EstadoDetallePedido.EN_TRANSITO
             : EstadoDetallePedido.PARCIAL;
 
@@ -178,7 +178,7 @@ export class EntregaService {
       if (detallePedido.estado == EstadoDetallePedido.ENTREGADO || detallePedido.estado == EstadoDetallePedido.CANCELADO) {
         throw new BadRequestException(`El detalle de pedido con id ${detallePedidoId} ya está en estado entregado o cancelado`);
       }
-      if (detallePedido.cantidad === cantidadTotalEntregadoDetallePedido) {
+      if (detallePedido.cantidad >= cantidadTotalEntregadoDetallePedido) {
         detallePedido.estado = EstadoDetallePedido.ENTREGADO;
       }
       if (detallePedido.cantidad < cantidadTotalEntregadoDetallePedido) {

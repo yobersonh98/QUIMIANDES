@@ -82,7 +82,7 @@ export class DetallePedidoService {
         return false;
       }
 
-      return result.cantidadTotal === result.cantidadEntregadaTotal;
+      return result.cantidadTotal >= result.cantidadEntregadaTotal;
     } catch (error) {
       this.logger.error(error);
       return false;

@@ -13,14 +13,7 @@ import { ProductoEntity, UnidadMedida } from "@/services/productos/entities/prod
 import { CrearProductoModel } from "@/services/productos/models/crear-producto.model"
 import { ActualizarProductoModel } from "@/services/productos/models/actualizar-producto.model"
 import SelectWithSearch from "../shared/SelectWithSearch"
-import { CustomSelect } from "../shared/custom-select"
-
-// Mock data for providers and presentations
-
-
-
-
-// All available units of measurement
+import { CustomMultiSelect } from "../shared/custom-multiselect"
 
 // Form schema for validation
 const productSchema = z.object({
@@ -76,7 +69,7 @@ export function ProductForm({ initialData, onSubmit, isEditing = false }: Produc
   }
 
   return (
-    <Card className="mt-2"> 
+    <Card className="mt-6"> 
       <CardHeader>
         <CardTitle>{isEditing ? "Actualizar Producto" : "Crear Nuevo Producto"}</CardTitle>
       </CardHeader>
@@ -105,14 +98,17 @@ export function ProductForm({ initialData, onSubmit, isEditing = false }: Produc
                   <FormItem>
                     <FormLabel>Tipo</FormLabel>
                     <FormControl>
-                      <CustomSelect
-                        defaultValue='Materia Prisma'
-                        onChange={field.onChange}
+                      <CustomMultiSelect
+                        values={field.value.split(', ')}
+                        onChange={(values)=>{
+                          field.onChange(values.join(', '))
+                        }}
                         options={[
                           { value: 'Materia Prisma', label: 'Materia Prima'},
                           { value: 'Comercial', label: 'Comercial'},
-                          { value: 'Trabajos en Fibra', label:'Trabajos en Fibra'}
+                          { value: 'Trabajos en Fibra', label:'Trabajos en Fibra'},
                         ]}
+                        
                       />
                     </FormControl>
                     <FormMessage />
