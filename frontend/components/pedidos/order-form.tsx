@@ -14,7 +14,7 @@ import { useSession } from "next-auth/react"
 import { CrearPedidoModel } from "@/services/pedidos/models/crear-pedido.model"
 import { PedidoService } from "@/services/pedidos/pedido.service"
 import { useToast } from "@/hooks/use-toast"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { TipoEntregaProducto, TiposEntrega } from "@/core/constantes/pedido"
 import { OrderFormSchema, OrderFormValues } from "./schemas/order-form-schema"
 import { Label } from "../ui/label"
@@ -38,6 +38,7 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
   const isEditing = !!pedido;
   const pathName = usePathname()
   const [files, setFiles] = useState<DocumentoEntity[]>(pedido?.pedidoDocumentos?.map(i=> i.documento) || []);
+  
   // Inicializar el formulario con valores por defecto o con los del pedido si está en modo edición
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(OrderFormSchema),
@@ -46,6 +47,7 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
       idCliente: pedido?.idCliente || '',
       observaciones: pedido?.observaciones,
       fechaRecibido: pedido?.fechaRecibido,
+      tipoEntregaGlobal: TipoEntregaProducto.ENTREGA_AL_CLIENTE, // Valor por defecto
       detallesPedido: pedido?.detallesPedido.map(dp => ({
         id: dp.id,
         productoId: dp.productoId,
@@ -61,24 +63,48 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
     name: "detallesPedido",
     control: form.control,
   });
+  
   const detallesPedido = useWatch({
     control: form.control,
-    name: `detallesPedido`,
+    name: "detallesPedido",
   });
 
   const idCliente = useWatch({
     control: form.control,
-    name: 'idCliente'
+    name: "idCliente"
   });
+  
+  // Observar el tipo de entrega global para controlar el estado del campo de lugar de entrega
+  const tipoEntregaGlobal = useWatch({
+    control: form.control,
+    name: "tipoEntregaGlobal"
+  });
+  
+  // Determinar si el campo de lugar de entrega global debe estar deshabilitado
+  const isGlobalDeliveryLocationDisabled = tipoEntregaGlobal === TipoEntregaProducto.RECOGE_EN_PLANTA;
 
   const aplicarValoresGlobales = () => {
     const valoresGlobales = form.getValues();
     detallesPedido.forEach((_, index) => {
       form.setValue(`detallesPedido.${index}.fechaEntrega`, valoresGlobales.fechaEntregaGlobal || new Date());
       form.setValue(`detallesPedido.${index}.tipoEntrega`, valoresGlobales.tipoEntregaGlobal || '');
-      form.setValue(`detallesPedido.${index}.lugarEntregaId`, valoresGlobales.lugarEntregaGlobal);
+      
+      // Aplicar lugar de entrega global solo si el tipo de entrega no es "Recoge en Planta"
+      if (valoresGlobales.tipoEntregaGlobal !== TipoEntregaProducto.RECOGE_EN_PLANTA) {
+        form.setValue(`detallesPedido.${index}.lugarEntregaId`, valoresGlobales.lugarEntregaGlobal);
+      } else {
+        // Si el tipo es "Recoge en Planta", limpiar el lugar de entrega
+        form.setValue(`detallesPedido.${index}.lugarEntregaId`, '');
+      }
     });
   };
+
+  // Cuando cambie el tipo de entrega global, si es "Recoge en Planta", limpiar el valor del lugar de entrega global
+  useEffect(() => {
+    if (tipoEntregaGlobal === TipoEntregaProducto.RECOGE_EN_PLANTA) {
+      form.setValue("lugarEntregaGlobal", "");
+    }
+  }, [tipoEntregaGlobal, form]);
 
   async function onSubmit() {
     try {
@@ -232,6 +258,7 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
                           <CustomSelect
                             options={TiposEntrega.map((tipo) => ({ value: tipo.id, label: tipo.nombre }))}
                             onChange={field.onChange}
+                            value={field.value}
                             placeholder="Seleccione tipo de entrega"
                             defaultValue={TipoEntregaProducto.ENTREGA_AL_CLIENTE}
                           />
@@ -247,7 +274,7 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
                           <FormLabel>Lugar de Entrega Global</FormLabel>
                           <FormControl>
                             <SelectWithSearch
-                              disabled={form.getValues("tipoEntregaGlobal") === TipoEntregaProducto.RECOGE_EN_PLANTA}
+                              disabled={isGlobalDeliveryLocationDisabled}
                               endpoint="lugar-entrega/search"
                               onSelect={field.onChange}
                               value={field.value}
