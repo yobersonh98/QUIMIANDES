@@ -104,9 +104,11 @@ export function ProductForm({ initialData, onSubmit, isEditing = false }: Produc
                           field.onChange(values.join(', '))
                         }}
                         options={[
-                          { value: 'Materia Prisma', label: 'Materia Prima'},
+                          { value: 'Materia Prima', label: 'Materia Prima'},
                           { value: 'Comercial', label: 'Comercial'},
                           { value: 'Trabajos en Fibra', label:'Trabajos en Fibra'},
+                          { value: 'Materia Prima / Comercial', label: 'Materia Prima / Comercial'},
+                          { value: 'Otros', label: 'Otros'},
                         ]}
                         
                       />

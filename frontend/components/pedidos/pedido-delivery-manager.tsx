@@ -113,15 +113,21 @@ export function OrderDeliveryManager({ pedido }: OrderDeliveryManagerProps) {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Estado de Entrega</CardTitle>
           <div className="flex items-center gap-2">
-          {((pedido.estado !== 'ENTREGADO') && (pedido.estado !== 'CANCELADO')) && (
+          <Link href={`/dashboard/pedidos/${pedido?.id}/gestionar/registrar-entrega`}>
+              <Button>
+                <Plus size={24} />
+                Programar Entrega
+              </Button>
+            </Link>
+          {/* {((pedido.estado !== 'ENTREGADO') && (pedido.estado !== 'CANCELADO')) && (
             <Link href={`/dashboard/pedidos/${pedido?.id}/gestionar/registrar-entrega`}>
               <Button>
                 <Plus size={24} />
                 Registrar Entrega
               </Button>
             </Link>
-          )}
-          {pedido.estado === 'EN_PROCESO' && (
+          )} */}
+          {/* {pedido.estado === 'EN_PROCESO' && (
             <ConfirmButton
               className="ml-2"
               title="¿Finalizar pedido?"
@@ -131,7 +137,16 @@ export function OrderDeliveryManager({ pedido }: OrderDeliveryManagerProps) {
             >
               Finalizar Entrega Pedido
             </ConfirmButton>
-          )}
+          )} */}
+          <ConfirmButton
+              className="ml-2"
+              title="¿Finalizar pedido?"
+              description="Esta acción marcará el pedido como entregado y no podrá ser revertida."
+              onClick={handleFinalizarPedido}
+              variant={"secondary"}
+            >
+              Finalizar Entrega Pedido
+            </ConfirmButton>
           {pedido.estado !== 'EN_PROCESO' && (
             <ConfirmButton
               className="ml-2"
@@ -165,7 +180,7 @@ export function OrderDeliveryManager({ pedido }: OrderDeliveryManagerProps) {
           <Tabs defaultValue="products" className="w-full">
             <TabsList className="grid grid-cols-2 mb-4">
               <TabsTrigger value="products">Productos</TabsTrigger>
-              <TabsTrigger value="deliveries">Historial de Entregas</TabsTrigger>
+              <TabsTrigger value="deliveries">Gestionar Entregas</TabsTrigger>
             </TabsList>
 
             <TabsContent value="products">
