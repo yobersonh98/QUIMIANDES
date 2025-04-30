@@ -3,9 +3,14 @@ import { ApiService } from "../api/ApiService";
 import { DetallePedidoEntity } from "./entity/detalle-pedido.entity";
 import { UpdateDetallePedidoModel } from "./models/update-detalle-pedido.model";
 
-export class PedidoService extends ApiService {
+export class DetallePedidoService extends ApiService {
   constructor(token?:string) {
     super('detalle-pedido', token);
+  }
+  private static instance: DetallePedidoService
+  public static getServerInstance () {
+    if (this.instance) return this.instance;
+    return new DetallePedidoService();
   }
 
   async actualizar(datos:UpdateDetallePedidoModel):Promise<ServiceResponse<DetallePedidoEntity>> {

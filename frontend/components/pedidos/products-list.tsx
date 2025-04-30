@@ -1,11 +1,17 @@
 "use client"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CheckCircle2, Clock, Truck } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
 import { DetallePedidoEntity } from "@/services/detalle-pedido/entity/detalle-pedido.entity"
+import { useSession } from "next-auth/react"
+import { ConfirmButton } from "../shared/confirm-botton"
+import { DetallePedidoService } from "@/services/detalle-pedido/detalle-pedido.service"
+import { useToast } from "@/hooks/use-toast"
+import { usePathname } from "next/navigation"
+import RefreshPage from "@/actions/refresh-page"
 
 type ProductsListProps = {
   detallesPedido: DetallePedidoEntity[]
@@ -13,6 +19,41 @@ type ProductsListProps = {
 
 
 export function ProductsList({ detallesPedido }: ProductsListProps) {
+  const { toast } = useToast();
+  const token = useSession().data?.user.token;
+  const pathname = usePathname();
+  const marcarComoEntregado = async (detallePedidoId: string) => {
+    const response = await new DetallePedidoService(token).actualizar({
+      id: detallePedidoId,
+      estado: 'ENTREGADO'
+    })
+    if (!response.data) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: response.error?.message || "Error al actulizar el producto."
+      })
+      return;
+    }
+    toast({
+      title: "Éxito",
+      description: "Producto actulizado correctamente."
+    })
+    await RefreshPage(pathname)
+
+  }
+  const header =
+    (detalle: DetallePedidoEntity) => (
+      <div
+        className="flex justify-end"
+      >
+        <ConfirmButton
+          onClick={() => marcarComoEntregado(detalle.id)}
+        >
+          Entregar
+        </ConfirmButton>
+      </div>
+    )
   return (
     <div className="space-y-4">
       <Tabs defaultValue="all">
@@ -35,23 +76,23 @@ export function ProductsList({ detallesPedido }: ProductsListProps) {
 
         <TabsContent value="all" className="space-y-4">
           {detallesPedido.map((detalle) => (
-            <ProductCard key={detalle.id} detalle={detalle} />
+            <ProductCard key={detalle.id} detalle={detalle} header={header} />
           ))}
         </TabsContent>
-  
+
         <TabsContent value="pending" className="space-y-4">
           {detallesPedido
             .filter((d) => d.estado === "PENDIENTE")
             .map((detalle) => (
-              <ProductCard key={detalle.id} detalle={detalle} />
+              <ProductCard key={detalle.id} detalle={detalle} header={header} />
             ))}
         </TabsContent>
-      
+
         <TabsContent value="inTransit" className="space-y-4">
           {detallesPedido
             .filter((d) => d.estado === "EN_TRANSITO")
             .map((detalle) => (
-              <ProductCard key={detalle.id} detalle={detalle} />
+              <ProductCard key={detalle.id} detalle={detalle} header={header} />
             ))}
         </TabsContent>
 
@@ -59,7 +100,7 @@ export function ProductsList({ detallesPedido }: ProductsListProps) {
           {detallesPedido
             .filter((d) => d.estado === "PARCIAL")
             .map((detalle) => (
-              <ProductCard key={detalle.id} detalle={detalle} />
+              <ProductCard key={detalle.id} detalle={detalle} header={header} />
             ))}
         </TabsContent>
 
@@ -67,18 +108,18 @@ export function ProductsList({ detallesPedido }: ProductsListProps) {
           {detallesPedido
             .filter((d) => d.estado === "ENTREGADO")
             .map((detalle) => (
-              <ProductCard key={detalle.id} detalle={detalle} />
+              <ProductCard key={detalle.id} detalle={detalle}
+                header={header}
+              />
             ))}
         </TabsContent>
       </Tabs>
     </div>
   )
 }
-function ProductCard({ detalle }: { detalle: DetallePedidoEntity }) {
-  console.log(detalle)
+function ProductCard({ detalle, header }: { detalle: DetallePedidoEntity, header?: (detallePedido: DetallePedidoEntity) => React.ReactNode }) {
   const estadoDetallePedido = detalle.estado;
   const porcentaje = Math.min(Math.round((detalle.cantidadEntregada / detalle.cantidad) * 100), 100)
-
   const getIconoEstado = () => {
     switch (estadoDetallePedido) {
       case "ENTREGADO":
@@ -114,6 +155,11 @@ function ProductCard({ detalle }: { detalle: DetallePedidoEntity }) {
             : "border-l-blue-500",
       )}
     >
+      {header && (
+        <CardHeader>
+          {header(detalle)}
+        </CardHeader>
+      )}
       <CardContent className="p-4">
         <div className="grid gap-4">
           <div className="flex justify-between items-center">
