@@ -25,6 +25,15 @@ export class EntregaService {
     if (!pedido) {
       throw new NotFoundException(`Pedido con id ${pedidoId} no encontrado`);
     }
+    const detallesPedido = await this.detallePedidoService.findAll(pedidoId);
+    const entregrasProductoMaped = entregasProducto.map(i => {
+      const detallePedido = detallesPedido.find(d => d.id === i.detallePedidoId)
+      if (!this.detallePedidoService.puedeSerModificado(detallePedido)) {
+        throw new BadRequestException(
+          `No se puede programar la entrega porque uno o más productos se encuentran en estado ${EstadoDetallePedido.ENTREGADO} o ${EstadoDetallePedido.CANCELADO}.`
+        );
+      } 
+    })
     return this.prisma.$transaction(async (tx) => {
       const entrega = await tx.entrega.create({
         data: {

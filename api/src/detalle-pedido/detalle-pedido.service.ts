@@ -46,6 +46,10 @@ export class DetallePedidoService {
     return detalle;
   }
 
+   puedeSerModificado (detallePedido: DetallePedido) {
+    return (detallePedido.estado !== 'CANCELADO') && (detallePedido.estado !== 'ENTREGADO')
+  }
+
   async update(id: string, updateDetallePedidoDto: UpdateDetallePedidoDto, tx: PrismaTransacction = this.prisma) {
     return await tx.detallePedido.update({
       where: { id },
