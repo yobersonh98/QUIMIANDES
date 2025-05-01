@@ -28,3 +28,9 @@ export const formatFecha = (date?: string | Date, type: "fecha" | "hora" | "fech
 
   return format(parsedDate, formats[type]);
 };
+
+
+export const formatearFecha = (date: Date | string | undefined) => {
+  if (!date) return "N/A"
+  return format(new Date(date), "dd/MM/yyyy HH:mm")
+}
