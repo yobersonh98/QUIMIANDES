@@ -7,7 +7,7 @@ RETURNS text AS $$
 DECLARE
     nuevo_id text;
 BEGIN
-    nuevo_id := 'PD-' || LPAD(nextval('pedido_seq')::text, 2, '0');
+    nuevo_id := 'PD-' || LPAD(nextval('pedido_seq')::text, 6, '0');
     RETURN nuevo_id;
 END;
 $$ LANGUAGE plpgsql;
@@ -30,7 +30,7 @@ BEGIN
     FROM "DetallePedido"
     WHERE "pedidoId" = id_pedido;
     
-    nuevo_id := id_pedido || '-' || LPAD(secuencia_actual::text, 2, '0');
+    nuevo_id := id_pedido || '-' || LPAD(secuencia_actual::text, 3, '0');
     RETURN nuevo_id;
 END;
 $$ LANGUAGE plpgsql;

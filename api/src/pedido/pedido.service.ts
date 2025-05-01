@@ -9,6 +9,7 @@ import { PrismaTransacction } from './../common/types';
 import { ListarPedidoDto } from './dto/listar-pedido.dto';
 import { EstadoPedido } from '@prisma/client';
 import { PedidoDocumentoService } from './../pedido-documento/pedido-documento.service';
+import { CreateDetallePedidoDto } from './../detalle-pedido/dto/create-detalle-pedido.dto';
 
 @Injectable()
 export class PedidoService {
@@ -151,9 +152,10 @@ export class PedidoService {
         ordenCompra
       },
     });
+    const filterDetallesPedidos = detallesPedido.filter(dp => dp.id !== undefined && dp.id !== null)
     await this.pedidoDocumentoService.crearMuchos(pedido.id,pedidoDocumentoIds)
     await Promise.all(
-      detallesPedido.map(dp =>
+      filterDetallesPedidos.map(dp =>
         tx.detallePedido.update({
           where: { id: dp.id },
           data: {
@@ -167,6 +169,15 @@ export class PedidoService {
         })
       )
     );
+
+    const filterDetallesPedidosUnd = detallesPedido.filter(dp => !dp.id)
+    await this.pedidoDocumentoService.crearMuchos(pedido.id,pedidoDocumentoIds)
+    const destallesPedidosParaCrear: CreateDetallePedidoDto[] = filterDetallesPedidosUnd.map(dp=>({pedidoId: pedido.id, productoId: dp.productoId, tipoEntrega: dp.tipoEntrega, cantidad: dp.cantidad, fechaEntrega: dp.fechaEntrega, lugarEntregaId: dp.lugarEntregaId, unidades: dp.unidades}))
+    const detallesPedidoConId = this.idGeneratorService.mapearDetallesPedidoConIdsEnCreacion(id, destallesPedidosParaCrear);
+
+    const detallesPedidoSaved = await tx.detallePedido.createMany({
+          data:detallesPedidoConId
+        })
     return pedido
   }
 

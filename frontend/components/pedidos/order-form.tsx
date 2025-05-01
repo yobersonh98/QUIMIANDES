@@ -223,20 +223,23 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
           <CardContent className="pt-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-medium">Productos</h3>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => append({
-                  cantidad: '1',
-                  fechaEntrega: new Date(),
-                  tipoEntrega: TipoEntregaProducto.ENTREGA_AL_CLIENTE,
-                  lugarEntregaId: "",
-                  productoId: "",
-                })}>
-                <Plus className="h-4 w-4 mr-2" />
-                Agregar Producto
-              </Button>
+              {/* Mostrar el botón "Agregar Producto" solo cuando NO estamos en modo de edición */}
+              {!isEditing && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => append({
+                    cantidad: '1',
+                    fechaEntrega: new Date(),
+                    tipoEntrega: TipoEntregaProducto.ENTREGA_AL_CLIENTE,
+                    lugarEntregaId: "",
+                    productoId: "",
+                  })}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Agregar Producto
+                </Button>
+              )}
             </div>
 
             <div className="space-y-4">
