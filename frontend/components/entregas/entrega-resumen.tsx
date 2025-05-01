@@ -6,18 +6,15 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { FileText, MapPin, Truck, User } from "lucide-react"
-import { format } from "date-fns"
 import { EntregaEntity } from "@/services/entrega-pedido/entities/entrega.entity"
+import { formatearFecha } from "@/lib/utils"
 
 interface EntregaResumenProps {
   entrega: EntregaEntity
 }
 
 export default function EntregaResumen({ entrega }: EntregaResumenProps) {
-  const formatDate = (date: Date | string | undefined) => {
-    if (!date) return "N/A"
-    return format(new Date(date), "dd/MM/yyyy HH:mm")
-  }
+
 
   return (
     <Card>
@@ -80,7 +77,7 @@ export default function EntregaResumen({ entrega }: EntregaResumenProps) {
         <div>
           <Label>Fecha de Recepción del Pedido</Label>
           <div className="text-sm mt-1">
-            {formatDate(entrega.pedido?.fechaRecibido)}
+            {formatearFecha(entrega.pedido?.fechaRecibido)}
           </div>
         </div>
       </CardContent>

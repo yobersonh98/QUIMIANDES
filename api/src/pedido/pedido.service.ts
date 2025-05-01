@@ -118,9 +118,13 @@ export class PedidoService {
                 size: true
               }
             }
+          } 
+        },
+        entregas: {
+          orderBy: {
+            fechaEntrega: 'asc'
           }
         },
-        entregas: true,
       },
     });
     if (!pedido) {

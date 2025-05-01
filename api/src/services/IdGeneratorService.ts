@@ -20,6 +20,17 @@ export class IdGeneratorService {
   }
 
   /**
+   * Genera un nuevo ID para una entrega con formato ET-XX
+   * @returns Promise con el ID generado
+   */
+    async generarIdEntrega(): Promise<string> {
+      const idResult = await this.prisma.$queryRaw<[{generar_id_entrega: string}]>`
+        SELECT generar_id_entrega()
+      `;
+      return idResult[0].generar_id_entrega;
+    }
+
+  /**
    * Genera un nuevo ID para un detalle de pedido con formato PD-XX-YY
    */
   async generarIdDetallePedido(
