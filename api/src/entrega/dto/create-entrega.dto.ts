@@ -1,8 +1,13 @@
-import { IsString, IsOptional, ValidateNested, IsArray } from 'class-validator';
+import { IsString, IsOptional, ValidateNested, IsArray, IsDateString } from 'class-validator';
 import { CreateEntregaProductoDto } from '../../entrega-producto/dto/create-entrega-producto.dto';
 import { Type } from 'class-transformer';
 
 export class CreateEntregaDto {
+
+  @IsDateString()
+  fechaEntrega: Date;
+
+  
   @IsString()
   pedidoId: string;
 

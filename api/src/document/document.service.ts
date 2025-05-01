@@ -28,7 +28,7 @@ export class DocumentsService {
     description?: string,
   ): Promise<Document> {
     if (!this.ALLOWED_MIME_TYPES.includes(file.mimetype)) {
-      throw new BadRequestException('Tipo de archivo no permitido');
+      throw new BadRequestException('Tipo de archivo no permitido, debe ser .pdf, .jpeg, .png');
     }
 
     // Asegurar directorio

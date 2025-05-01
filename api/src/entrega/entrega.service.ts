@@ -9,6 +9,7 @@ import { PedidoService } from './../pedido/pedido.service';
 import { RegistrarDespachoDetallePedidoDto } from './../entrega-producto/dto/registrar-despacho-detalle-pedido.dto';
 import { CompletarEntregaDto } from './dto/finalizar-entrega.dto';
 import { PrismaTransacction } from './../common/types';
+import { IdGeneratorService } from './../services/IdGeneratorService';
 
 @Injectable()
 export class EntregaService {
@@ -17,13 +18,17 @@ export class EntregaService {
     private readonly entregraProductoService: EntregaProductoService,
     private readonly detallePedidoService: DetallePedidoService,
     private readonly pedidoService: PedidoService,
+    private readonly idGeneratorService: IdGeneratorService,
   ) { }
 
   async create(createEntregaDto: CreateEntregaDto): Promise<Entrega> {
-    const { pedidoId, vehiculoExterno, vehiculoInterno, remision, entregadoPorA, observaciones, entregasProducto } = createEntregaDto;
+    const { pedidoId, vehiculoExterno, vehiculoInterno, remision, entregadoPorA, observaciones, entregasProducto, fechaEntrega } = createEntregaDto;
     const pedido = await this.pedidoService.findOneBasicInfo(pedidoId);
     if (!pedido) {
       throw new NotFoundException(`Pedido con id ${pedidoId} no encontrado`);
+    }
+    if (pedido.estado === EstadoPedido.CANCELADO || pedido.estado  === EstadoPedido.ENTREGADO) {
+      throw new BadRequestException('El pedido ha sido Cancelado o Entregado, no se puede registrar más entregas.')
     }
     const detallesPedido = await this.detallePedidoService.findAll(pedidoId);
     const entregrasProductoMaped = entregasProducto.map(i => {
@@ -35,14 +40,17 @@ export class EntregaService {
       } 
     })
     return this.prisma.$transaction(async (tx) => {
+      const entregaId = await this.idGeneratorService.generarIdEntrega();
       const entrega = await tx.entrega.create({
         data: {
+          id: entregaId,
           pedidoId,
           vehiculoExterno,
           vehiculoInterno,
           remision,
           entregadoPorA,
           observaciones,
+          fechaEntrega,
           entregaProductos: {
             createMany: {
               data: entregasProducto.map(({ detallePedidoId, cantidadDespachar, fechaEntrega, observaciones }) => ({
@@ -104,9 +112,7 @@ export class EntregaService {
       const estado =
         esEntregaEnPlanta
           ? EstadoDetallePedido.ENTREGADO
-          : cantidadTotalDespachada >= detallePedido.cantidad
-            ? EstadoDetallePedido.EN_TRANSITO
-            : EstadoDetallePedido.PARCIAL;
+          : EstadoDetallePedido.EN_TRANSITO
 
       return {
         entregaProductoId,
@@ -187,12 +193,13 @@ export class EntregaService {
       if (detallePedido.estado == EstadoDetallePedido.ENTREGADO || detallePedido.estado == EstadoDetallePedido.CANCELADO) {
         throw new BadRequestException(`El detalle de pedido con id ${detallePedidoId} ya está en estado entregado o cancelado`);
       }
-      if (detallePedido.cantidad >= cantidadTotalEntregadoDetallePedido) {
+      console.log("detallePedido: ", detallePedido)
+      if (cantidadTotalEntregadoDetallePedido >= detallePedido.cantidad ) {
         detallePedido.estado = EstadoDetallePedido.ENTREGADO;
+      } else {
+        detallePedido.estado = EstadoDetallePedido.PARCIAL
       }
-      if (detallePedido.cantidad < cantidadTotalEntregadoDetallePedido) {
-        detallePedido.estado = EstadoDetallePedido.PARCIAL;
-      }
+      console.log('detalle Pedido Actualzado: ', detallePedido)
       return detallePedido
     })
     return this.prisma.$transaction(async (tx) => {
@@ -201,7 +208,6 @@ export class EntregaService {
           await this.detallePedidoService.update(detallePedido.id, {
             cantidadEntregada: detallePedido.cantidadEntregada,
             estado: detallePedido.estado,
-            cantidadDespachada: detallePedido.cantidadDespachada,
           }, tx);
         })
       );
@@ -315,6 +321,7 @@ export class EntregaService {
         entregadoPorA: true,
         observaciones: true,
         pedidoId: true,
+        fechaEntrega: true,
         pedido: {
           select: {
             id: true,
