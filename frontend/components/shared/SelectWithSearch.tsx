@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect, useRef } from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { useSession } from 'next-auth/react';
@@ -72,6 +73,7 @@ const SelectWithSearch = ({
   // Fetch inicial al cargar sesión
   useEffect(() => {
     fetchOptions();
+    
   }, [session?.data?.user?.token, endpoint, apiUrl]);
 
   // Fetch si cambian los params

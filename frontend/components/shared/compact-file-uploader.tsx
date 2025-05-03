@@ -398,7 +398,7 @@ export function CompactFileUploader({
     fileStatuses,
     processFiles,
     removeFile,
-    confirmFiles,
+    // confirmFiles,
     updatePreloadedFiles
   } = useFileUpload({
     onChange,

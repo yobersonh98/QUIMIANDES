@@ -3,13 +3,13 @@ import BackButtonLayout from '@/components/shared/back-button-layout'
 import { ClienteService } from '@/services/clientes/clientes.service'
 import React from 'react'
 type ClientePageProps = {
-  params: {
-      id: string
-  }
+  params: Promise< {
+    id: string
+}>
 }
-export default async function page( {params}: ClientePageProps) {
-  const { id } = await params
-  const {data} = await ClienteService.getServerInstance().consultar(id)
+export default async function page( props: ClientePageProps) {
+  const params = await props.params
+  const {data} = await ClienteService.getServerInstance().consultar(params.id)
   if (!data) {
     return <div>No se encontro ningun cliente</div>
   }
