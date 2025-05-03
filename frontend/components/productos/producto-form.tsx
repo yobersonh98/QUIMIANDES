@@ -1,19 +1,35 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import * as z from "zod"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { UNIDADES_MEDIDA } from "@/core/constantes/productos"
-import { ProductoEntity, UnidadMedida } from "@/services/productos/entities/producto.entity"
-import { CrearProductoModel } from "@/services/productos/models/crear-producto.model"
-import { ActualizarProductoModel } from "@/services/productos/models/actualizar-producto.model"
-import SelectWithSearch from "../shared/SelectWithSearch"
-import { CustomMultiSelect } from "../shared/custom-multiselect"
+import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { UNIDADES_MEDIDA } from "@/core/constantes/productos";
+import {
+  ProductoEntity,
+  UnidadMedida,
+} from "@/services/productos/entities/producto.entity";
+import { CrearProductoModel } from "@/services/productos/models/crear-producto.model";
+import { ActualizarProductoModel } from "@/services/productos/models/actualizar-producto.model";
+import SelectWithSearch from "../shared/SelectWithSearch";
+import { CustomMultiSelect } from "../shared/custom-multiselect";
 
 // Form schema for validation
 const productSchema = z.object({
@@ -24,16 +40,20 @@ const productSchema = z.object({
   precioBase: z.coerce.number().positive("Debe ser un número positivo"),
   idProveedor: z.string().min(1, "El proveedor es requerido"),
   idPresentacion: z.string().min(1, "La presentación es requerida"),
-})
+});
 
 type ProductFormProps = {
-  initialData?: Partial<ProductoEntity>
-  onSubmit: (data: CrearProductoModel | ActualizarProductoModel) => void
-  isEditing?: boolean
-}
+  initialData?: Partial<ProductoEntity>;
+  onSubmit: (data: CrearProductoModel | ActualizarProductoModel) => void;
+  isEditing?: boolean;
+};
 
-export function ProductForm({ initialData, onSubmit, isEditing = false }: ProductFormProps) {
-  const [loading, setLoading] = useState(false)
+export function ProductForm({
+  initialData,
+  onSubmit,
+  isEditing = false,
+}: ProductFormProps) {
+  const [loading, setLoading] = useState(false);
 
   // Initialize form with default values or initial data
   const form = useForm<z.infer<typeof productSchema>>({
@@ -47,31 +67,33 @@ export function ProductForm({ initialData, onSubmit, isEditing = false }: Produc
       idProveedor: initialData?.idProveedor || "",
       idPresentacion: initialData?.idPresentacion || "",
     },
-  })
+  });
 
   // Handle form submission
   const handleSubmit = async (values: z.infer<typeof productSchema>) => {
-    setLoading(true)
+    setLoading(true);
     try {
       if (isEditing && initialData?.id) {
         await onSubmit({
           id: initialData.id,
           ...values,
-        })
+        });
       } else {
-        await onSubmit(values)
+        await onSubmit(values);
       }
     } catch (error) {
-      console.error("Error submitting form:", error)
+      console.error("Error submitting form:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <Card className="mt-6"> 
+    <Card className="mt-6">
       <CardHeader>
-        <CardTitle>{isEditing ? "Actualizar Producto" : "Crear Nuevo Producto"}</CardTitle>
+        <CardTitle>
+          {isEditing ? "Actualizar Producto" : "Crear Nuevo Producto"}
+        </CardTitle>
       </CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)}>
@@ -99,18 +121,26 @@ export function ProductForm({ initialData, onSubmit, isEditing = false }: Produc
                     <FormLabel>Tipo</FormLabel>
                     <FormControl>
                       <CustomMultiSelect
-                        values={field.value.split(', ')}
-                        onChange={(values)=>{
-                          field.onChange(values.join(', '))
+                        values={
+                          field.value
+                            ? field.value.split(", ").filter((v) => v)
+                            : []
+                        }
+                        onChange={(values) => {
+                          const cleanValues = values
+                            .map((v) => v.trim())
+                            .filter((v) => v);
+                          field.onChange(cleanValues.join(", "));
                         }}
                         options={[
-                          { value: 'Materia Prima', label: 'Materia Prima'},
-                          { value: 'Comercial', label: 'Comercial'},
-                          { value: 'Trabajos en Fibra', label:'Trabajos en Fibra'},
-                          { value: 'Materia Prima / Comercial', label: 'Materia Prima / Comercial'},
-                          { value: 'Otros', label: 'Otros'},
+                          { value: "Materia Prima", label: "Materia Prima" },
+                          { value: "Comercial", label: "Comercial" },
+                          {
+                            value: "Trabajos en Fibra",
+                            label: "Trabajos en Fibra",
+                          },
+                          { value: "Otros", label: "Otros" },
                         ]}
-                        
                       />
                     </FormControl>
                     <FormMessage />
@@ -124,11 +154,14 @@ export function ProductForm({ initialData, onSubmit, isEditing = false }: Produc
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Unidad de Medida</FormLabel>
-                    <SelectWithSearch 
+                    <SelectWithSearch
                       value={field.value}
                       endpoint="productos/unidades-medida"
                       onSelect={field.onChange}
-                      maperOptions={(unidad) => ({ value: unidad, label: unidad })}
+                      maperOptions={(unidad) => ({
+                        value: unidad,
+                        label: unidad,
+                      })}
                     />
                     <FormMessage />
                   </FormItem>
@@ -173,8 +206,11 @@ export function ProductForm({ initialData, onSubmit, isEditing = false }: Produc
                       endpoint="proveedores/search"
                       value={field.value}
                       onSelect={field.onChange}
-                      maperOptions={(provider) => ({ value: provider.id, label: provider.nombre })}
-                     />
+                      maperOptions={(provider) => ({
+                        value: provider.id,
+                        label: provider.nombre,
+                      })}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -190,7 +226,10 @@ export function ProductForm({ initialData, onSubmit, isEditing = false }: Produc
                       value={field.value}
                       endpoint="presentacion/search"
                       onSelect={field.onChange}
-                      maperOptions={(presentation) => ({ value: presentation.id, label: presentation.nombre })}
+                      maperOptions={(presentation) => ({
+                        value: presentation.id,
+                        label: presentation.nombre,
+                      })}
                     />
                     <FormMessage />
                   </FormItem>
@@ -199,14 +238,16 @@ export function ProductForm({ initialData, onSubmit, isEditing = false }: Produc
             </div>
           </CardContent>
           <CardFooter className="flex justify-end">
-
             <Button type="submit" disabled={loading}>
-              {loading ? "Procesando..." : isEditing ? "Actualizar" : "Crear Producto"}
+              {loading
+                ? "Procesando..."
+                : isEditing
+                ? "Actualizar"
+                : "Crear Producto"}
             </Button>
           </CardFooter>
         </form>
       </Form>
     </Card>
-  )
+  );
 }
-
