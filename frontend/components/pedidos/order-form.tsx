@@ -43,9 +43,9 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(OrderFormSchema),
     defaultValues: {
-      ordenCompra: pedido?.ordenCompra,
+      ordenCompra: pedido?.ordenCompra || '',
       idCliente: pedido?.idCliente || '',
-      observaciones: pedido?.observaciones,
+      observaciones: pedido?.observaciones || '',
       fechaRecibido: pedido?.fechaRecibido,
       tipoEntregaGlobal: TipoEntregaProducto.ENTREGA_AL_CLIENTE, // Valor por defecto
       detallesPedido: pedido?.detallesPedido.map(dp => ({

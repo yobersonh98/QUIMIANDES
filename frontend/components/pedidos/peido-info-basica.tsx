@@ -3,6 +3,7 @@ import { PedidoEntity } from '@/services/pedidos/entity/pedido.entity'
 import { formatFecha } from '@/lib/utils'
 import DynamicInfo from '../shared/dynamic-info'
 import { DocumentosLista } from '../shared/documentos-lista'
+import EstadoBadge from '../shared/estado-badge'
 
 type PedidoInfoBasicaProps = {
   pedido: PedidoEntity
@@ -28,7 +29,7 @@ export default function PedidoInfoBasica({pedido}: PedidoInfoBasicaProps) {
     },
     { 
       label: 'Estado', 
-      value: pedido.estado 
+      value: <EstadoBadge estado={pedido.estado}/>
     },
     { 
       label: 'Orden de Compra', 

@@ -8,7 +8,7 @@ import { PageProps, PaginationSearchParamsPage } from "@/types/pagination"
 import { Pencil } from "lucide-react"
 import Link from "next/link"
 
-export default async function OrderDetailsPage(props: PageProps<PaginationSearchParamsPage>) {
+export default async function ListaPedidosPage(props: PageProps<PaginationSearchParamsPage>) {
   const params = await props.params;
   const respones = await PedidoService.getServerIntance().consultar(params?.id || '');
   if (!respones.data) {

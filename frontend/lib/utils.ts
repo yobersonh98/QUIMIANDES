@@ -34,3 +34,7 @@ export const formatearFecha = (date: Date | string | undefined) => {
   if (!date) return "N/A"
   return format(new Date(date), "dd/MM/yyyy HH:mm")
 }
+
+export const calcularPorcentaje = (cantidadTotal: number, cantidad: number) => {
+  return Math.min(Math.round((cantidad / cantidadTotal) * 100), 100)
+}

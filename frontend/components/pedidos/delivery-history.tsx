@@ -5,11 +5,11 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ChevronDown, ChevronUp, Truck } from "lucide-react"
 import Link from "next/link"
-import { Badge } from "@/components/ui/badge"
 import { EntregaEntity } from "@/services/entrega-pedido/entities/entrega.entity"
 import { DetallePedidoEntity } from "@/services/detalle-pedido/entity/detalle-pedido.entity"
 import { PedidoEntity } from "@/services/pedidos/entity/pedido.entity"
 import { formatearFecha } from "@/lib/utils"
+import EstadoBadge from "../shared/estado-badge"
 
 type DeliveryHistoryProps = {
   pedido: PedidoEntity
@@ -88,10 +88,7 @@ export function DeliveryHistory({ pedido }: DeliveryHistoryProps) {
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <span>{fechaEntrega}</span>
                 <span>•</span>
-                <Badge
-                >
-                  {entrega.estado}
-                </Badge>
+                <EstadoBadge estado={entrega.estado} />
               </div>
             </div>
           </div>
@@ -129,7 +126,7 @@ export function DeliveryHistory({ pedido }: DeliveryHistoryProps) {
                 </div>
                 <div>
                   <div className="text-sm font-medium text-muted-foreground">Estado</div>
-                  <div>{entrega.estado}</div>
+                  <div><EstadoBadge estado={entrega.estado}/></div>
                 </div>
                 <div>
                   <div className="text-sm font-medium text-muted-foreground">Remisión</div>

@@ -104,6 +104,7 @@ export function OrderDeliveryManager({ pedido }: OrderDeliveryManagerProps) {
       return;
     }
   }
+  const noPuedeModificar = pedido.estado == 'CANCELADO' || pedido.estado == 'ENTREGADO'
   return (
     <div className="space-y-6">
       <div className="grid gap-6 md:grid-cols-2 my-6">
@@ -113,52 +114,34 @@ export function OrderDeliveryManager({ pedido }: OrderDeliveryManagerProps) {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Estado de Entrega</CardTitle>
           <div className="flex items-center gap-2">
-          <Link href={`/dashboard/pedidos/${pedido?.id}/gestionar/registrar-entrega`}>
+          { !noPuedeModificar  && (
+            <Link href={`/dashboard/pedidos/${pedido?.id}/gestionar/registrar-entrega`}>
               <Button>
                 <Plus size={24} />
                 Programar Entrega
               </Button>
             </Link>
-          {/* {((pedido.estado !== 'ENTREGADO') && (pedido.estado !== 'CANCELADO')) && (
-            <Link href={`/dashboard/pedidos/${pedido?.id}/gestionar/registrar-entrega`}>
-              <Button>
-                <Plus size={24} />
-                Registrar Entrega
-              </Button>
-            </Link>
-          )} */}
-          {/* {pedido.estado === 'EN_PROCESO' && (
-            <ConfirmButton
-              className="ml-2"
-              title="¿Finalizar pedido?"
-              description="Esta acción marcará el pedido como entregado y no podrá ser revertida."
-              onClick={handleFinalizarPedido}
-              variant={"secondary"}
-            >
-              Finalizar Entrega Pedido
-            </ConfirmButton>
-          )} */}
+          )}
           <ConfirmButton
               className="ml-2"
               title="¿Finalizar pedido?"
               description="Esta acción marcará el pedido como entregado y no podrá ser revertida."
               onClick={handleFinalizarPedido}
               variant={"secondary"}
+              disabled={noPuedeModificar}
             >
               Finalizar Entrega Pedido
             </ConfirmButton>
-          {pedido.estado !== 'EN_PROCESO' && (
             <ConfirmButton
               className="ml-2"
               title="¿Cancelar pedido?"
               description="Esta acción cancelará el pedido y no podrá ser revertida."
               onClick={handleCancelarPedido}
-              disabled={pedido.estado === 'CANCELADO'}
+              disabled={noPuedeModificar}
               variant={"destructive"}
             >
               Cancelar Pedido
             </ConfirmButton>
-          )}
         </div>
         </CardHeader>
         <CardContent>
