@@ -1,11 +1,11 @@
 import { GalleryVerticalEnd } from "lucide-react"
-
 import { LoginForm } from "@/components/auth/login-form"
 import Image from "next/image"
 
 export default function LoginPage() {
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
+      {/* Columna izquierda: formulario */}
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex justify-center gap-2 md:justify-start">
           <a href="#" className="flex items-center gap-2 font-medium">
@@ -21,13 +21,13 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
-      <div className="relative hidden bg-muted lg:block">
+      <div className="relative hidden bg-foreground lg:flex items-center justify-center">
         <Image
-          src="/placeholder.svg"
-          alt="Image"
-          className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
-          width={100}
-          height={100}
+          src="/assets/images/logo.png"
+          alt="Logo"
+          width={300}
+          height={300}
+          className="object-contain"
         />
       </div>
     </div>
