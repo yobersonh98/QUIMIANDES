@@ -25,6 +25,7 @@ export interface DetallePedidoEntity {
 
   cantidadDespachada: number;
   cantidadEntregada: number;
+  cantidadProgramada: number;
 
   pesoRecibido: number;
 

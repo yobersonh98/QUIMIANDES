@@ -16,6 +16,10 @@ export class UpdateDetallePedidoDto extends PartialType(CreateDetallePedidoDto) 
   @IsOptional()
   cantidadEntregada?: number
 
+  @IsNumber()
+  @IsOptional()
+  cantidadProgramada?:number;
+
   @IsEnum(EstadoDetallePedido)
   @IsOptional()
   estado?: EstadoDetallePedido

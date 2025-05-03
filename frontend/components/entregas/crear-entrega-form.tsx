@@ -47,9 +47,11 @@ export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
   const session = useSession();
   const toast = useToast()
   const detallesPedidosPendientesPorDespachar = pedido.detallesPedido.map((detalle: DetallePedidoEntity) => {
+    const esParcial = detalle.estado === 'PARCIAL'
+    const cantidadGestionada = esParcial ? detalle.cantidadEntregada : detalle.cantidadProgramada
       return {
         ...detalle,
-        cantidadDespachar: detalle.cantidad - detalle.cantidadDespachada,
+        cantidadDespachar: detalle.cantidad - cantidadGestionada,
       }
   }).filter((detalle) => detalle.cantidadDespachar > 0)
 
@@ -215,82 +217,88 @@ export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {detallesPedidosPendientesPorDespachar.map((detalle: DetallePedidoEntity, index: number) => (
-                  <div key={detalle.id} className="flex flex-col space-y-2 p-4 border rounded-lg">
-                    <div className="flex items-start justify-between">
-                      <div className="font-medium">{detalle.producto.nombre}</div>
-                      <FormField
-                        control={form.control}
-                        name={`productos.${index}.incluir`}
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                            <FormControl>
-                              <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                            </FormControl>
-                            <div className="space-y-1 leading-none">
-                              <FormLabel>Incluir</FormLabel>
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Cantidad total: {detalle.cantidad} unidades
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Pendiente por despachar: {detalle.cantidad - detalle.cantidadDespachada} unidades
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Tipo de entrega: {detalle.tipoEntrega}
-                    </div>
-
-                    <FormField
-                      control={form.control}
-                      name={`productos.${index}.cantidadDespachar`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Cantidad a Despachar</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              {...field}
-                              min={0}
-                              max={detalle.cantidad - detalle.cantidadDespachada}
-                              disabled={!form.watch(`productos.${index}.incluir`)}
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Cantidad a incluir en esta entrega (máximo: {detalle.cantidad - detalle.cantidadDespachada})
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name={`productos.${index}.detallePedidoId`}
-                      render={({ field }) => <input type="hidden" {...field} value={detalle.id} />}
-                    />
-                    <FormField
-                      control={form.control}
-                      name={`productos.${index}.observaciones`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Observaciones</FormLabel>
-                          <FormControl>
-                            <Textarea
-                              placeholder="Instrucciones especiales para la entrega"
-                              className="resize-none"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                ))}
+                {detallesPedidosPendientesPorDespachar.map((detalle: DetallePedidoEntity, index: number) => {
+                      const esParcial = detalle.estado === 'PARCIAL'
+                      const cantidadGestionada = esParcial ? detalle.cantidadEntregada : detalle.cantidadProgramada
+                  return (
+                    (
+                      <div key={detalle.id} className="flex flex-col space-y-2 p-4 border rounded-lg">
+                        <div className="flex items-start justify-between">
+                          <div className="font-medium">{detalle.producto.nombre}</div>
+                          <FormField
+                            control={form.control}
+                            name={`productos.${index}.incluir`}
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                                <FormControl>
+                                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                  <FormLabel>Incluir</FormLabel>
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Cantidad total: {detalle.cantidad} unidades
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Pendiente por despachar: {detalle.cantidad - cantidadGestionada} unidades
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Tipo de entrega: {detalle.tipoEntrega}
+                        </div>
+    
+                        <FormField
+                          control={form.control}
+                          name={`productos.${index}.cantidadDespachar`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Cantidad a Despachar</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  {...field}
+                                  min={0}
+                                  max={detalle.cantidad - cantidadGestionada}
+                                  disabled={!form.watch(`productos.${index}.incluir`)}
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                Cantidad a incluir en esta entrega (máximo: {detalle.cantidad - detalle.cantidadDespachada})
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+    
+                        <FormField
+                          control={form.control}
+                          name={`productos.${index}.detallePedidoId`}
+                          render={({ field }) => <input type="hidden" {...field} value={detalle.id} />}
+                        />
+                        <FormField
+                          control={form.control}
+                          name={`productos.${index}.observaciones`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Observaciones</FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  placeholder="Instrucciones especiales para la entrega"
+                                  className="resize-none"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    )
+                  )
+                })}
               </div>
             </CardContent>
           </Card>

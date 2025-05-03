@@ -188,6 +188,7 @@ model DetallePedido {
   precioUnitario        Float             @default(0) // el precio en el que se genero el producto
   cantidadDespachada    Float             @default(0)
   cantidadEntregada     Float             @default(0)
+  cantidadProgramada    Float           @default(0)
   entregasDetallePedido EntregaProducto[]
 }
 

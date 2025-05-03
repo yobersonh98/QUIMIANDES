@@ -2,7 +2,6 @@ import { calcularPorcentaje, cn } from "@/lib/utils";
 import { DetallePedidoEntity } from "@/services/detalle-pedido/entity/detalle-pedido.entity";
 import { Card, CardContent, CardFooter, CardHeader } from "../ui/card";
 import EstadoBadge from "../shared/estado-badge";
-import { Progress } from "@radix-ui/react-progress";
 import { InfoItem } from "../shared/info-item";
 
 interface ProductCardProps {
@@ -13,12 +12,22 @@ interface ProductCardProps {
 
 export default function ProductCard({ detalle, header, footer }: ProductCardProps) {
   const estadoDetallePedido = detalle.estado;
-  const porcentaje = calcularPorcentaje(detalle.cantidad, detalle.cantidadEntregada)
+  const porcentaje = calcularPorcentaje(detalle.cantidad, detalle.cantidadEntregada);
+  
+  // Determinar el color de la barra de progreso según el porcentaje y estado
+  const getProgressColor = () => {
+    if (estadoDetallePedido === "ENTREGADO") return "bg-green-500";
+    if (estadoDetallePedido === "PARCIAL") return "bg-yellow-500";
+    if (porcentaje >= 75) return "bg-emerald-500";
+    if (porcentaje >= 50) return "bg-blue-500";
+    if (porcentaje >= 25) return "bg-amber-500";
+    return "bg-slate-500";
+  };
 
   return (
     <Card
       className={cn(
-        "border-l-4",
+        "border-l-4 overflow-hidden hover:shadow-md transition-shadow duration-300",
         estadoDetallePedido === "ENTREGADO"
           ? "border-l-green-500"
           : estadoDetallePedido === "PARCIAL"
@@ -76,12 +85,59 @@ export default function ProductCard({ detalle, header, footer }: ProductCardProp
             />
           </div>
 
-          <div className="space-y-1">
-            <div className="flex justify-between text-sm">
-              <span>Progreso de entrega</span>
-              <span>{porcentaje}%</span>
+          {/* Barra de progreso mejorada con Tailwind */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center text-sm">
+              <div className="font-medium text-slate-700 dark:text-slate-300">
+                Progreso de entrega
+              </div>
+              <div className={cn(
+                "font-semibold px-2 py-0.5 rounded-full text-xs",
+                porcentaje === 100 
+                  ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" 
+                  : porcentaje >= 50
+                    ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                    : "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200"
+              )}>
+                {porcentaje}%
+              </div>
             </div>
-            <Progress value={porcentaje} className="h-2 bg-primary rounded-sm" />
+            
+            {/* Contenedor de la barra */}
+            <div className="h-2 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+              {/* Barra de progreso */}
+              <div 
+                className={cn(
+                  "h-full rounded-full transition-all duration-500",
+                  getProgressColor()
+                )}
+                style={{ width: `${porcentaje}%` }}
+              />
+            </div>
+            
+            {/* Indicadores de progreso */}
+            <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 px-1">
+              <div className="flex items-center gap-1">
+                <div className="w-1 h-1 rounded-full bg-slate-400"></div>
+                <span>0%</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className={cn("w-1 h-1 rounded-full", porcentaje >= 25 ? getProgressColor() : "bg-slate-400")}></div>
+                <span>25%</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className={cn("w-1 h-1 rounded-full", porcentaje >= 50 ? getProgressColor() : "bg-slate-400")}></div>
+                <span>50%</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className={cn("w-1 h-1 rounded-full", porcentaje >= 75 ? getProgressColor() : "bg-slate-400")}></div>
+                <span>75%</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className={cn("w-1 h-1 rounded-full", porcentaje >= 100 ? getProgressColor() : "bg-slate-400")}></div>
+                <span>100%</span>
+              </div>
+            </div>
           </div>
         </div>
       </CardContent>

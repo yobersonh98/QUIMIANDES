@@ -33,18 +33,23 @@ export class EntregaService {
     if (!pedido) {
       throw new NotFoundException(`Pedido con id ${pedidoId} no encontrado`);
     }
-    if (pedido.estado === EstadoPedido.CANCELADO || pedido.estado  === EstadoPedido.ENTREGADO) {
+    if (pedido.estado === EstadoPedido.CANCELADO || pedido.estado === EstadoPedido.ENTREGADO) {
       throw new BadRequestException('El pedido ha sido Cancelado o Entregado, no se puede registrar más entregas.')
     }
     const detallesPedido = await this.detallePedidoService.findAll(pedidoId);
-    const entregrasProductoMaped = entregasProducto.map(i => {
+    const detallesPedidoAModificarCantidadProgramada = entregasProducto.map(i => {
       const detallePedido = detallesPedido.find(d => d.id === i.detallePedidoId)
       if (!this.detallePedidoService.puedeSerModificado(detallePedido)) {
         throw new BadRequestException(
           `No se puede programar la entrega porque uno o más productos se encuentran en estado ${EstadoDetallePedido.ENTREGADO} o ${EstadoDetallePedido.CANCELADO}.`
         );
-      } 
+      }
+      return {
+        detallePedidoId:detallePedido.id,
+        cantidadProgramada:detallePedido.cantidadProgramada + i.cantidadDespachar
+      }
     })
+
     return this.prisma.$transaction(async (tx) => {
       const entregaId = await this.idGeneratorService.generarIdEntrega();
       const entrega = await tx.entrega.create({
@@ -57,7 +62,7 @@ export class EntregaService {
           entregadoPorA,
           observaciones,
           fechaEntrega,
-          entregaProductos: { 
+          entregaProductos: {
             createMany: {
               data: entregasProducto.map(({ detallePedidoId, cantidadDespachar, fechaEntrega, observaciones }) => ({
                 detallePedidoId,
@@ -72,11 +77,21 @@ export class EntregaService {
 
       if (pedido.estado === EstadoPedido.PENDIENTE) {
         await this.pedidoService.update(pedidoId, {
-          estado: EstadoPedido.EN_PROCESO
+          estado: EstadoPedido.EN_PROCESO,
         }, tx)
       }
+      await Promise.all(detallesPedidoAModificarCantidadProgramada.map(async ep => {
+        return await tx.detallePedido.update({
+          where: {
+            id: ep.detallePedidoId
+          },
+          data: {
+            cantidadProgramada: ep.cantidadProgramada
+          }
+        })
+      }))
       return entrega;
-    });
+    },  { timeout: 20000 });
   }
 
   /**
@@ -165,7 +180,7 @@ export class EntregaService {
         tx
       );
 
-    }, { timeout: 20000 } );
+    }, { timeout: 20000 });
   }
 
 
@@ -195,11 +210,11 @@ export class EntregaService {
       if (!detallePedido) {
         throw new NotFoundException(`Detalle de pedido con id ${detallePedidoId} no encontrado`);
       }
-  
+
       if (detallePedido.estado == EstadoDetallePedido.ENTREGADO || detallePedido.estado == EstadoDetallePedido.CANCELADO) {
         throw new BadRequestException(`El detalle de pedido con id ${detallePedidoId} ya está en estado entregado o cancelado`);
       }
-      if (cantidadTotalEntregadoDetallePedido >= detallePedido.cantidad ) {
+      if (cantidadTotalEntregadoDetallePedido >= detallePedido.cantidad) {
         detallePedido.estado = EstadoDetallePedido.ENTREGADO;
       } else {
         detallePedido.estado = EstadoDetallePedido.PARCIAL
@@ -317,13 +332,13 @@ export class EntregaService {
           pedidoId: dto.pedidoId
         },
         select: {
-          id:true,
-          estado:true,
+          id: true,
+          estado: true,
           fechaCreacion: true,
           fechaEntrega: true,
           observaciones: true,
           entregadoPorA: true,
-          remision:true, 
+          remision: true,
           vehiculoExterno: true,
           vehiculoInterno: true,
           pedidoId: true,
@@ -344,7 +359,7 @@ export class EntregaService {
       return {
         ...entrenga,
         cantidadProductos: entrenga?._count.entregaProductos,
-        _count:undefined
+        _count: undefined
       }
     })
     const responseData: PaginationResponse<EntregaListadoItem[]> = {
