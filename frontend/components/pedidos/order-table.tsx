@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
+import EstadoBadge from "../shared/estado-badge"
 
 // Tipos de datos actualizados
 export type OrderProduct = {
@@ -210,8 +211,8 @@ export const columns: ColumnDef<Order>[] = [
     accessorKey: "id",
     header: "ID del Pedido",
     cell: ({ row }) => {
-      if (row.original.subId) {
-        return <span className="text-muted-foreground">{row.original.subId}</span>
+      if (row.original.id) {
+        return <span className="text-muted-foreground">{row.original.id}</span>
       }
       return row.original.id
     },
@@ -231,7 +232,7 @@ export const columns: ColumnDef<Order>[] = [
       if (row.depth === 0) {
         return <Badge variant="outline">{row.original.productsCount}</Badge>
       }
-      return row.original.productName
+      return row.original.products
     },
   },
   {
@@ -240,24 +241,7 @@ export const columns: ColumnDef<Order>[] = [
     cell: ({ row }) => {
       if (row.depth > 0) return null
       const status = row.original.status
-      let variant: "default" | "secondary" | "destructive" | "outline" = "secondary"
-
-      switch (status) {
-        case "Entregado":
-          variant = "default"
-          break
-        case "Entregado Parcialmente":
-          variant = "secondary"
-          break
-        case "Pendiente":
-          variant = "outline"
-          break
-        case "Cancelado":
-          variant = "destructive"
-          break
-      }
-
-      return <Badge variant={variant}>{status}</Badge>
+      return <EstadoBadge estado={status} />
     },
   },
   {

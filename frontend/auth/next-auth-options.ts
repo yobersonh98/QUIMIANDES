@@ -1,4 +1,4 @@
-import NextAuth, { NextAuthOptions } from "next-auth";
+import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 export const NextAuhtOptions: NextAuthOptions = {
   providers: [
@@ -36,6 +36,7 @@ export const NextAuhtOptions: NextAuthOptions = {
       return token;
   },
   async session({ session, token }) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     session.user = token as any;
     return session;
 },

@@ -28,6 +28,6 @@ export interface ParamsPage {
   id?: string
 }
 export interface PageProps<T extends PaginationSearchParamsPage,P extends ParamsPage = ParamsPage> {
-  searchParams?: T
-  params?: P
+  searchParams?: Promise<T>
+  params?: Promise<P>
 }
