@@ -28,7 +28,7 @@ BEGIN
     FROM "DetallePedido"
     WHERE "pedidoId" = id_pedido;
 
-    nuevo_id := id_pedido || '-' || LPAD(secuencia_actual::text, 2, '0');
+    nuevo_id := id_pedido || '-' || LPAD(secuencia_actual::text, 3, '0');
     RETURN nuevo_id;
 END;
 $$ LANGUAGE plpgsql;

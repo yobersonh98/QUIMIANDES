@@ -18,8 +18,8 @@ interface SelectWithSearchProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   maperOptions: (item: any) => SelectOption;
   defaultValue?: string;
-  disabled?: boolean
-  value?: string
+  disabled?: boolean;
+  value?: string;
 }
 
 const SelectWithSearch = ({
@@ -31,26 +31,27 @@ const SelectWithSearch = ({
   maperOptions,
   disabled,
   value,
-  defaultValue
+  defaultValue,
 }: SelectWithSearchProps) => {
   const [open, setOpen] = useState(false);
   const [options, setOptions] = useState<SelectOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const session = useSession();
-  // Usar useRef para comparar los cambios reales en params
-  const prevParamsRef = useRef<Record<string, string>>(params);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const fetchOptions = async (searchTerm = "") => {
+    if (disabled || !session?.data?.user?.token) return;
+
     setLoading(true);
     try {
       const queryParams = new URLSearchParams({ ...params, search: searchTerm });
       const response = await fetch(`${apiUrl}/${endpoint}?${queryParams}`, {
         headers: {
-          "Authorization": `Bearer ${session.data?.user?.token}`
-        }
+          Authorization: `Bearer ${session.data.user.token}`,
+        },
       });
+
       if (!response.ok) throw new Error("Failed to fetch options");
 
       const data = await response.json();
@@ -61,52 +62,26 @@ const SelectWithSearch = ({
         setOptions([]);
       }
     } catch (error) {
-      console.log("Error fetching options:", error);
+      console.error("Error fetching options:", error);
       setOptions([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Verificar si los params cambiaron realmente
-  const didParamsChange = () => {
-    const prevParams = prevParamsRef.current;
-
-    // Si tienen diferentes cantidades de propiedades
-    if (Object.keys(prevParams).length !== Object.keys(params).length) {
-      return true;
-    }
-
-    // Comparar cada propiedad
-    for (const key in params) {
-      if (params[key] !== prevParams[key]) {
-        return true;
-      }
-    }
-
-    return false;
-  };
-
-  // Efecto para la carga inicial y cuando cambia la sesión o endpoint
+  // Fetch inicial al cargar sesión
   useEffect(() => {
-    if (disabled) return;
-    if (!session?.data?.user?.token) return;
     fetchOptions();
-  }, [session]);
+  }, [session?.data?.user?.token, endpoint, apiUrl]);
 
-  // Efecto para cuando cambian los parámetros
+  // Fetch si cambian los params
   useEffect(() => {
-    if (!session?.data?.user?.token) return;
+    fetchOptions(search);
+  }, [JSON.stringify(params), apiUrl, endpoint]);
 
-    if (didParamsChange()) {
-      fetchOptions(search);
-      prevParamsRef.current = { ...params };
-    }
-  }, [params, apiUrl, endpoint]);
-
-  // Efecto para la búsqueda
+  // Fetch con debounce al escribir en la búsqueda
   useEffect(() => {
-    if (!session?.data?.user?.token || search.length === 0) return;
+    if (!search) return;
 
     const timeoutId = setTimeout(() => {
       fetchOptions(search);
@@ -115,6 +90,7 @@ const SelectWithSearch = ({
     return () => clearTimeout(timeoutId);
   }, [search]);
 
+  // Cierre del dropdown al hacer clic fuera
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -125,11 +101,12 @@ const SelectWithSearch = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Seleccionar valor por defecto si existe
   useEffect(() => {
     if (defaultValue) {
       onSelect(defaultValue);
     }
-  }, [defaultValue, onSelect]);
+  }, [defaultValue]);
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -139,8 +116,8 @@ const SelectWithSearch = ({
         onClick={() => setOpen(!open)}
         className={cn([
           "w-full flex items-center justify-between px-3 py-2 text-sm border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring",
-          disabled && "opacity-50 cursor-not-allowed"]
-        )}
+          disabled && "opacity-50 cursor-not-allowed",
+        ])}
       >
         <span className="block truncate">
           {value ? options.find((option) => option.value === value)?.label : placeholder}
@@ -150,7 +127,7 @@ const SelectWithSearch = ({
 
       {open && (
         <div className="absolute z-10 w-full mt-1 bg-background rounded-md shadow-lg border border-input">
-          <div className="p-2 flex flex-1 gap-1">
+          <div className="p-2">
             <input
               type="text"
               value={search}
@@ -189,4 +166,5 @@ const SelectWithSearch = ({
     </div>
   );
 };
+
 export default SelectWithSearch;

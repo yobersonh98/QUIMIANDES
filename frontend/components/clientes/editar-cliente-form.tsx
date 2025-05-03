@@ -1,35 +1,59 @@
-"use client"
+"use client";
 
-import React, { useState } from 'react';
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
+import React, { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 
-import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { useToast } from "@/hooks/use-toast"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { ArrowRight, X } from "lucide-react"
-import SelectWithSearch from "../shared/SelectWithSearch"
-import { BACKEND_URL } from "@/config/envs"
-import { ClienteService } from '@/services/clientes/clientes.service';
-import { CrearLugarEntregaModel } from '@/services/lugares-entrega/mode/crear-lugar-entrega.mode';
-import { CustomSelect } from '../shared/custom-select';
-import { TipoDocumentoArray } from '@/core/constantes/tipo-documentos';
-import { useSession } from 'next-auth/react';
-import { ActualizarClienteModel } from '@/services/clientes/models/actualizar-cliente.model';
-import { clientFormSchema, deliveryLocationSchema } from './schemas';
-import { ClientFormValues, DeliveryLocation, EditClientFormProps } from './types';
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { ArrowRight, X } from "lucide-react";
+import SelectWithSearch from "../shared/SelectWithSearch";
+import { BACKEND_URL } from "@/config/envs";
+import { ClienteService } from "@/services/clientes/clientes.service";
+import { CrearLugarEntregaModel } from "@/services/lugares-entrega/mode/crear-lugar-entrega.mode";
+import { CustomSelect } from "../shared/custom-select";
+import { TipoDocumentoArray } from "@/core/constantes/tipo-documentos";
+import { useSession } from "next-auth/react";
+import { ActualizarClienteModel } from "@/services/clientes/models/actualizar-cliente.model";
+import { clientFormSchema, deliveryLocationSchema } from "./schemas";
+import {
+  ClientFormValues,
+  DeliveryLocation,
+  EditClientFormProps,
+} from "./types";
 
 // Extend the client form schema to include delivery locations
 
-export function EditarClienteForm({ clientId, initialData }: EditClientFormProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [deliveryLocations, setDeliveryLocations] = useState<CrearLugarEntregaModel[]>(initialData.lugaresEntrega || [])
-  const [idLugaresEntregaEliminar, setIdLugaresEntregaEliminar] = useState<string[]>([])
-  const { toast } = useToast()
-  const session = useSession()
+export function EditarClienteForm({
+  clientId,
+  initialData,
+}: EditClientFormProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deliveryLocations, setDeliveryLocations] = useState<
+    CrearLugarEntregaModel[]
+  >(initialData.lugaresEntrega || []);
+  const [idLugaresEntregaEliminar, setIdLugaresEntregaEliminar] = useState<
+    string[]
+  >([]);
+  const { toast } = useToast();
+  const session = useSession();
   const clientForm = useForm<ClientFormValues>({
     resolver: zodResolver(clientFormSchema),
     defaultValues: {
@@ -42,7 +66,7 @@ export function EditarClienteForm({ clientId, initialData }: EditClientFormProps
       phone: initialData.telefono,
       idMunicipio: initialData.idMunicipio,
     },
-  })
+  });
 
   const deliveryForm = useForm<DeliveryLocation>({
     resolver: zodResolver(deliveryLocationSchema),
@@ -52,24 +76,27 @@ export function EditarClienteForm({ clientId, initialData }: EditClientFormProps
       direccion: "",
       contacto: "",
     },
-  })
+  });
 
   const handleAddDeliveryLocation = (data: DeliveryLocation) => {
-    setDeliveryLocations([...deliveryLocations, data])
-    setIsModalOpen(false)
-    deliveryForm.reset()
+    setDeliveryLocations([...deliveryLocations, data]);
+    setIsModalOpen(false);
+    deliveryForm.reset();
     toast({
       title: "Lugar de entrega añadido",
-      description: "El lugar de entrega ha sido agregado exitosamente."
-    })
-  }
+      description: "El lugar de entrega ha sido agregado exitosamente.",
+    });
+  };
 
   const removeDeliveryLocation = (index: number) => {
     if (deliveryLocations[index].id) {
-      setIdLugaresEntregaEliminar([...idLugaresEntregaEliminar, deliveryLocations[index].id])
+      setIdLugaresEntregaEliminar([
+        ...idLugaresEntregaEliminar,
+        deliveryLocations[index].id,
+      ]);
     }
-    setDeliveryLocations(deliveryLocations.filter((_, i) => i !== index))
-  }
+    setDeliveryLocations(deliveryLocations.filter((_, i) => i !== index));
+  };
 
   async function onSubmit(data: ClientFormValues) {
     const updateClienteModel: ActualizarClienteModel = {
@@ -83,19 +110,21 @@ export function EditarClienteForm({ clientId, initialData }: EditClientFormProps
       telefono: data.phone,
       email: data.email,
       lugaresEntrega: deliveryLocations,
-      idLugaresEntregaEliminar: idLugaresEntregaEliminar
-    }
-    const response = await new ClienteService(session.data?.user.token).actualizar(updateClienteModel)
+      idLugaresEntregaEliminar: idLugaresEntregaEliminar,
+    };
+    const response = await new ClienteService(
+      session.data?.user.token
+    ).actualizar(updateClienteModel);
     if (response.error) {
       return toast({
         title: "Error actualizando cliente",
-        description: response.error.message
-      })
+        description: response.error.message,
+      });
     }
     toast({
       title: "Cliente actualizado",
-      description: "El cliente ha sido actualizado con éxito."
-    })
+      description: "El cliente ha sido actualizado con éxito.",
+    });
   }
 
   return (
@@ -103,7 +132,10 @@ export function EditarClienteForm({ clientId, initialData }: EditClientFormProps
       <div className="flex gap-6 flex-wrap">
         <div className="flex-1">
           <Form {...clientForm}>
-            <form onSubmit={clientForm.handleSubmit(onSubmit)} className="space-y-2">
+            <form
+              onSubmit={clientForm.handleSubmit(onSubmit)}
+              className="space-y-2"
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* First row */}
                 <FormField
@@ -126,9 +158,14 @@ export function EditarClienteForm({ clientId, initialData }: EditClientFormProps
                     <FormItem>
                       <FormLabel>Tipo de Documento</FormLabel>
                       <FormControl>
-                        <CustomSelect defaultValue={initialData.tipoDocumento} {...field} options={
-                          TipoDocumentoArray.map((tipo) => ({ value: tipo, label: tipo }))
-                        } />
+                        <CustomSelect
+                          defaultValue={initialData.tipoDocumento}
+                          {...field}
+                          options={TipoDocumentoArray.map((tipo) => ({
+                            value: tipo,
+                            label: tipo,
+                          }))}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -149,20 +186,29 @@ export function EditarClienteForm({ clientId, initialData }: EditClientFormProps
                     </FormItem>
                   )}
                 />
-                <FormItem>
-                  <FormLabel>Ciudad</FormLabel>
-                  <FormControl>
-                    <SelectWithSearch
-                      apiUrl={BACKEND_URL}
-                      value={clientForm.getValues("idMunicipio")}
-                      maperOptions={(item) => ({ value: item.id, label: item.nombre })}
-                      endpoint="municipio"
-                      onSelect={(value) => clientForm.setValue("idMunicipio", value)}
-                      placeholder="Seleccione un municipio"
-                      defaultValue={initialData.idMunicipio}
-                    />
-                  </FormControl>
-                </FormItem>
+                <FormField
+                  control={clientForm.control}
+                  name="idMunicipio"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ciudad</FormLabel>
+                      <FormControl>
+                        <SelectWithSearch
+                          apiUrl={BACKEND_URL}
+                          maperOptions={(item) => ({
+                            value: item.id,
+                            label: item.nombre,
+                          })}
+                          endpoint="municipio"
+                          value={field.value}
+                          onSelect={field.onChange}
+                          placeholder="Seleccione un municipio"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 {/* Third row - Full width items */}
                 <div className="col-span-1 md:col-span-2">
@@ -189,7 +235,10 @@ export function EditarClienteForm({ clientId, initialData }: EditClientFormProps
                     <FormItem>
                       <FormLabel>Zona/Barrio</FormLabel>
                       <FormControl>
-                        <Input placeholder="Zona o barrio (opcional)" {...field} />
+                        <Input
+                          placeholder="Zona o barrio (opcional)"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -228,7 +277,11 @@ export function EditarClienteForm({ clientId, initialData }: EditClientFormProps
               <div className="flex justify-between items-center mt-4">
                 <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                   <DialogTrigger asChild>
-                    <Button type="button" variant="outline" className='flex gap-1'>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="flex gap-1"
+                    >
                       Agregar Lugar de Entrega <ArrowRight size={18} />
                     </Button>
                   </DialogTrigger>
@@ -245,26 +298,39 @@ export function EditarClienteForm({ clientId, initialData }: EditClientFormProps
                             <FormItem>
                               <FormLabel>Nombre</FormLabel>
                               <FormControl>
-                                <Input placeholder="Nombre del lugar" {...field} />
+                                <Input
+                                  placeholder="Nombre del lugar"
+                                  {...field}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
 
-                        <FormItem>
-                          <FormLabel>Ciudad</FormLabel>
-                          <FormControl>
-                            <SelectWithSearch
-                              apiUrl={BACKEND_URL}
-                              maperOptions={(item) => ({ value: item.id, label: item.nombre })}
-                              endpoint="municipio"
-                              value={deliveryForm.getValues('idCiudad')}
-                              onSelect={(value) => deliveryForm.setValue("idCiudad", value)}
-                              placeholder="Seleccione un municipio"
-                            />
-                          </FormControl>
-                        </FormItem>
+                        <FormField
+                          control={deliveryForm.control}
+                          name="idCiudad"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Ciudad</FormLabel>
+                              <FormControl>
+                                <SelectWithSearch
+                                  apiUrl={BACKEND_URL}
+                                  maperOptions={(item) => ({
+                                    value: item.id,
+                                    label: item.nombre,
+                                  })}
+                                  endpoint="municipio"
+                                  value={field.value}
+                                  onSelect={field.onChange}
+                                  placeholder="Seleccione una ciudad"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
                         <FormField
                           control={deliveryForm.control}
@@ -273,7 +339,10 @@ export function EditarClienteForm({ clientId, initialData }: EditClientFormProps
                             <FormItem>
                               <FormLabel>Dirección</FormLabel>
                               <FormControl>
-                                <Input placeholder="Dirección completa" {...field} />
+                                <Input
+                                  placeholder="Dirección completa"
+                                  {...field}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -287,7 +356,10 @@ export function EditarClienteForm({ clientId, initialData }: EditClientFormProps
                             <FormItem>
                               <FormLabel>Contacto</FormLabel>
                               <FormControl>
-                                <Input placeholder="Nombre del contacto" {...field} />
+                                <Input
+                                  placeholder="Nombre del contacto"
+                                  {...field}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -295,8 +367,12 @@ export function EditarClienteForm({ clientId, initialData }: EditClientFormProps
                         />
 
                         <Button
-                          onClick={deliveryForm.handleSubmit(handleAddDeliveryLocation)}
-                          type='button' className="w-full">
+                          onClick={deliveryForm.handleSubmit(
+                            handleAddDeliveryLocation
+                          )}
+                          type="button"
+                          className="w-full"
+                        >
                           Agregar
                         </Button>
                       </form>
@@ -304,7 +380,10 @@ export function EditarClienteForm({ clientId, initialData }: EditClientFormProps
                   </DialogContent>
                 </Dialog>
 
-                <Button type="submit" isLoading={clientForm.formState.isSubmitting}>
+                <Button
+                  type="submit"
+                  isLoading={clientForm.formState.isSubmitting}
+                >
                   Actualizar Cliente
                 </Button>
               </div>
@@ -332,8 +411,12 @@ export function EditarClienteForm({ clientId, initialData }: EditClientFormProps
               </CardHeader>
               <CardContent>
                 <div className="space-y-1 text-sm">
-                  <p><strong>Dirección:</strong> {location.direccion}</p>
-                  <p><strong>Contacto:</strong> {location.contacto}</p>
+                  <p>
+                    <strong>Dirección:</strong> {location.direccion}
+                  </p>
+                  <p>
+                    <strong>Contacto:</strong> {location.contacto}
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -341,7 +424,7 @@ export function EditarClienteForm({ clientId, initialData }: EditClientFormProps
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default EditarClienteForm;
