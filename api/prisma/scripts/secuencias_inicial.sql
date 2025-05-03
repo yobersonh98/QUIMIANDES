@@ -27,13 +27,8 @@ BEGIN
     INTO secuencia_actual
     FROM "DetallePedido"
     WHERE "pedidoId" = id_pedido;
-<<<<<<< HEAD
-    
-    nuevo_id := id_pedido || '-' || LPAD(secuencia_actual::text, 3, '0');
-=======
 
     nuevo_id := id_pedido || '-' || LPAD(secuencia_actual::text, 2, '0');
->>>>>>> 8efd9c4ac8b93554275f387f8a58f88751738158
     RETURN nuevo_id;
 END;
 $$ LANGUAGE plpgsql;
