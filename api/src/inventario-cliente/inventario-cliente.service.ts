@@ -9,7 +9,11 @@ export class InventarioClienteService {
 
   async create(createInventarioClienteDto: CreateInventarioClienteDto) {
     return await this.prisma.inventarioCliente.create({
-      data: createInventarioClienteDto,
+      data: {
+        productoId: createInventarioClienteDto.productoId,
+        precioEspecial: createInventarioClienteDto.precioEspecial,
+        idCliente: createInventarioClienteDto.clienteId
+      },
     });
   }
 

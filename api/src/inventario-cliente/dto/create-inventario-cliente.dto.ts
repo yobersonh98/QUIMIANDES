@@ -9,4 +9,7 @@ export class CreateInventarioClienteDto {
 
   @IsNumber()
   precioEspecial: number;
+
+  @IsString()
+  clienteId: string
 }

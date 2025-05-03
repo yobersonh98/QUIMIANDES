@@ -1,6 +1,5 @@
-import { EstadoPedido } from '@prisma/client';
+import { DetallePedido, EstadoPedido } from '@prisma/client';
 import { Cliente } from '../../cliente/entities/cliente.entity';
-import { DetallePedido } from '../../detalle-pedido/entities/detalle-pedido.entity';
 import { Entrega } from '../../entrega/entities/entrega.entity';
 import { OrdenCompra } from '../../orden-compra/entities/orden-compra.entity';
 

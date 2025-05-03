@@ -39,15 +39,7 @@ export default function DashboardPage() {
                   <TableCell>{order.order}</TableCell>
                   <TableCell>
                     <Badge
-                      variant={
-                        order.status === "Entregado"
-                          ? "success"
-                          : order.status === "Enviado"
-                            ? "info"
-                            : order.status === "En proceso"
-                              ? "warning"
-                              : "secondary"
-                      }
+                      
                     >
                       {order.status}
                     </Badge>

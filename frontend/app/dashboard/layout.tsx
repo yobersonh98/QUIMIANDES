@@ -38,10 +38,11 @@ function NavigationMenu() {
 
   const menuItems = [
     { icon: Home, label: "Inicio", href: "/dashboard" },
+    { icon: Clipboard, label: "Pedidos", href: "/dashboard/pedidos" },
+    { icon: Clipboard, label: "Entregas Pedido", href: "/dashboard/entregas-pedido" },
     { icon: ShoppingBag, label: "Clientes", href: "/dashboard/clientes" },
     { icon: Package, label: "Proveedores", href: "/dashboard/proveedores" },
     { icon: Package, label: "Productos", href: "/dashboard/productos" },
-    { icon: Clipboard, label: "Pedidos", href: "/dashboard/pedidos" },
     { icon: BarChart3, label: "Inventario", href: "/dashboard/inventario" },
     { icon: Settings, label: "Configuración", href: "/dashboard/configuracion" },
   ]
