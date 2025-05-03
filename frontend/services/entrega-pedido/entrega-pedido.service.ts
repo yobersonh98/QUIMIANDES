@@ -4,10 +4,26 @@ import { EntregaEntity } from "./entities/entrega.entity";
 import { CrearEntregaModel } from "./models/crear-entrega.model";
 import { ConfirmarEntregaModel } from "./models/confirmar-despacho..model";
 import { CompletarEntregaModel } from "./models/completar-entrega-model";
+import { ListarEntregaModel } from "./models/listar-entregas-model";
+import { PaginationResponse } from "@/types/pagination";
+import { EntregaListadoItemEntity } from "./entities/listado-entrega-item.entity";
 
 export class EntregaPedidoService extends ApiService {
   constructor(token?:string) {
     super('entregas', token)
+  }
+
+  async listar(listarEntregaModel: ListarEntregaModel): Promise<ServiceResponse<PaginationResponse<EntregaListadoItemEntity[]>>> {
+    try {
+      const data = await this.makeRequest<PaginationResponse<EntregaListadoItemEntity[]>>({
+        searchParams: {
+          ...listarEntregaModel
+        }
+      })
+      return new SuccessResponse(data)
+    } catch (error) {
+      return ErrorResponse.fromUnknownError(error);
+    }
   }
   async crearEntrega(entregaPedidoModel: CrearEntregaModel): Promise<ServiceResponse<EntregaEntity>>{
     try {

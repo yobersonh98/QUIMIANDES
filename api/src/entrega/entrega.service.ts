@@ -10,6 +10,11 @@ import { RegistrarDespachoDetallePedidoDto } from './../entrega-producto/dto/reg
 import { CompletarEntregaDto } from './dto/finalizar-entrega.dto';
 import { PrismaTransacction } from './../common/types';
 import { IdGeneratorService } from './../services/IdGeneratorService';
+import { ListarEntregasDto } from './dto/listar-entregas.dto';
+import { getEnumValueOrUndefined } from './../common/utils/string.util';
+import { PrismaGenericPaginationService } from './../prisma/prisma-generic-pagination.service';
+import { PaginationResponse } from './../common/interfaces/IPaginationResponse';
+import { EntregaListadoItem } from './entities/entrega-listado-item';
 
 @Injectable()
 export class EntregaService {
@@ -19,6 +24,7 @@ export class EntregaService {
     private readonly detallePedidoService: DetallePedidoService,
     private readonly pedidoService: PedidoService,
     private readonly idGeneratorService: IdGeneratorService,
+    private readonly prismaGenericPagination: PrismaGenericPaginationService
   ) { }
 
   async create(createEntregaDto: CreateEntregaDto): Promise<Entrega> {
@@ -51,7 +57,7 @@ export class EntregaService {
           entregadoPorA,
           observaciones,
           fechaEntrega,
-          entregaProductos: {
+          entregaProductos: { 
             createMany: {
               data: entregasProducto.map(({ detallePedidoId, cantidadDespachar, fechaEntrega, observaciones }) => ({
                 detallePedidoId,
@@ -193,13 +199,11 @@ export class EntregaService {
       if (detallePedido.estado == EstadoDetallePedido.ENTREGADO || detallePedido.estado == EstadoDetallePedido.CANCELADO) {
         throw new BadRequestException(`El detalle de pedido con id ${detallePedidoId} ya está en estado entregado o cancelado`);
       }
-      console.log("detallePedido: ", detallePedido)
       if (cantidadTotalEntregadoDetallePedido >= detallePedido.cantidad ) {
         detallePedido.estado = EstadoDetallePedido.ENTREGADO;
       } else {
         detallePedido.estado = EstadoDetallePedido.PARCIAL
       }
-      console.log('detalle Pedido Actualzado: ', detallePedido)
       return detallePedido
     })
     return this.prisma.$transaction(async (tx) => {
@@ -303,10 +307,51 @@ export class EntregaService {
     }, { timeout: 20000 });
   }
 
-  async findAll() {
-    return await this.prisma.entrega.findMany({
-      include: { pedido: true },
-    });
+  async findAll(dto: ListarEntregasDto): Promise<PaginationResponse<EntregaListadoItem[]>> {
+    const estado = getEnumValueOrUndefined(EstadoEntrega, dto.estado);
+    const response = await this.prismaGenericPagination.paginateGeneric({
+      model: 'Entrega',
+      args: {
+        where: {
+          estado,
+          pedidoId: dto.pedidoId
+        },
+        select: {
+          id:true,
+          estado:true,
+          fechaCreacion: true,
+          fechaEntrega: true,
+          observaciones: true,
+          entregadoPorA: true,
+          remision:true, 
+          vehiculoExterno: true,
+          vehiculoInterno: true,
+          pedidoId: true,
+          _count: {
+            select: {
+              'entregaProductos': true
+            },
+          }
+        },
+        orderBy: {
+          fechaCreacion: 'desc'
+        }
+      },
+      pagination: dto
+    })
+    const dataMaped: EntregaListadoItem[] = response.data.map(i => {
+      const entrenga = i as any
+      return {
+        ...entrenga,
+        cantidadProductos: entrenga?._count.entregaProductos,
+        _count:undefined
+      }
+    })
+    const responseData: PaginationResponse<EntregaListadoItem[]> = {
+      data: dataMaped,
+      meta: response.meta
+    }
+    return responseData
   }
 
   async findOne(id: string) {

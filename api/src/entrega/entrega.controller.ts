@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Search, Query } from '@nestjs/common';
 import { EntregaService } from './entrega.service';
 import { CreateEntregaDto } from './dto/create-entrega.dto';
 import { UpdateEntregaDto } from './dto/update-entrega.dto';
-import { DespachoDetallePedidoDto, RegistrarDespachoDetallePedidoDto } from './../entrega-producto/dto/registrar-despacho-detalle-pedido.dto';
+import {  RegistrarDespachoDetallePedidoDto } from './../entrega-producto/dto/registrar-despacho-detalle-pedido.dto';
 import { CompletarEntregaDto } from './dto/finalizar-entrega.dto';
+import { ListarEntregasDto } from './dto/listar-entregas.dto';
 
 @Controller('entregas')
 export class EntregaController {
@@ -26,8 +27,8 @@ export class EntregaController {
   }
 
   @Get()
-  findAll() {
-    return this.entregaService.findAll();
+  findAll(@Query() params: ListarEntregasDto) {
+    return this.entregaService.findAll(params);
   }
 
   @Get(':id')

@@ -21,7 +21,7 @@ export class PedidoService {
     private pedidoDocumentoService: PedidoDocumentoService
   ) { }
   async create({ detallesPedido, pedidoDocumentoIds, ...infoPedido }: CreatePedidoDto) {
-    const response  = await this.prisma.$transaction(async (prisma) => {
+    const response = await this.prisma.$transaction(async (prisma) => {
       try {
         const pedidoId = await this.idGeneratorService.generarIdPedido();
         const pedido = await prisma.pedido.create({
@@ -30,7 +30,7 @@ export class PedidoService {
             ...infoPedido,
             pedidoDocumentos: {
               createMany: {
-                data: pedidoDocumentoIds?.map(documentoId=>({
+                data: pedidoDocumentoIds?.map(documentoId => ({
                   documentoId
                 }))
               }
@@ -40,7 +40,7 @@ export class PedidoService {
         const detallesPedidoConId = this.idGeneratorService.mapearDetallesPedidoConIdsEnCreacion(pedidoId, detallesPedido);
 
         const detallesPedidoSaved = await prisma.detallePedido.createMany({
-          data:detallesPedidoConId
+          data: detallesPedidoConId
         })
         return {
           ...pedido,
@@ -51,7 +51,7 @@ export class PedidoService {
         throw new BadRequestException("Error al crear el pedido")
       } finally {
       }
-    }, {timeout: 20000 })
+    }, { timeout: 20000 })
     return response;
   }
 
@@ -109,16 +109,16 @@ export class PedidoService {
         pedidoDocumentos: {
           select: {
             documentoId: true,
-            documento:{
+            documento: {
               select: {
-                id:true,
-                url:true,
+                id: true,
+                url: true,
                 originalName: true,
                 mimeType: true,
                 size: true
               }
             }
-          } 
+          }
         },
         entregas: {
           orderBy: {
@@ -145,7 +145,7 @@ export class PedidoService {
     });
   }
   async update(id: string, updatePedidoDto: UpdatePedidoDto, tx: PrismaTransacction = this.prisma) {
-    const { estado, pesoDespachado, fechaEntrega, observaciones, ordenCompra, detallesPedido=[], pedidoDocumentoIds= []} = updatePedidoDto;
+    const { estado, pesoDespachado, fechaEntrega, observaciones, ordenCompra, detallesPedido = [], pedidoDocumentoIds = [] } = updatePedidoDto;
     const pedido = await tx.pedido.update({
       where: { id },
       data: {
@@ -157,7 +157,7 @@ export class PedidoService {
       },
     });
     const filterDetallesPedidos = detallesPedido.filter(dp => dp.id !== undefined && dp.id !== null)
-    await this.pedidoDocumentoService.crearMuchos(pedido.id,pedidoDocumentoIds)
+    await this.pedidoDocumentoService.crearMuchos(pedido.id, pedidoDocumentoIds)
     await Promise.all(
       filterDetallesPedidos.map(dp =>
         tx.detallePedido.update({
@@ -175,19 +175,20 @@ export class PedidoService {
     );
 
     const filterDetallesPedidosUnd = detallesPedido.filter(dp => !dp.id)
-    await this.pedidoDocumentoService.crearMuchos(pedido.id,pedidoDocumentoIds)
-    const destallesPedidosParaCrear: CreateDetallePedidoDto[] = filterDetallesPedidosUnd.map(dp=>({pedidoId: pedido.id, productoId: dp.productoId, tipoEntrega: dp.tipoEntrega, cantidad: dp.cantidad, fechaEntrega: dp.fechaEntrega, lugarEntregaId: dp.lugarEntregaId, unidades: dp.unidades}))
+    await this.pedidoDocumentoService.crearMuchos(pedido.id, pedidoDocumentoIds)
+    const destallesPedidosParaCrear: CreateDetallePedidoDto[] = filterDetallesPedidosUnd.map(dp => ({ pedidoId: pedido.id, productoId: dp.productoId, tipoEntrega: dp.tipoEntrega, cantidad: dp.cantidad, fechaEntrega: dp.fechaEntrega, lugarEntregaId: dp.lugarEntregaId, unidades: dp.unidades }))
     const detallesPedidoConId = this.idGeneratorService.mapearDetallesPedidoConIdsEnCreacion(id, destallesPedidosParaCrear);
 
     const detallesPedidoSaved = await tx.detallePedido.createMany({
-          data:detallesPedidoConId
-        })
+      data: detallesPedidoConId
+    })
     return pedido
   }
 
   async finalizarEntregaPedido(id: string, tx: PrismaTransacction = this.prisma) {
     const pedido = await this.prisma.pedido.findUnique({
-      where: { id, 
+      where: {
+        id,
         estado: {
           in: ['EN_PROCESO']
         }
@@ -259,7 +260,7 @@ export class PedidoService {
 
   async remove(id: string) {
     const pedidoEliminado = await this.prisma.pedido.delete({
-      where: { id, estado: 'PENDIENTE'}
+      where: { id, estado: 'PENDIENTE' }
     });
     if (!pedidoEliminado) {
       throw new NotFoundException(`Pedido con ID ${id} no encontrado`);
