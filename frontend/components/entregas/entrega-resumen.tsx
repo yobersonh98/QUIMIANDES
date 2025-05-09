@@ -1,26 +1,44 @@
 // components/EntregaResumen.tsx
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { FileText, MapPin, Truck, User } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { FileText, Truck, User } from "lucide-react"
 import { EntregaEntity } from "@/services/entrega-pedido/entities/entrega.entity"
 import { formatearFecha } from "@/lib/utils"
 
 interface EntregaResumenProps {
   entrega: EntregaEntity
+  modoEdicion?: boolean
+  onChange?: (value: EntregaEntity) => void
+  onGuardar?: () => void
 }
 
-export default function EntregaResumen({ entrega }: EntregaResumenProps) {
-
-
+export default function EntregaResumen({ 
+  entrega, 
+  modoEdicion = false,
+  onChange,
+  onGuardar
+}: EntregaResumenProps) {
+  const onChangeRemision = (value: string) => {
+    if (onChange) {
+      onChange({ ...entrega, remision: value })
+    }
+  }
+  // const onChangeObservaciones = (value: string) => {
+  //   if (onChange) {
+  //     onChange({ ...entrega, observaciones: value })
+  //   }
+  // }
   return (
     <Card>
       <CardHeader>
         <CardTitle>Información de Entrega</CardTitle>
-        <CardDescription>Detalles básicos de la entrega #{entrega.id}</CardDescription>
+        <CardDescription>Detalles básicos de la entrega #{entrega.codigo}</CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-4">
@@ -32,15 +50,6 @@ export default function EntregaResumen({ entrega }: EntregaResumenProps) {
           <div className="flex items-center gap-2">
             <User className="h-4 w-4 text-muted-foreground" />
             <span className="font-medium">Cliente:</span> {entrega.pedido?.cliente.nombre}
-          </div>
-          <div className="flex items-start gap-2">
-            <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
-            <div>
-              <span className="font-medium">Dirección:</span>
-              <p className="text-sm text-muted-foreground">
-                Documento: {entrega.pedido?.cliente.documento || "N/A"}
-              </p>
-            </div>
           </div>
           <div className="flex items-center gap-2">
             <Truck className="h-4 w-4 text-muted-foreground" />
@@ -56,7 +65,16 @@ export default function EntregaResumen({ entrega }: EntregaResumenProps) {
           </div>
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">Remisión:</span> {entrega.remision || "N/A"}
+            <span className="font-medium">Remisión:</span> 
+            {modoEdicion ? (
+              <Input 
+                value={entrega.remision || ""} 
+                onChange={(e) => onChangeRemision && onChangeRemision(e.target.value)} 
+                className="ml-2 w-full max-w-xs" 
+              />
+            ) : (
+              entrega.remision || "N/A"
+            )}
           </div>
         </div>
 
@@ -64,7 +82,21 @@ export default function EntregaResumen({ entrega }: EntregaResumenProps) {
 
         <div>
           <Label htmlFor="observaciones">Observaciones</Label>
-          <Textarea id="observaciones" value={entrega.observaciones || ""} readOnly className="mt-2" />
+          {/* {modoEdicion ? (
+            <Textarea 
+              id="observaciones" 
+              value={entrega.observaciones || ""} 
+              onChange={(e) => onChangeObservaciones && onChangeObservaciones(e.target.value)} 
+              className="mt-2" 
+            />
+          ) : ( */}
+            <Textarea 
+              id="observaciones" 
+              value={entrega.observaciones || ""} 
+              readOnly 
+              className="mt-2" 
+            />
+          {/* )} */}
         </div>
 
         <div>
@@ -81,6 +113,12 @@ export default function EntregaResumen({ entrega }: EntregaResumenProps) {
           </div>
         </div>
       </CardContent>
+
+      {onGuardar && (
+        <CardFooter className="flex justify-end">
+          <Button onClick={() => onGuardar && onGuardar()}>Guardar Cambios</Button>
+        </CardFooter>
+      )}
     </Card>
   )
 }

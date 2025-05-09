@@ -17,6 +17,7 @@ import { ConfirmButton } from "../shared/confirm-botton"
 import { useSession } from "next-auth/react"
 import { EntregaPedidoService } from "@/services/entrega-pedido/entrega-pedido.service"
 import RefreshPage from "@/actions/refresh-page"
+import { obtenerLugarEntregaDetallePedido } from "@/services/detalle-pedido/utils/detalle-pedido.util"
 interface ConfirmacionEntregaProps {
   entrega: EntregaEntity
   onSave?: (updatedEntrega: EntregaEntity) => void
@@ -58,6 +59,7 @@ export default function ConfirmacionEntrega({ entrega: initialEntrega }: Confirm
 
     const dataConfirmacionEntrega: ConfirmarEntregaModel = {
       entregaId: updatedEntrega.id,
+      remision: updatedEntrega.remision,
       despachosEntregaProducto: updatedEntrega.entregaProductos?.map((producto) => ({
         entregaProductoId: producto.id,
         cantidadDespachada: producto.cantidadDespachada,
@@ -87,6 +89,8 @@ export default function ConfirmacionEntrega({ entrega: initialEntrega }: Confirm
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <EntregaResumen 
           entrega={entrega}
+          modoEdicion={true}
+          onChange={(updatedEntrega) => setEntrega(updatedEntrega)}
       />
 
         <Card>
@@ -104,8 +108,7 @@ export default function ConfirmacionEntrega({ entrega: initialEntrega }: Confirm
                       <div className="flex items-center gap-2 mt-1">
                         <MapPin className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm text-muted-foreground">
-                          {producto.detallePedido?.lugarEntrega.nombre},{" "}
-                          {producto.detallePedido?.lugarEntrega.ciudad.nombre}
+                          {obtenerLugarEntregaDetallePedido(producto?.detallePedido)}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 mt-1">

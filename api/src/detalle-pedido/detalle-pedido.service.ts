@@ -16,12 +16,10 @@ export class DetallePedidoService {
   ) {}
 
   async create(createDetallePedidoDto: CreateDetallePedidoDto) {
-    const idDetallePeido = await this.idGeneratorService.generarIdDetallePedido(createDetallePedidoDto.pedidoId);
     const detallePedido = await this.prisma.detallePedido.create({
       data: {
         ...createDetallePedidoDto,
         lugarEntregaId: esVacio(createDetallePedidoDto.lugarEntregaId) ? undefined : createDetallePedidoDto.lugarEntregaId,
-        id: idDetallePeido,
       },
     });
     return detallePedido;

@@ -1,7 +1,15 @@
+import { ActionResponse } from "@/types/actions";
 import { CustomError, UnknownError } from "../errors/errors";
 
 export abstract class ServiceResponse<T> {
   constructor(public data?: T, public error?: CustomError) {}
+
+  toActionResponse (succesMessage = 'Proceso Realizado Correctamente', errorMessage = 'Ha ocurrido un error en el proceso.'): ActionResponse {
+    return {
+      error: this.error ? true : false,
+      message: this.error ? this.error.message || errorMessage : succesMessage 
+    }
+  }
 }
 
 export class SuccessResponse<T> extends ServiceResponse<T> {

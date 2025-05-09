@@ -5,6 +5,10 @@ export class RegistrarDespachoDetallePedidoDto {
   @IsString()
   entregaId: string;
 
+  @IsString()
+  @IsOptional()
+  remision?:string
+
   @ValidateNested({ each: true })
   @IsArray()
   @Type(() => DespachoDetallePedidoDto)

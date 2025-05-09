@@ -79,11 +79,9 @@ export class IdGeneratorService {
     detallesPedido: CreateDetallePedidoDto[]
   ): CreateDetallePedidoDto[] {
     return detallesPedido.map((dp, i) => {
-      const numeroIdDetallePedido = i + 1;
       return {
         ...dp,
         pedidoId,
-        id: `${pedidoId}-${numeroIdDetallePedido}`,
         lugarEntregaId: esVacio(dp.lugarEntregaId) ? undefined : dp.lugarEntregaId,
       };
     });

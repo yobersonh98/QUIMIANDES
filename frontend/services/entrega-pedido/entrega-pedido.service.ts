@@ -84,6 +84,17 @@ export class EntregaPedidoService extends ApiService {
       return ErrorResponse.fromUnknownError(error)
     }
   }
+  async cancelarEntrega(entregaId:string): Promise<ServiceResponse<EntregaEntity>> {
+    try {
+      const response = await this.makeRequest<EntregaEntity>({
+        method: 'patch',
+        endpoint: `/${entregaId}/cancelar`,
+      })
+      return new SuccessResponse(response)
+    } catch (error) {
+      return ErrorResponse.fromUnknownError(error)
+    }
+  }
 
   static instance: EntregaPedidoService; 
   static getServerIntance() {

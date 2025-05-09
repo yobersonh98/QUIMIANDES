@@ -4,19 +4,21 @@ interface InfoItemProps {
   label: string;
   value: string | number;
   destacado?: boolean;
+  className?:string
 }
 
-export function InfoItem({ label, value, destacado = false }: InfoItemProps) {
+export function InfoItem({ label, value, destacado = false, className }: InfoItemProps) {
   return (
-    <div>
-      <div className="text-xs uppercase font-medium text-slate-500 dark:text-slate-400 mb-1">
+    <div className={cn(
+      "flex flex-col gap-1",className)}>
+      <div className="text-sm capitalize font-medium text-muted-foreground">
         {label}
       </div>
       <div className={cn(
         "font-medium",
         destacado 
-          ? "text-slate-900 dark:text-white" 
-          : "text-slate-700 dark:text-slate-300"
+          ? "font-bold" 
+          : ""
       )}>
         {value}
       </div>

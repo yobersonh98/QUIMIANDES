@@ -19,6 +19,9 @@ import { EntregaPedidoService } from "@/services/entrega-pedido/entrega-pedido.s
 import { useToast } from "@/hooks/use-toast"
 import { ConfirmButton } from "../shared/confirm-botton"
 import RefreshPage from "@/actions/refresh-page"
+import { InfoItem } from "../shared/info-item"
+import { obtenerCantidadPorProgramar, obtenerLugarEntregaDetallePedido } from "@/services/detalle-pedido/utils/detalle-pedido.util"
+import { Alert } from "../ui/alert"
 
 const formSchema = z.object({
   fechaEntrega: z.date({
@@ -42,17 +45,15 @@ const formSchema = z.object({
 })
 
 export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
-  console.log(pedido)
   const router = useRouter()
   const session = useSession();
   const toast = useToast()
   const detallesPedidosPendientesPorDespachar = pedido.detallesPedido.map((detalle: DetallePedidoEntity) => {
-    const esParcial = detalle.estado === 'PARCIAL'
-    const cantidadGestionada = esParcial ? detalle.cantidadEntregada : detalle.cantidadProgramada
-      return {
-        ...detalle,
-        cantidadDespachar: detalle.cantidad - cantidadGestionada,
-      }
+
+    return {
+      ...detalle,
+      cantidadDespachar: obtenerCantidadPorProgramar(detalle, pedido.entregas),
+    }
   }).filter((detalle) => detalle.cantidadDespachar > 0)
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -66,7 +67,7 @@ export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
       productos: detallesPedidosPendientesPorDespachar.map((detalle) => ({
         detallePedidoId: detalle.id,
         cantidadDespachar: detalle.cantidadDespachar,
-        incluir: true,
+        incluir: false,
         observaciones: '',
       }))
     },
@@ -98,10 +99,10 @@ export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
 
     router.back();
   }
-
+  const hayProductosProgramdas = form.getValues().productos.filter(p => p.cantidadDespachar > 0 && p.incluir)?.length > 0
+  const hayProductosPorProgramar = form.getValues().productos.filter(p => p.cantidadDespachar > 0)?.length > 0
   const handleSubmit = async () => {
-    const esAlgunProductoConCantidadCero = form.getValues().productos.some(p=> p.cantidadDespachar <= 0 && p.incluir);
-    if (esAlgunProductoConCantidadCero) {
+    if (!hayProductosProgramdas) {
       toast.toast({
         variant: "destructive",
         description: "La cantidad a despachar de los productos debe ser mayor a cero."
@@ -113,7 +114,7 @@ export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
 
   return (
     <Form {...form}>
-      <form className="space-y-6">
+      <form className="space-y-6 mt-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
@@ -216,89 +217,116 @@ export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
               <CardDescription>Selecciona los productos y cantidades a incluir en esta entrega</CardDescription>
             </CardHeader>
             <CardContent>
+
               <div className="space-y-4">
-                {detallesPedidosPendientesPorDespachar.map((detalle: DetallePedidoEntity, index: number) => {
-                      const esParcial = detalle.estado === 'PARCIAL'
-                      const cantidadGestionada = esParcial ? detalle.cantidadEntregada : detalle.cantidadProgramada
-                  return (
-                    (
-                      <div key={detalle.id} className="flex flex-col space-y-2 p-4 border rounded-lg">
-                        <div className="flex items-start justify-between">
-                          <div className="font-medium">{detalle.producto.nombre}</div>
+                {!hayProductosPorProgramar && (
+                  <Alert>
+                    <p className="text-sm text-muted-foreground">
+                      ✅ Todos los productos han sido completamente programados para entrega.
+                    </p>
+                    <p className="mt-2 text-sm">
+                      Si aún no has completado las entregas anteriores, por favor finalízalas para poder programar nuevos productos.
+                    </p>
+                  </Alert>
+                )}
+                {hayProductosPorProgramar && (
+                  detallesPedidosPendientesPorDespachar.map((detalle: DetallePedidoEntity, index: number) => {
+                    const lugarEntrega = obtenerLugarEntregaDetallePedido(detalle);
+                    const cantidadPorProgramar = obtenerCantidadPorProgramar(detalle, pedido.entregas);
+                    return (
+                      (
+                        <div key={detalle.id} className="flex flex-col space-y-2 p-4 border rounded-lg">
+                          <div className="flex items-start justify-between">
+                            <div className="font-medium">{detalle.producto.nombre}</div>
+                            <FormField
+                              control={form.control}
+                              name={`productos.${index}.incluir`}
+                              render={({ field }) => (
+                                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                                  <FormControl>
+                                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                  </FormControl>
+                                  <div className="space-y-1 leading-none">
+                                    <FormLabel>Incluir</FormLabel>
+                                  </div>
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          <div className="flex flex-row flex-wrap space-x-2">
+                            <InfoItem
+                              label="Cantidad Total"
+                              value={detalle.cantidad}
+                              className="flex-1 "
+                            />
+                            <InfoItem label="Por Despachar"
+                              className="flex-1"
+
+                              value={cantidadPorProgramar}
+                            />
+                            <InfoItem
+                              label="Tipo de Entrega"
+                              className="flex-1"
+
+                              value={detalle.tipoEntrega}
+                            />
+                            <InfoItem
+                              label="Lugar de entrega"
+
+                              value={lugarEntrega}
+                            />
+                          </div>
+
                           <FormField
                             control={form.control}
-                            name={`productos.${index}.incluir`}
+                            name={`productos.${index}.cantidadDespachar`}
                             render={({ field }) => (
-                              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                              <FormItem>
+                                <FormLabel>Cantidad a Despachar</FormLabel>
                                 <FormControl>
-                                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                  <Input
+                                    type="number"
+                                    {...field}
+                                    min={0}
+                                    max={cantidadPorProgramar}
+                                    disabled={!form.watch(`productos.${index}.incluir`)}
+                                  />
                                 </FormControl>
-                                <div className="space-y-1 leading-none">
-                                  <FormLabel>Incluir</FormLabel>
-                                </div>
+                                <FormDescription>
+                                  Cantidad a incluir en esta entrega (máximo: {detalle.cantidad - detalle.cantidadDespachada})
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name={`productos.${index}.detallePedidoId`}
+                            render={({ field }) => <input type="hidden" {...field} value={detalle.id} />}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`productos.${index}.observaciones`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Observaciones</FormLabel>
+                                <FormControl>
+                                  <Textarea
+                                    placeholder="Instrucciones especiales para la entrega"
+                                    className="resize-none"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
                               </FormItem>
                             )}
                           />
                         </div>
-                        <div className="text-sm text-muted-foreground">
-                          Cantidad total: {detalle.cantidad} unidades
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          Pendiente por despachar: {detalle.cantidad - cantidadGestionada} unidades
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          Tipo de entrega: {detalle.tipoEntrega}
-                        </div>
-    
-                        <FormField
-                          control={form.control}
-                          name={`productos.${index}.cantidadDespachar`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Cantidad a Despachar</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  {...field}
-                                  min={0}
-                                  max={detalle.cantidad - cantidadGestionada}
-                                  disabled={!form.watch(`productos.${index}.incluir`)}
-                                />
-                              </FormControl>
-                              <FormDescription>
-                                Cantidad a incluir en esta entrega (máximo: {detalle.cantidad - detalle.cantidadDespachada})
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-    
-                        <FormField
-                          control={form.control}
-                          name={`productos.${index}.detallePedidoId`}
-                          render={({ field }) => <input type="hidden" {...field} value={detalle.id} />}
-                        />
-                        <FormField
-                          control={form.control}
-                          name={`productos.${index}.observaciones`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Observaciones</FormLabel>
-                              <FormControl>
-                                <Textarea
-                                  placeholder="Instrucciones especiales para la entrega"
-                                  className="resize-none"
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
+                      )
                     )
-                  )
-                })}
+                  })
+                )}
               </div>
             </CardContent>
           </Card>
@@ -310,6 +338,7 @@ export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
           </Button>
 
           <ConfirmButton
+            disabled={!hayProductosProgramdas}
             onClick={handleSubmit}
           >
             Registrar

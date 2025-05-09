@@ -3,12 +3,14 @@
 
 generator client {
   provider = "prisma-client-js"
+  engineType = "binary" // importante si no se aplica sin esto
+  output = "./node_modules/@prisma/client"
 }
 
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  directUrl = env("DIRECT_URL") 
 }
 
 model User {
@@ -143,7 +145,7 @@ model Pedido {
   fechaRecibido DateTime     @default(now())
   idCliente     String
   estado        EstadoPedido @default(PENDIENTE)
-
+  codigo        BigInt @unique @default(autoincrement())
   observaciones  String?
   fechaEntrega   DateTime?
   tiempoEntrega  Int?
@@ -176,6 +178,7 @@ model DetallePedido {
   pedidoId       String
   producto       Producto     @relation(fields: [productoId], references: [id])
   lugarEntregaId String?
+  codigo          BigInt @unique @default(autoincrement())
   lugarEntrega   LugarEntrega?  @relation(fields: [lugarEntregaId], references: [id])
   productoId     String
   fechaCreacion  DateTime     @default(now())
@@ -201,6 +204,7 @@ enum EstadoEntrega {
 
 model Entrega {
   id              String       @id @default(cuid())
+  codigo          BigInt       @unique @default(autoincrement())
   pedido          Pedido       @relation(fields: [pedidoId], references: [id])
   pedidoId        String
   vehiculoInterno String?

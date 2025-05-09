@@ -7,7 +7,7 @@ import { IdGeneratorService } from './../services/IdGeneratorService';
 import { getEnumValueOrUndefined } from './../common/utils/string.util';
 import { PrismaTransacction } from './../common/types';
 import { ListarPedidoDto } from './dto/listar-pedido.dto';
-import { EstadoPedido } from '@prisma/client';
+import { EstadoPedido, Prisma } from '@prisma/client';
 import { PedidoDocumentoService } from './../pedido-documento/pedido-documento.service';
 import { CreateDetallePedidoDto } from './../detalle-pedido/dto/create-detalle-pedido.dto';
 
@@ -23,10 +23,8 @@ export class PedidoService {
   async create({ detallesPedido, pedidoDocumentoIds, ...infoPedido }: CreatePedidoDto) {
     const response = await this.prisma.$transaction(async (prisma) => {
       try {
-        const pedidoId = await this.idGeneratorService.generarIdPedido();
         const pedido = await prisma.pedido.create({
           data: {
-            id: pedidoId,
             ...infoPedido,
             pedidoDocumentos: {
               createMany: {
@@ -37,7 +35,7 @@ export class PedidoService {
             }
           }
         });
-        const detallesPedidoConId = this.idGeneratorService.mapearDetallesPedidoConIdsEnCreacion(pedidoId, detallesPedido);
+        const detallesPedidoConId = this.idGeneratorService.mapearDetallesPedidoConIdsEnCreacion(pedido.id, detallesPedido);
 
         const detallesPedidoSaved = await prisma.detallePedido.createMany({
           data: detallesPedidoConId
@@ -51,7 +49,7 @@ export class PedidoService {
         throw new BadRequestException("Error al crear el pedido")
       } finally {
       }
-    }, { timeout: 20000 })
+    }, { timeout: this.prisma.TimeToWait })
     return response;
   }
 
@@ -62,31 +60,57 @@ export class PedidoService {
    */
   async findAll(listarPedidoDto: ListarPedidoDto) {
     const estado = getEnumValueOrUndefined(EstadoPedido, listarPedidoDto.estado);
-    const response = await this.paginationService.paginate('Pedido', {
-      where: {
-        estado,
-        OR: [
-          { cliente: { nombre: { contains: listarPedidoDto.search, mode: 'insensitive' } } },
-          { id: { contains: listarPedidoDto.search, mode: 'insensitive' } },
-          { ordenCompra: { contains: listarPedidoDto.search, mode: 'insensitive' } },
-        ]
-      },
-      select: {
-        id: true,
-        estado: true,
-        cliente: {
-          select: {
-            nombre: true
+    const response = await this.paginationService.paginateGeneric({
+      model: 'Pedido',
+      pagination: listarPedidoDto,
+      args: {
+        where: {
+          estado,
+          OR: [
+            { cliente: { nombre: { contains: listarPedidoDto.search, mode: 'insensitive' } } },
+            { id: { contains: listarPedidoDto.search, mode: 'insensitive' } },
+            { ordenCompra: { contains: listarPedidoDto.search, mode: 'insensitive' } },
+          ]
+        },
+        select: {
+          id: true,
+          estado: true,
+          codigo: true,
+          cliente: {
+            select: {
+              nombre: true
+            }
+          },
+          fechaRecibido: true,
+          idCliente: true,
+          detallesPedido: {
+            select: {
+              lugarEntrega: {
+                select: {
+                  nombre: true,
+                  direccion: true,
+                  ciudad: {
+                    select: {
+                      id: true,
+                      nombre: true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          ordenCompra: true,
+          _count: {
+            select: {
+              detallesPedido: true,
+            }
           }
         },
-        fechaRecibido: true,
-        idCliente: true,
-        ordenCompra: true,
-      },
-      orderBy: {
-        fechaRecibido: 'desc'
+        orderBy: {
+          fechaRecibido: 'desc'
+        }
       }
-    }, listarPedidoDto);
+    })
     return response;
   }
 

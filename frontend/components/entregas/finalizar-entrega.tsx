@@ -20,6 +20,7 @@ import { EntregaPedidoService } from "@/services/entrega-pedido/entrega-pedido.s
 import { ConfirmButton } from "../shared/confirm-botton"
 import { CompletarEntregaModel } from "@/services/entrega-pedido/models/completar-entrega-model"
 import RefreshPage from "@/actions/refresh-page"
+import { obtenerLugarEntregaDetallePedido } from "@/services/detalle-pedido/utils/detalle-pedido.util"
 
 interface FinalizarEntregaProps {
   entrega: EntregaEntity
@@ -137,8 +138,7 @@ export default function FinalizarEntrega({ entrega: initialEntrega, onSave }: Fi
                       <div className="flex items-center gap-2 mt-1">
                         <MapPin className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm text-muted-foreground">
-                          {producto.detallePedido?.lugarEntrega.nombre},{" "}
-                          {producto.detallePedido?.lugarEntrega.ciudad.nombre}
+                          {obtenerLugarEntregaDetallePedido(producto?.detallePedido)}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 mt-1">

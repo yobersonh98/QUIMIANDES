@@ -21,6 +21,12 @@ export class EntregaController {
     return this.entregaService.completarEntrega(body);
   }
 
+  @Patch('/:id/cancelar') 
+  cancelarEntrega(@Param('id') entregaId: string) {
+    return this.entregaService.cancelarEntrega(entregaId)
+  }
+
+
   @Post() 
   create(@Body() createEntregaDto: CreateEntregaDto) {
     return this.entregaService.create(createEntregaDto);

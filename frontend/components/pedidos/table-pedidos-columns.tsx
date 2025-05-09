@@ -1,13 +1,15 @@
 "use client"
 import DataTableDefaultRowAcciones from "@/components/shared/data-table-default-acciones";
 import { formatFecha } from "@/lib/utils";
+import { obtenerLugarEntregaDetallePedido } from "@/services/detalle-pedido/utils/detalle-pedido.util";
 import { PedidoDataTable } from "@/services/pedidos/entity/pedido.entity";
 import { ColumnDef } from "@tanstack/react-table";
 import { PackageCheck } from "lucide-react";
+import { TruncatedTextWithTooltip } from "../shared/trunkated-tooltip";
 
 export const PedidoColumns: ColumnDef<PedidoDataTable>[] = [
-  {header: 'ID',
-    accessorKey: 'id'
+  {header: 'Código',
+    accessorKey: 'codigo'
   },
   {
     header: "Cliente",
@@ -18,7 +20,6 @@ export const PedidoColumns: ColumnDef<PedidoDataTable>[] = [
       </p>
     )
   },
-
   {
     header: "Estado",
     accessorKey: "estado"
@@ -27,13 +28,31 @@ export const PedidoColumns: ColumnDef<PedidoDataTable>[] = [
     accessorKey:'fechaRecibido',
     cell: ({cell})=> (
       <p>
-        {formatFecha(cell.row.original.fechaRecibido, "fechaHora")}
+        {formatFecha(cell.row.original.fechaRecibido, "fecha")}
       </p>
     )
   },
   {
-    header: "Ordenes de Compra",
-    accessorKey: "ordenCompra"
+    header: "Productos",
+    accessorKey: "_count",
+    cell: ({cell}) => (
+      <p>
+        {cell.row.original._count?.detallesPedido}
+      </p>
+    )
+  },
+  {
+    header: "Lugar Entrega",
+    accessorKey: "detallesPedido",
+    cell: ({cell}) => {
+      const detallesPedido = cell.row.original.detallesPedido;
+      const lugares = detallesPedido?.map(detalle=> obtenerLugarEntregaDetallePedido(detalle)).join(" - ");
+      return (
+        <TruncatedTextWithTooltip 
+          text={lugares || "N/A"}
+        />
+      )
+      }
   },
   {
     header: "Acciones",

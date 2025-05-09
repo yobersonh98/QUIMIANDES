@@ -15,6 +15,7 @@ import { getEnumValueOrUndefined } from './../common/utils/string.util';
 import { PrismaGenericPaginationService } from './../prisma/prisma-generic-pagination.service';
 import { PaginationResponse } from './../common/interfaces/IPaginationResponse';
 import { EntregaListadoItem } from './entities/entrega-listado-item';
+import { isEmpty } from 'class-validator';
 
 @Injectable()
 export class EntregaService {
@@ -29,6 +30,9 @@ export class EntregaService {
 
   async create(createEntregaDto: CreateEntregaDto): Promise<Entrega> {
     const { pedidoId, vehiculoExterno, vehiculoInterno, remision, entregadoPorA, observaciones, entregasProducto, fechaEntrega } = createEntregaDto;
+    if (isEmpty(entregasProducto)) {
+      throw new BadRequestException('No se han registrado productos para la entrega');
+    }
     const pedido = await this.pedidoService.findOneBasicInfo(pedidoId);
     if (!pedido) {
       throw new NotFoundException(`Pedido con id ${pedidoId} no encontrado`);
@@ -51,10 +55,8 @@ export class EntregaService {
     })
 
     return this.prisma.$transaction(async (tx) => {
-      const entregaId = await this.idGeneratorService.generarIdEntrega();
       const entrega = await tx.entrega.create({
         data: {
-          id: entregaId,
           pedidoId,
           vehiculoExterno,
           vehiculoInterno,
@@ -91,7 +93,7 @@ export class EntregaService {
         })
       }))
       return entrega;
-    },  { timeout: 20000 });
+    },  { timeout: this.prisma.TimeToWait });
   }
 
   /**
@@ -101,7 +103,7 @@ export class EntregaService {
    * @param despachosEntregaProducto lista de despachos de entrega
    * @returns  entrega actualizada
    */
-  async confirmarEntrega({ entregaId, despachosEntregaProducto }: RegistrarDespachoDetallePedidoDto): Promise<Entrega> {
+  async confirmarEntrega({ entregaId, despachosEntregaProducto, remision }: RegistrarDespachoDetallePedidoDto): Promise<Entrega> {
     const entrega = await this.prisma.entrega.findUnique({
       where: { id: entregaId },
     });
@@ -176,11 +178,12 @@ export class EntregaService {
         entrega.id,
         {
           estado: EstadoEntrega.EN_TRANSITO,
+          remision,
         },
         tx
       );
 
-    }, { timeout: 20000 });
+    }, { timeout: this.prisma.TimeToWait });
   }
 
 
@@ -252,7 +255,7 @@ export class EntregaService {
         }, tx);
       }
       return entregaFinalizada;
-    }, { timeout: 20000 });
+    }, { timeout: this.prisma.TimeToWait });
   }
 
   async cancelarEntrega(id: string): Promise<Entrega> {
@@ -267,11 +270,14 @@ export class EntregaService {
             id: true,
             detallePedidoId: true,
             cantidadDespachada: true,
+            cantidadDespachar: true,
             detallePedido: {
               select: {
                 id: true,
                 estado: true,
                 cantidadDespachada: true,
+                cantidadEntregada: true,
+                cantidadProgramada: true
               }
             }
           }
@@ -287,29 +293,32 @@ export class EntregaService {
     if (entrega.estado === EstadoEntrega.ENTREGADO) {
       throw new BadRequestException(`La entrega con id ${id} ya está entregada`);
     }
-    const detallesPedidoRoolback = entrega.entregaProductos.map(({ detallePedidoId, cantidadDespachada }) => {
+    const detallesPedidoRoolback = entrega.entregaProductos.map(({ detallePedidoId, cantidadDespachada, cantidadDespachar}) => {
       const detallePedido = entrega.entregaProductos.find(ep => ep.detallePedidoId === detallePedidoId);
       if (!detallePedido) {
         throw new NotFoundException(`Detalle de pedido con id ${detallePedidoId} no encontrado`);
       }
       const cantidadTotalDespachada = detallePedido.detallePedido.cantidadDespachada - cantidadDespachada;
+      const cantidadTotalProgramada = detallePedido.detallePedido.cantidadProgramada - cantidadDespachar;
       if (cantidadTotalDespachada < 0) {
         throw new BadRequestException(`La cantidad despachada (${cantidadTotalDespachada}) no puede ser menor a 0`);
       }
-      const estado = cantidadTotalDespachada === 0 ? EstadoDetallePedido.PENDIENTE : EstadoDetallePedido.PARCIAL;
+      const estado = cantidadTotalDespachada === 0 ? EstadoDetallePedido.PENDIENTE : undefined;
       return {
         detallePedidoId,
         cantidadTotalDespachada,
+        cantidadTotalProgramada,
         estado,
       };
     })
 
     return this.prisma.$transaction(async (tx) => {
       await Promise.all(
-        detallesPedidoRoolback.map(async ({ detallePedidoId, cantidadTotalDespachada, estado }) => {
+        detallesPedidoRoolback.map(async ({ detallePedidoId, cantidadTotalDespachada, cantidadTotalProgramada, estado }) => {
           await this.detallePedidoService.update(detallePedidoId, {
             cantidadDespachada: cantidadTotalDespachada,
             estado,
+            cantidadProgramada: cantidadTotalProgramada
           }, tx);
         })
       );
@@ -319,7 +328,7 @@ export class EntregaService {
           estado: EstadoEntrega.CANCELADO,
         },
       });
-    }, { timeout: 20000 });
+    }, { timeout: this.prisma.TimeToWait });
   }
 
   async findAll(dto: ListarEntregasDto): Promise<PaginationResponse<EntregaListadoItem[]>> {
@@ -379,6 +388,7 @@ export class EntregaService {
         vehiculoInterno: true,
         remision: true,
         entregadoPorA: true,
+        codigo: true,
         observaciones: true,
         pedidoId: true,
         fechaEntrega: true,
@@ -421,6 +431,7 @@ export class EntregaService {
                     id: true,
                     nombre: true,
                     ciudad: true,
+                    direccion: true,
                   }
                 },
                 producto: {

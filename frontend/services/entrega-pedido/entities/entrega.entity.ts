@@ -17,6 +17,7 @@ export interface EntregaEntity {
   remision?: string;
   observaciones?: string;
   fechaEntrega: Date;
+  codigo?: string;
 
   pedido?:PedidoEntity
 

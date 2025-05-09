@@ -22,6 +22,7 @@ export interface DetallePedidoEntity {
   unidades: number;
 
   cantidad: number;
+  codigo: string;
 
   cantidadDespachada: number;
   cantidadEntregada: number;
@@ -35,6 +36,7 @@ export interface DetallePedidoEntity {
   lugarEntrega: {
     nombre: string;
     id: string;
+    direccion?: string;
     ciudad: {
       nombre: string;
     }
