@@ -343,6 +343,7 @@ export class EntregaService {
         select: {
           id: true,
           estado: true,
+          codigo:true,
           fechaCreacion: true,
           fechaEntrega: true,
           observaciones: true,
@@ -350,7 +351,33 @@ export class EntregaService {
           remision: true,
           vehiculoExterno: true,
           vehiculoInterno: true,
+          
+          entregaProductos: {
+            select: {
+              detallePedido: {
+                select: {
+                  lugarEntrega: {
+                    select: {
+                      ciudad: true,
+                      direccion: true,
+                      nombre: true,
+                    }
+                  }
+                }
+              }
+            }
+          },
           pedidoId: true,
+          pedido: {
+            select: {
+              cliente: {
+                select: {
+                  nombre: true,
+                }
+              },
+              codigo: true,
+            }
+          },
           _count: {
             select: {
               'entregaProductos': true

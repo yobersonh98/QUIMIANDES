@@ -6,15 +6,33 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { EntregaListadoItemEntity } from "@/services/entrega-pedido/entities/listado-entrega-item.entity"
 import EstadoBadge from "../shared/estado-badge"
+import { TruncatedTextWithTooltip } from "../shared/trunkated-tooltip"
+import { obtenerLugarEntregaDetallePedido } from "@/services/detalle-pedido/utils/detalle-pedido.util"
 
 export const EntregaColumns: ColumnDef<EntregaListadoItemEntity>[] = [
   {
-    header: 'ID',
-    accessorKey: 'id'
+    header: 'Código',
+    accessorKey: 'codigo'
   },
   {
-    header: 'Pedido ID',
-    accessorKey: 'pedidoId'
+    header: 'Pedido Código',
+    accessorKey: 'pedido.codigo',
+  },
+  {
+    header: 'Cliente',
+    accessorKey: 'pedido.cliente.nombre',
+    cell: ({ row }) => (
+      <p>{row.original.pedido.cliente.nombre}</p>
+    )
+  },
+  {
+    header: 'Dirección Entrega',
+    accessorKey: 'direccionEntrega',
+    cell: ({ row }) => (
+      <TruncatedTextWithTooltip 
+        text={row.original.entregaProductos.map(en=> obtenerLugarEntregaDetallePedido(en.detallePedido)).join(' - ') || 'N/A'}
+      />
+    )
   },
   {
     header: 'Estado',
@@ -27,14 +45,14 @@ export const EntregaColumns: ColumnDef<EntregaListadoItemEntity>[] = [
     header: 'Fecha Creación',
     accessorKey: 'fechaCreacion',
     cell: ({ row }) => (
-      <p>{formatFecha(row.original.fechaCreacion, "fechaHora")}</p>
+      <p>{formatFecha(row.original.fechaCreacion)}</p>
     )
   },
   {
     header: 'Fecha Entrega',
     accessorKey: 'fechaEntrega',
     cell: ({ row }) => (
-      <p>{row.original.fechaEntrega ? formatFecha(row.original.fechaEntrega, "fechaHora") : 'Sin Fecha'}</p>
+      <p>{row.original.fechaEntrega ? formatFecha(row.original.fechaEntrega) : 'Sin Fecha'}</p>
     )
   },
   {
