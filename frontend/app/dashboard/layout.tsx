@@ -55,7 +55,7 @@ function NavigationMenu() {
   }
 
   return (
-    <SidebarMenu>
+    <SidebarMenu >
       {menuItems.map((item) => (
         <SidebarMenuItem key={item.href}>
           <SidebarMenuButton asChild isActive={pathname === item.href}>
@@ -89,13 +89,13 @@ export default function DashboardLayout({
     <SidebarProvider>
       <div className="flex w-full">
         <Sidebar className="border-r">
-          <SidebarHeader className="border-b p-4">
+          <SidebarHeader className="border-b p-4  bg-background">
             <h1 className="text-xl font-bold my-1">{companyInfo.name}</h1>
           </SidebarHeader>
-          <SidebarContent>
+          <SidebarContent className="bg-background">
             <NavigationMenu />
           </SidebarContent>
-          <SidebarFooter className="mt-auto p-4 border-t text-sm text-muted-foreground">
+          <SidebarFooter className="mt-auto p-4 border-t text-sm text-muted-foreground  bg-background">
             <p className="font-semibold">Quimiandes TA S.A.S.</p>
             <p>&copy; 2025 Todos los derechos reservados</p>
           </SidebarFooter>
