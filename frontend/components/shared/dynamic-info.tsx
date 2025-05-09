@@ -34,6 +34,7 @@ export default function DynamicInfo({
 
     // Configuración de columnas con valores por defecto
     const colClasses = cn(
+      'flex-1',
       // Columnas por defecto
       item.cols ? `col-span-${item.cols}` : 'col-span-4',
       // Columnas para dispositivos medianos

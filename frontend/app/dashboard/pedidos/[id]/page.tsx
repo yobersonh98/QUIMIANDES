@@ -21,7 +21,7 @@ export default async function ListaPedidosPage(props: PageProps<PaginationSearch
     <BackButtonLayout title={
       <div className="flex items-center w-full justify-between">
         <div className="space-y-1">
-          <h2 className="text-3xl font-bold tracking-tight">Pedido {params?.id}</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Pedido {respones.data?.codigo}</h2>
         </div>
         <Link href={`/dashboard/pedidos/${params?.id}/editar`}>
         <Button className="gap-2 flex">
@@ -31,7 +31,7 @@ export default async function ListaPedidosPage(props: PageProps<PaginationSearch
         </Link>
 
       </div>}>
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="flex flex-col space-y-4 ">
         <PedidoInfoBasica
           pedido={pedido}
         />

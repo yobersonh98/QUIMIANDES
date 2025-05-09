@@ -38,7 +38,7 @@ export default function PedidoInfoBasica({pedido}: PedidoInfoBasicaProps) {
   ];
 
   return (
-    <>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <DynamicInfo 
         title="Información del Cliente" 
         items={clienteItems} 
@@ -51,6 +51,6 @@ export default function PedidoInfoBasica({pedido}: PedidoInfoBasicaProps) {
         titulo='Adjuntos'
         documentos={pedido.pedidoDocumentos?.map(i=>i.documento) || []}
       />
-    </>
+    </div>
   )
 }

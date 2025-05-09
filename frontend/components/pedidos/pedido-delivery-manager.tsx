@@ -114,9 +114,7 @@ export function OrderDeliveryManager({ pedido }: OrderDeliveryManagerProps) {
   return (
     <div className="space-y-4">
       {/* Información básica del pedido */}
-      <div className="grid gap-4 md:grid-cols-2 my-3">
         <PedidoInfoBasica pedido={pedido} />
-      </div>
 
       <Card className="overflow-hidden">
         <CardHeader className="p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
