@@ -13,7 +13,6 @@ export class CreateUserDto {
   @IsString()
   password: string;
 
-  @IsEnum(Role)
   role?: Role;
 }
 
@@ -33,7 +32,6 @@ export class UpdateUserDto {
   @IsOptional()
   password?: string;
 
-  @IsEnum(Role)
   @IsOptional()
   role?: Role;
 }
