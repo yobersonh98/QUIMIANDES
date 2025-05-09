@@ -43,13 +43,17 @@ export function ProductsList({ detallesPedido }: ProductsListProps) {
     await RefreshPage(pathname)
   }
 
-  const footer = (detalle: DetallePedidoEntity) => (
-    <div className="flex flex-1 justify-end">
+  const footer = (detalle: DetallePedidoEntity) => {
+    if (detalle.estado === 'ENTREGADO' || detalle.estado === 'CANCELADO') {
+      return null
+    }
+    return (<div className="flex flex-1 justify-end">
       <ConfirmButton size={"sm"} title="Marcar como entregado" onClick={() => marcarComoEntregado(detalle.id)}>
         Entregar
       </ConfirmButton>
     </div>
   )
+}
 
   return (
     <div className="space-y-3">
