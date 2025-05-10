@@ -354,10 +354,22 @@ export class EntregaService {
           
           entregaProductos: {
             select: {
+              id: true,
+              cantidadDespachada: true,
+              cantidadEntregada: true,
+              cantidadDespachar: true,
+              observaciones: true,
               detallePedido: {
                 select: {
+                  producto: {
+                    select: {
+                      id: true,
+                      nombre: true,
+                    }
+                  },
                   lugarEntrega: {
                     select: {
+                      id: true,
                       ciudad: true,
                       direccion: true,
                       nombre: true,
