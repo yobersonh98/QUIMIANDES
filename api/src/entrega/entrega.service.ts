@@ -338,7 +338,11 @@ export class EntregaService {
       args: {
         where: {
           estado,
-          pedidoId: dto.pedidoId
+          pedidoId: dto.pedidoId,
+          fechaEntrega: {
+            gte: dto.fechaInicio ? new Date(dto.fechaInicio) : undefined,
+            lte: dto.fechaFin ? new Date(dto.fechaFin) : undefined,
+          }
         },
         select: {
           id: true,
@@ -351,7 +355,6 @@ export class EntregaService {
           remision: true,
           vehiculoExterno: true,
           vehiculoInterno: true,
-          
           entregaProductos: {
             select: {
               id: true,
@@ -400,7 +403,10 @@ export class EntregaService {
           fechaCreacion: 'desc'
         }
       },
-      pagination: dto
+      pagination: {
+        ...dto,
+        limit: dto.limit || 100
+      }
     })
     const dataMaped: EntregaListadoItem[] = response.data.map(i => {
       const entrenga = i as any

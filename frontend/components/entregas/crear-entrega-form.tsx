@@ -125,6 +125,7 @@ export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
               <CustomFormDatePicker
                 control={form.control}
                 name="fechaEntrega"
+                withTime
                 label="Fecha de Entrega"
                 defaultValue={new Date()}
               />
