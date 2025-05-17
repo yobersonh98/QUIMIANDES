@@ -8,7 +8,10 @@ export interface CrearClienteModel {
   zonaBarrio?: string
   idMunicipio: string
   email?: string
+  contactoPrincipal?: string
   telefono?: string 
+  contactoPagos?: string
+  telefonoPagos?: string
 
   lugaresEntrega?: CrearLugarEntregaModel[]
 }

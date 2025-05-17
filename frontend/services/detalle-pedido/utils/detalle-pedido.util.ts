@@ -13,17 +13,20 @@ export const obtenerCantidadPorProgramar = (detallePedido: DetallePedidoEntity, 
 }
 
 export const obtenerLugarEntregaDetallePedido = (detallePedido?: DetallePedidoEntity): string => {
-  if (!detallePedido?.lugarEntrega) return '';
+  if (detallePedido?.lugarEntrega) {
+    const { nombre, ciudad, direccion } = detallePedido.lugarEntrega;
 
-  const { nombre, ciudad, direccion } = detallePedido.lugarEntrega;
+    const partes: string[] = [
+      nombre?.trim(),             // Nombre de la planta primero
+      ciudad?.nombre?.trim(),     // Luego ciudad
+      direccion?.trim(),          // Luego dirección
+    ].filter((parte): parte is string => Boolean(parte));
 
-  const partes: string[] = [
-    direccion?.trim(),
-    nombre?.trim(),
-    ciudad?.nombre?.trim(),
-  ].filter((parte): parte is string => Boolean(parte)); // Filtra null, undefined y cadenas vacías
-
-  return partes.join(', ');
+    return partes.join(', ');
+  }
+  // Fallback: usar la dirección del cliente si está disponible
+  const direccionCliente = detallePedido?.pedido?.cliente?.direccion?.trim();
+  return direccionCliente ? `Dirección cliente: ${direccionCliente}` : 'Lugar no definido';
 };
 
 

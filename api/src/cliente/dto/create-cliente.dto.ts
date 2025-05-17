@@ -71,7 +71,12 @@ export class CrearLugarEntregaDto {
   @ApiProperty({ example: 'Juan Pérez', description: 'Nombre de contacto del lugar de entrega' })
   @IsString()
   @IsNotEmpty()
-  contacto: string;
+  contactoEntregas: string;
+
+  @ApiProperty({ example: '1234567890', description: 'Teléfono de contacto del lugar de entrega' })
+  @IsString()
+  @IsNotEmpty()
+  telefonoEntregas: string;
 
 }
 
@@ -106,11 +111,25 @@ export class CreateClienteDto {
   @IsString()
   email?: string;
 
+  @ApiProperty({ example: 'Pedro Perez', description: 'Nombre de contacto', required: false })
+  @IsOptional()
+  @IsString()
+  contactoPrincipal?: string;
+
   @ApiProperty({ example: '1234567890', description: 'Teléfono del cliente', required: false })
   @IsOptional()
   @IsString()
   telefono?: string;
   
+  @ApiProperty({ example: 'Pedro Perez', description: 'Nombre de contacto para pagos', required: false })
+  @IsOptional()
+  @IsString()
+  contactoPagos?: string;
+
+  @ApiProperty({ example: '1234567890', description: 'Teléfono de contacto para pagos', required: false })
+  @IsOptional()
+  @IsString()
+  telefonoPagos?: string;
 
   @ApiProperty({ example: 'Zona Norte', description: 'Zona o barrio del cliente', required: false })
   @IsOptional()

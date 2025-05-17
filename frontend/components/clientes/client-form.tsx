@@ -52,7 +52,10 @@ export function ClientForm() {
       address: "",
       zone: "",
       email: "",
-      phone: "",
+      mainContact: "",
+      mainPhone: "",
+      contactPayment: "",
+      phonePayment: "",
       idMunicipio: "",
     },
   });
@@ -63,7 +66,8 @@ export function ClientForm() {
       nombre: "",
       idCiudad: "",
       direccion: "",
-      contacto: "",
+      contactoEntregas: "",
+      telefonoEntregas: "",
     },
   });
 
@@ -89,7 +93,10 @@ export function ClientForm() {
       direccion: data.address,
       zonaBarrio: data.zone,
       idMunicipio: data.idMunicipio,
-      telefono: data.phone,
+      contactoPrincipal: data.mainContact,
+      telefono: data.mainPhone,
+      contactoPagos: data.contactPayment,
+      telefonoPagos: data.phonePayment,
       email: data.email,
       lugaresEntrega: deliveryLocations,
     };
@@ -245,10 +252,50 @@ export function ClientForm() {
                 {/* Fifth row */}
                 <FormField
                   control={clientForm.control}
-                  name="phone"
+                  name="mainContact"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Teléfono</FormLabel>
+                      <FormLabel>Contacto (Principal)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nombre del contacto" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={clientForm.control}
+                  name="mainPhone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Teléfono (principal)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Número de teléfono" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {/* sixth row */}
+                <FormField
+                  control={clientForm.control}
+                  name="contactPayment"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Contacto de pagos</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nombre del contacto" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={clientForm.control}
+                  name="phonePayment"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Teléfono de pagos</FormLabel>
                       <FormControl>
                         <Input placeholder="Número de teléfono" {...field} />
                       </FormControl>
@@ -335,10 +382,26 @@ export function ClientForm() {
 
                         <FormField
                           control={deliveryForm.control}
-                          name="contacto"
+                          name="contactoEntregas"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Contacto</FormLabel>
+                              <FormLabel>Contacto de entregas</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Nombre del contacto"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={deliveryForm.control}
+                          name="telefonoEntregas"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Telefono de entregas</FormLabel>
                               <FormControl>
                                 <Input
                                   placeholder="Nombre del contacto"
@@ -399,7 +462,10 @@ export function ClientForm() {
                     <strong>Dirección:</strong> {location.direccion}
                   </p>
                   <p>
-                    <strong>Contacto:</strong> {location.contacto}
+                    <strong>Contacto:</strong> {location.contactoEntregas}
+                  </p>
+                  <p>
+                    <strong>Teléfono:</strong> {location.telefonoEntregas}
                   </p>
                 </div>
               </CardContent>

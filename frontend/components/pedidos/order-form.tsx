@@ -23,6 +23,7 @@ import { usePathname, useRouter } from "next/navigation"
 import RefreshPage from "@/actions/refresh-page"
 import { CompactFileUploader } from "../shared/compact-file-uploader"
 import { obtenerFechaEntregaSiguiente, validarFechaEntrega } from "@/lib/utils"
+import { Input } from "@/components/ui/input"
 
 
 type OrderFormProps = {
@@ -39,6 +40,7 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
   const isEditing = !!pedido;
   const pathName = usePathname()
   const [files, setFiles] = useState<DocumentoEntity[]>(pedido?.pedidoDocumentos?.map(i=> i.documento) || []);
+  const [productosInfo, setProductosInfo] = useState<{[key: string]: {peso: number, unidadMedida: string}}>({});
   
   // Inicializar el formulario con valores por defecto o con los del pedido si está en modo edición
   const form = useForm<OrderFormValues>({
@@ -83,6 +85,54 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
   
   // Determinar si el campo de lugar de entrega global debe estar deshabilitado
   const isGlobalDeliveryLocationDisabled = tipoEntregaGlobal === TipoEntregaProducto.RECOGE_EN_PLANTA;
+
+  // Función para cargar la información del producto cuando se selecciona
+  const cargarInfoProducto = async (productoId: string) => {
+    if (!productoId) return;
+    
+    try {
+      // Aquí debes implementar la llamada a tu API para obtener la información del producto
+      const response = await fetch(`/api/productos/${productoId}`, {
+        headers: {
+          Authorization: `Bearer ${session.data?.user.token}`
+        }
+      });
+      
+      if (response.ok) {
+        const producto = await response.json();
+        setProductosInfo(prev => ({
+          ...prev,
+          [productoId]: {
+            peso: producto.peso || 0,
+            unidadMedida: producto.unidadMedida || 'kg'
+          }
+        }));
+      }
+    } catch (error) {
+      console.error("Error al cargar información del producto:", error);
+    }
+  };
+
+  // Efecto para cargar la información de los productos al inicio
+  useEffect(() => {
+    // Cargar información de productos ya seleccionados cuando se monta el componente
+    detallesPedido.forEach(detalle => {
+      if (detalle.productoId) {
+        cargarInfoProducto(detalle.productoId);
+      }
+    });
+  }, []);
+
+  // Función para calcular el peso total basado en la cantidad y el producto
+  const calcularPesoTotal = (cantidad: string, productoId: string) => {
+    if (!productoId || !cantidad || !productosInfo[productoId]) return "0";
+    
+    const cantidadNum = parseFloat(cantidad) || 0;
+    const pesoPorUnidad = productosInfo[productoId].peso || 0;
+    const pesoTotal = cantidadNum * pesoPorUnidad;
+    
+    return `${pesoTotal.toFixed(2)} ${productosInfo[productoId].unidadMedida}`;
+  };
 
   const aplicarValoresGlobales = () => {
     const valoresGlobales = form.getValues();
@@ -321,6 +371,8 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
 
               {fields.map((field, index) => {
                 const tipoEntrega = detallesPedido?.[index]?.tipoEntrega;
+                const productoId = detallesPedido?.[index]?.productoId;
+                const cantidad = detallesPedido?.[index]?.cantidad;
                 return (
                   <Card key={field.id}>
                     <CardContent className="pt-6">
@@ -333,7 +385,10 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
                               <FormLabel>Producto</FormLabel>
                               <SelectWithSearch
                                 endpoint="productos/search"
-                                onSelect={field.onChange}
+                                onSelect={(value) => {
+                                  field.onChange(value);
+                                  cargarInfoProducto(value);
+                                }}
                                 value={field.value}
                                 placeholder="Seleccione un producto"
                                 maperOptions={(producto) => ({ value: producto.id, label: producto.nombre })}
@@ -343,12 +398,38 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
                           )}
                         />
 
-                        <CustomFormInput
-                          control={form.control}
-                          name={`detallesPedido.${index}.cantidad`}
-                          label="Cantidad"
-                          type="number"
-                        />
+                        {/* Columna de cantidad con el peso calculado */}
+                        <FormItem>
+                          <FormLabel>Cantidad</FormLabel>
+                          <div className="flex gap-2">
+                            <div className="w-1/2">
+                              <FormField
+                                control={form.control}
+                                name={`detallesPedido.${index}.cantidad`}
+                                render={({ field }) => (
+                                  <FormControl>
+                                    <Input 
+                                      type="number" 
+                                      placeholder="Cantidad" 
+                                      {...field} 
+                                    />
+                                  </FormControl>
+                                )}
+                              />
+                            </div>
+                            <label className="text-sm font-medium">Peso Total</label>
+                            <div className="w-1/2">
+                              <Input 
+                                type="text" 
+                                placeholder="Peso total" 
+                                value={calcularPesoTotal(cantidad || '0', productoId || '')}
+                                disabled
+                                className="bg-muted text-muted-foreground"
+                              />
+                            </div>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
 
                         <CustomFormDatePicker
                           control={form.control}

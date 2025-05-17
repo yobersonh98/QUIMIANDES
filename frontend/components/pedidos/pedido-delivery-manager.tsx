@@ -134,11 +134,11 @@ export function OrderDeliveryManager({ pedido }: OrderDeliveryManagerProps) {
             <div className="flex flex-wrap gap-2 w-full sm:w-auto">
               <ConfirmButton
                 size="sm"
-                className="flex-1 sm:flex-none text-xs"
+                className="flex-1 sm:flex-none text-xs bg-green-500 hover:bg-green-600 text-white"
                 title="¿Finalizar pedido?"
                 description="Esta acción marcará el pedido como entregado y no podrá ser revertida."
                 onClick={handleFinalizarPedido}
-                variant="secondary"
+                //variant="secondary"
                 disabled={noPuedeModificar}
               >
                 Finalizar Entrega

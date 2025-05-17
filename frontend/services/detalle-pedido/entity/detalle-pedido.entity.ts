@@ -12,6 +12,12 @@ export interface DetallePedidoEntity {
 
   pedidoId?: string;
 
+  pedido?: {
+  cliente?: {
+    direccion?: string;
+  }
+}
+
   productoId: string;
 
   producto: {
