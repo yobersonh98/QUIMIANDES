@@ -22,6 +22,7 @@ import { DocumentoEntity, PedidoEntity } from "@/services/pedidos/entity/pedido.
 import { usePathname, useRouter } from "next/navigation"
 import RefreshPage from "@/actions/refresh-page"
 import { CompactFileUploader } from "../shared/compact-file-uploader"
+import { obtenerFechaEntregaSiguiente, validarFechaEntrega } from "@/lib/utils"
 
 
 type OrderFormProps = {
@@ -124,6 +125,25 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
         })),
       };
 
+      const esAlgunaFechaEntregaMal = detallesPedido.some((p) => {
+        const fechaEntrega = new Date(p.fechaEntrega);
+        try {
+          validarFechaEntrega(fechaEntrega);
+        } catch (error) {
+          if (error instanceof Error) {
+            toast({
+              title: 'Error',
+              description: error.message,
+              variant: 'destructive'
+            });
+          }
+          return true; // Si hay un error, retornar true para indicar que hay una fecha incorrecta
+        }
+      })
+
+      if (esAlgunaFechaEntregaMal) {
+        return;
+      }
       setIsLoading(true);
       let response;
 
@@ -250,7 +270,7 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
                       control={form.control}
                       name="fechaEntregaGlobal"
                       label="Fecha de Entrega Global"
-                      defaultValue={new Date()}
+                      defaultValue={obtenerFechaEntregaSiguiente()}
                     />
                     <FormField
                       control={form.control}
@@ -334,7 +354,7 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
                           control={form.control}
                           name={`detallesPedido.${index}.fechaEntrega`}
                           label="Fecha de Entrega"
-                          defaultValue={new Date()}
+                          defaultValue={obtenerFechaEntregaSiguiente()}
                         />
 
                         <FormField

@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { format } from "date-fns";
+import { format, startOfDay } from "date-fns";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -115,4 +115,49 @@ export function getBorderColorByEstado(
 ): string {
   const color = getRawColorByEstado(estado, intensity);
   return side ? `border-${side}-${color}` : `border-${color}`;
+}
+
+
+export function obtenerFechaEntregaSiguiente(fromDate: Date = new Date()): Date {
+  const nextDate = new Date(fromDate);
+  nextDate.setDate(nextDate.getDate() + 1); // día siguiente
+
+  // Si es domingo, añadir 1 día (lunes)
+  // Si es sábado, añadir 2 días (lunes)
+  const day = nextDate.getDay();
+  if (day === 6) { // sábado
+    nextDate.setDate(nextDate.getDate() + 2);
+  } else if (day === 0) { // domingo
+    nextDate.setDate(nextDate.getDate() + 1);
+  }
+
+  return nextDate;
+}
+export function validarFechaEntrega(fecha: Date | string) {
+  const fechaActual = startOfDay(new Date());
+  const fechaEntrega = startOfDay(typeof fecha === "string" ? new Date(fecha) : fecha);
+
+  if (isNaN(fechaEntrega.getTime())) {
+    throw new Error("Fecha de entrega inválida");
+  }
+
+  if (fechaEntrega < fechaActual) {
+    throw new Error("La fecha de entrega no puede ser anterior a la fecha actual");
+  }
+
+  const fechaMinima = startOfDay(obtenerFechaEntregaSiguiente(fechaActual));
+  if (fechaEntrega < fechaMinima) {
+    throw new Error(
+      `La fecha de entrega no puede ser anterior a ${format(fechaMinima, "dd/MM/yyyy")}`
+    );
+  }
+}
+export const esLugarEntregaLocal = (lugarEntrega: string) => {
+  const lugaresLocales = [
+    "Cucuta",
+    "Cúcuta",
+    "cucuta",
+    "Cúcuta Norte",
+  ]
+  return lugaresLocales.some((lugar) => lugarEntrega.toLowerCase().includes(lugar.toLowerCase()))
 }

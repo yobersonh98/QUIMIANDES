@@ -87,7 +87,7 @@ export default function CalendarioEntregas({ entregas }: CalendarioEntregasProps
       },
     }
   }
-  
+
 
   const onNavigate = (newDate: Date) => {
     setDate(newDate)
@@ -164,26 +164,27 @@ export default function CalendarioEntregas({ entregas }: CalendarioEntregasProps
                 mostrarProductos
               />
 
-              <DialogFooter className="mt-4">
+              <DialogFooter className="mt-4 flex flex-col sm:flex-row gap-2">
                 <Button variant="outline" onClick={() => setIsModalOpen(false)}>
                   Cerrar
                 </Button>
 
-                {esPendiente && (
-                  <Link href={`/dashboard/pedidos/${selectedEntrega.pedidoId}/gestionar/entregas/${selectedEntrega.id}/despacho`}>
-                    <Button>
-                      Confirmar Despacho
+                <div>
+                  {esPendiente && (
+                    <Button className="w-full">
+                      <Link href={`/dashboard/pedidos/${selectedEntrega.pedidoId}/gestionar/entregas/${selectedEntrega.id}/despacho`} className="flex-1 w-full">
+                        Confirmar Despacho
+                      </Link>
                     </Button>
-                  </Link>
-                )}
-
-                {esEnTransito && (
-                  <Link href={`/dashboard/pedidos/${selectedEntrega.pedidoId}/gestionar/entregas/${selectedEntrega.id}/finalizar-entrega`}>
-                    <Button>
-                      Finalizar Entrega
+                  )}
+                  {esEnTransito && (
+                    <Button  className="w-full">
+                      <Link href={`/dashboard/pedidos/${selectedEntrega.pedidoId}/gestionar/entregas/${selectedEntrega.id}/finalizar-entrega`}>
+                        Finalizar Entrega
+                      </Link>
                     </Button>
-                  </Link>
-                )}
+                  )}
+                </div>
               </DialogFooter>
             </>
           )}
