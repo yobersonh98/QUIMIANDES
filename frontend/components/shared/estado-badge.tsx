@@ -1,18 +1,19 @@
+// config/estado.ts o similar
 import React from "react";
-import { Badge } from "@/components/ui/badge";
-import { 
-  CheckCircle2, 
-  Clock, 
-  Truck, 
-  AlertCircle, 
-  Ban, 
-  Hourglass, 
-  ThumbsUp, 
-  ShieldAlert, 
+import {
+  CheckCircle2,
+  Clock,
+  Truck,
+  AlertCircle,
+  Ban,
+  Hourglass,
+  ThumbsUp,
+  ShieldAlert,
   Loader2
 } from "lucide-react";
+import { getBgColorByEstado, getBorderColorByEstado } from "@/lib/utils";
+import { Badge } from "./badge";
 
-// Definir los tipos para las configuraciones de estado
 type VariantType = "default" | "destructive" | "outline" | "secondary";
 
 interface EstadoConfig {
@@ -21,82 +22,89 @@ interface EstadoConfig {
   color: string;
 }
 
-// Tipo para las claves de ESTADOS_CONFIG
-type EstadoKey = 
-  | "PENDIENTE" 
-  | "EN_TRANSITO" 
-  | "PARCIAL" 
+type EstadoKey =
+  | "PENDIENTE"
+  | "EN_TRANSITO"
+  | "PARCIAL"
   | "ENTREGADO"
-  | "CANCELADO" 
-  | "EN_ESPERA" 
-  | "PROCESANDO" 
-  | "APROBADO" 
-  | "RECHAZADO" 
-  | "ALERTA";
+  | "CANCELADO"
+  | "EN_ESPERA"
+  | "PROCESANDO"
+  | "APROBADO"
+  | "RECHAZADO"
+  | "ALERTA"
+  | "EN_PROCESO"
 
-// Definir la configuración de los estados
+function makeIcon(Icon: React.ElementType, estado: string, extra?: string): React.ReactNode {
+  return <Icon className={`h-4 w-4 text-white ${extra ?? ''}`} />;
+}
+
 const ESTADOS_CONFIG: Record<EstadoKey, EstadoConfig> = {
-  // Estados comunes
-  "PENDIENTE": { 
-    icon: <Clock className="h-4 w-4 text-blue-500" />, 
+  "PENDIENTE": {
+    icon: makeIcon(Clock, "PENDIENTE"),
     variant: "outline",
-    color: "border-blue-500"
+    color: getBorderColorByEstado("PENDIENTE")
   },
-  "EN_TRANSITO": { 
-    icon: <Truck className="h-4 w-4 text-blue-500" />, 
+  "EN_PROCESO": {
+    icon: makeIcon(Loader2, "EN_PROCESO"),
     variant: "outline",
-    color: "border-blue-500"
+    color: getBorderColorByEstado("EN_PROCESO")
   },
-  "PARCIAL": { 
-    icon: <Truck className="h-4 w-4 text-yellow-500" />, 
+  "EN_TRANSITO": {
+    icon: makeIcon(Truck, "EN_TRANSITO"),
+    variant: "outline",
+    color: getBorderColorByEstado("EN_TRANSITO")
+  },
+  "PARCIAL": {
+    icon: makeIcon(Truck, "PARCIAL"),
     variant: "secondary",
-    color: "border-yellow-500"
+    color: getBorderColorByEstado("PARCIAL")
   },
-  "ENTREGADO": { 
-    icon: <CheckCircle2 className="h-4 w-4 text-green-500" />, 
+  "ENTREGADO": {
+    icon: makeIcon(CheckCircle2, "ENTREGADO"),
     variant: "default",
-    color: "border-green-500" 
+    color: getBorderColorByEstado("ENTREGADO")
   },
-  
-  // Estados adicionales
   "CANCELADO": {
-    icon: <Ban className="h-4 w-4 text-red-500" />,
+    icon: makeIcon(Ban, "CANCELADO"),
     variant: "destructive",
-    color: "border-red-500"
+    color: getBorderColorByEstado("CANCELADO")
   },
   "EN_ESPERA": {
-    icon: <Hourglass className="h-4 w-4 text-orange-500" />,
+    icon: makeIcon(Hourglass, "EN_ESPERA"),
     variant: "outline",
-    color: "border-orange-500"
+    color: getBorderColorByEstado("EN_ESPERA")
   },
   "PROCESANDO": {
-    icon: <Loader2 className="h-4 w-4 text-purple-500 animate-spin" />,
+    icon: makeIcon(Loader2, "PROCESANDO", "animate-spin"),
     variant: "outline",
-    color: "border-purple-500"
+    color: getBorderColorByEstado("PROCESANDO")
   },
   "APROBADO": {
-    icon: <ThumbsUp className="h-4 w-4 text-green-500" />,
+    icon: makeIcon(ThumbsUp, "APROBADO"),
     variant: "default",
-    color: "border-green-500"
+    color: getBorderColorByEstado("APROBADO")
   },
   "RECHAZADO": {
-    icon: <AlertCircle className="h-4 w-4 text-red-500" />,
-    variant: "destructive", 
-    color: "border-red-500"
+    icon: makeIcon(AlertCircle, "RECHAZADO"),
+    variant: "destructive",
+    color: getBorderColorByEstado("RECHAZADO")
   },
   "ALERTA": {
-    icon: <ShieldAlert className="h-4 w-4 text-amber-500" />,
+    icon: makeIcon(ShieldAlert, "ALERTA"),
     variant: "secondary",
-    color: "border-amber-500"
+    color: getBorderColorByEstado("ALERTA")
   }
 };
 
-// Configuración por defecto
 const ESTADO_DEFAULT: EstadoConfig = {
-  icon: <AlertCircle className="h-4 w-4 text-gray-500" />,
+  icon: makeIcon(AlertCircle, "DEFAULT"),
   variant: "outline",
-  color: "border-gray-500"
+  color: getBorderColorByEstado("DEFAULT")
 };
+
+export { ESTADOS_CONFIG, ESTADO_DEFAULT };
+
 
 // Props del componente
 export interface EstadoBadgeProps {
@@ -116,39 +124,32 @@ export interface EstadoBadgeProps {
  * @param props.variant - Variante personalizada del Badge (opcional)
  * @returns Badge con ícono y texto del estado
  */
+
 export default function EstadoBadge({ 
   estado, 
   className = "",
   icon,
   variant
 }: EstadoBadgeProps): React.JSX.Element {
-  // Normalizar el estado (convertir a mayúsculas y reemplazar espacios por guiones bajos)
   const estadoNormalizado = typeof estado === 'string' 
     ? estado.toUpperCase().replace(/\s+/g, '_') as EstadoKey
     : '' as EstadoKey;
 
-  // Obtener la configuración para el estado o usar la configuración por defecto
   const config = ESTADOS_CONFIG[estadoNormalizado] || ESTADO_DEFAULT;
-  
-  // Usar los valores proporcionados o los de la configuración
+
   const iconoFinal = icon || config.icon;
   const varianteFinal = variant || config.variant;
-  
-  // Formatear el texto del estado para mostrarlo (convertir guiones bajos a espacios)
+
   const textoEstado = estadoNormalizado.replace(/_/g, ' ');
+  const bgColor = getBgColorByEstado(estado);
 
   return (
-    <Badge 
+    <Badge
       variant={varianteFinal} 
-      className={`flex items-center gap-1 ${className}`}
+      className={`flex items-center gap-1 text-white ${bgColor} ${className}`}
     >
       {iconoFinal}
       {textoEstado}
     </Badge>
   );
 }
-
-// Ejemplo de uso:
-// <EstadoBadge estado="PENDIENTE" />
-// <EstadoBadge estado="entregado" /> // También funciona con minúsculas
-// <EstadoBadge estado="En Espera" /> // También funciona con espacios

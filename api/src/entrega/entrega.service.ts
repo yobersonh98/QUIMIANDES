@@ -439,6 +439,7 @@ export class EntregaService {
         fechaEntrega: true,
         pedido: {
           select: {
+            codigo:true,
             id: true,
             estado: true,
             fechaRecibido: true,

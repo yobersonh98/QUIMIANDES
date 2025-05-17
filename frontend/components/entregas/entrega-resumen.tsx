@@ -4,12 +4,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Separator } from "@/components/ui/separator"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { FileText, Truck, User } from "lucide-react"
 import { EntregaEntity } from "@/services/entrega-pedido/entities/entrega.entity"
 import { formatearFecha } from "@/lib/utils"
+import EstadoBadge from "../shared/estado-badge"
 
 interface EntregaResumenProps {
   entrega: EntregaEntity
@@ -29,11 +29,6 @@ export default function EntregaResumen({
       onChange({ ...entrega, remision: value })
     }
   }
-  // const onChangeObservaciones = (value: string) => {
-  //   if (onChange) {
-  //     onChange({ ...entrega, observaciones: value })
-  //   }
-  // }
   return (
     <Card>
       <CardHeader>
@@ -45,7 +40,7 @@ export default function EntregaResumen({
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">Pedido:</span> {entrega.pedidoId}
+            <span className="font-medium">Pedido:</span> {entrega.pedido?.codigo}
           </div>
           <div className="flex items-center gap-2">
             <User className="h-4 w-4 text-muted-foreground" />
@@ -102,7 +97,7 @@ export default function EntregaResumen({
         <div>
           <Label>Estado Actual</Label>
           <div className="mt-2">
-            <Badge variant={entrega.estado === "PENDIENTE" ? "default" : "outline"}>{entrega.estado}</Badge>
+            <EstadoBadge estado={entrega.estado}/>
           </div>
         </div>
 

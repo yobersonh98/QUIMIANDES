@@ -6,6 +6,7 @@ import { PedidoDataTable } from "@/services/pedidos/entity/pedido.entity";
 import { ColumnDef } from "@tanstack/react-table";
 import { PackageCheck } from "lucide-react";
 import { TruncatedTextWithTooltip } from "../shared/trunkated-tooltip";
+import EstadoBadge from "../shared/estado-badge";
 
 export const PedidoColumns: ColumnDef<PedidoDataTable>[] = [
   {header: 'Código',
@@ -22,7 +23,12 @@ export const PedidoColumns: ColumnDef<PedidoDataTable>[] = [
   },
   {
     header: "Estado",
-    accessorKey: "estado"
+    accessorKey: "estado",
+    cell: (cell) => (
+      <EstadoBadge 
+        estado={cell.cell.row.original.estado || ''}  
+      />
+    )
   },
   { header: "Fecha Pedido",
     accessorKey:'fechaRecibido',

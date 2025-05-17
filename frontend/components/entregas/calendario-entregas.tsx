@@ -10,35 +10,24 @@ import { Truck } from "lucide-react"
 import { EntregaListadoItemEntity } from "@/services/entrega-pedido/entities/listado-entrega-item.entity"
 import CardEntregaInfo from "./card-entrega-info"
 import Link from "next/link"
-type HandleSelectEvent = ((event: {
+import { getHexColorByEstado } from "@/lib/utils"
+
+// Configurar moment en español
+moment.locale("es")
+const localizer = momentLocalizer(moment)
+
+type CalendarEvent = {
   id: string;
   title: string;
   start: Date;
   end: Date;
   resource: EntregaListadoItemEntity;
-}, e: React.SyntheticEvent<HTMLElement>) => void) | undefined
-
-type CalendarEvent = {
-    id: string;
-    title: string;
-    start: Date;
-    end: Date;
-    resource: EntregaListadoItemEntity;
-}
-// Configurar el localizador para español
-moment.locale("es")
-const localizer = momentLocalizer(moment)
-
-// Mapeo de estados a colores
-const estadoColors = {
-  PENDIENTE: "bg-yellow-500",
-  EN_TRANSITO: "bg-blue-500",
-  PARCIAL: "bg-orange-500",
-  ENTREGADO: "bg-green-500",
-  CANCELADO: "bg-red-500",
+  allDay?: boolean;
 }
 
-// Mensajes en español para el calendario
+type HandleSelectEvent = ((event: CalendarEvent, e: React.SyntheticEvent<HTMLElement>) => void) | undefined
+
+
 const messages = {
   allDay: "Todo el día",
   previous: "Anterior",
@@ -65,37 +54,41 @@ export default function CalendarioEntregas({ entregas }: CalendarioEntregasProps
   const [view, setView] = useState<View>("month")
   const [date, setDate] = useState(new Date())
 
-  // Convertir las entregas al formato que espera el calendario
   const events: CalendarEvent[] = useMemo(() => {
-    return entregas.map((entrega) => ({
-      id: entrega.id,
-      title: `${entrega.codigo} - ${entrega.pedido.cliente.nombre}`,
-      start: entrega.fechaEntrega ? new Date(entrega.fechaEntrega) : new Date(entrega.fechaCreacion),
-      end: entrega.fechaEntrega ? new Date(entrega.fechaEntrega) : new Date(entrega.fechaCreacion),
-      resource: entrega,
-    }))
+    return entregas.map((entrega) => {
+      const fecha = entrega.fechaEntrega ? new Date(entrega.fechaEntrega) : new Date(entrega.fechaCreacion)
+      const fechaNormalizada = new Date(fecha.setHours(0, 0, 0, 0))
+
+      return {
+        id: entrega.id,
+        title: `${entrega.codigo} - ${entrega.pedido.cliente.nombre}`,
+        start: fechaNormalizada,
+        end: fechaNormalizada,
+        resource: entrega,
+        allDay: true,
+      }
+    })
   }, [entregas])
 
-  // Función para manejar el clic en un evento
   const handleSelectEvent: HandleSelectEvent = (event) => {
     setSelectedEntrega(event.resource)
     setIsModalOpen(true)
   }
 
-  // Personalizar el estilo de los eventos según el estado
   const eventStyleGetter = (event: CalendarEvent) => {
     const estado = event.resource.estado
-    const backgroundColor = estado in estadoColors ? estadoColors[estado as keyof typeof estadoColors] : "bg-gray-500"
-
+    const backgroundColor = getHexColorByEstado(estado)
     return {
-      className: `${backgroundColor} text-white rounded-md px-2 py-1`,
       style: {
+        backgroundColor,
+        color: "#fff",
         borderRadius: "4px",
+        padding: "2px 6px",
       },
     }
   }
+  
 
-  // Manejadores de navegación y vistas
   const onNavigate = (newDate: Date) => {
     setDate(newDate)
   }
@@ -103,8 +96,10 @@ export default function CalendarioEntregas({ entregas }: CalendarioEntregasProps
   const onView = (newView: View) => {
     setView(newView)
   }
-  const esPediente = selectedEntrega?.estado === "PENDIENTE"
+
+  const esPendiente = selectedEntrega?.estado === "PENDIENTE"
   const esEnTransito = selectedEntrega?.estado === "EN_TRANSITO"
+
   return (
     <div className="h-[700px] flex flex-col">
       <Calendar
@@ -115,7 +110,7 @@ export default function CalendarioEntregas({ entregas }: CalendarioEntregasProps
         style={{ height: "100%" }}
         onSelectEvent={handleSelectEvent}
         eventPropGetter={eventStyleGetter}
-        views={["month", "week", "day", "agenda"]}
+        views={["month", "agenda"]}
         messages={messages}
         date={date}
         view={view}
@@ -136,6 +131,7 @@ export default function CalendarioEntregas({ entregas }: CalendarioEntregasProps
                   Entrega {selectedEntrega.codigo}
                 </DialogTitle>
               </DialogHeader>
+
               <CardEntregaInfo
                 showTitle={false}
                 codigo={selectedEntrega.codigo}
@@ -168,28 +164,26 @@ export default function CalendarioEntregas({ entregas }: CalendarioEntregasProps
                 mostrarProductos
               />
 
-
               <DialogFooter className="mt-4">
                 <Button variant="outline" onClick={() => setIsModalOpen(false)}>
                   Cerrar
                 </Button>
 
-                {esPediente && (
-                    <Link href={`/dashboard/pedidos/${selectedEntrega.pedidoId}/gestionar/entregas/${selectedEntrega.id}/despacho`}>
-                      <Button>
-                        Confirmar Despacho
-                      </Button>
-                    </Link>
-                  )}
+                {esPendiente && (
+                  <Link href={`/dashboard/pedidos/${selectedEntrega.pedidoId}/gestionar/entregas/${selectedEntrega.id}/despacho`}>
+                    <Button>
+                      Confirmar Despacho
+                    </Button>
+                  </Link>
+                )}
 
-                  {esEnTransito && (
-                    <Link href={`/dashboard/pedidos/${selectedEntrega.pedidoId}/gestionar/entregas/${selectedEntrega.id}/finalizar-entrega`}>
-                      <Button>
-                        Finalizar Entrega
-                      </Button>
-                    </Link>
-                  )}
-
+                {esEnTransito && (
+                  <Link href={`/dashboard/pedidos/${selectedEntrega.pedidoId}/gestionar/entregas/${selectedEntrega.id}/finalizar-entrega`}>
+                    <Button>
+                      Finalizar Entrega
+                    </Button>
+                  </Link>
+                )}
               </DialogFooter>
             </>
           )}

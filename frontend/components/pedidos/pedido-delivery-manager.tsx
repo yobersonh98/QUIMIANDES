@@ -18,6 +18,7 @@ import RefreshPage from "@/actions/refresh-page"
 import PedidoInfoBasica from "./peido-info-basica"
 import { ProductsList } from "./products-list"
 import { DeliveryHistory } from "./delivery-history"
+import { cn, getBaseColorByEstado, getBgColorByEstado } from "@/lib/utils"
 
 type OrderDeliveryManagerProps = {
   pedido: PedidoEntity
@@ -164,20 +165,20 @@ export function OrderDeliveryManager({ pedido }: OrderDeliveryManagerProps) {
             <DeliveryStatCard
               label="Entregados"
               value={deliveryStats.delivered}
-              className="bg-green-50 dark:bg-green-900/20"
-              textColor="text-green-600 dark:text-green-400"
+              className={cn(getBgColorByEstado('ENTREGADO', 50))}
+              textColor={`text-${getBaseColorByEstado('ENTREGADO')}-600`}
             />
             <DeliveryStatCard
               label="Parciales"
               value={deliveryStats.partial}
-              className="bg-yellow-50 dark:bg-yellow-900/20"
-              textColor="text-yellow-600 dark:text-yellow-400"
+              className={cn(getBgColorByEstado('PARCIAL', 50))}
+              textColor={`text-${getBaseColorByEstado('PARCIAL')}-600 `}
             />
             <DeliveryStatCard
               label="Pendientes"
               value={deliveryStats.pending}
-              className="bg-blue-50 dark:bg-blue-900/20"
-              textColor="text-blue-600 dark:text-blue-400"
+              className={cn(getBgColorByEstado('PENDIENTE', 50))}
+              textColor={`text-${getBaseColorByEstado('PENDIENTE')}-600`}
             />
           </div>
 

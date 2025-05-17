@@ -38,3 +38,81 @@ export const formatearFecha = (date: Date | string | undefined) => {
 export const calcularPorcentaje = (cantidadTotal: number, cantidad: number) => {
   return Math.min(Math.round((cantidad / cantidadTotal) * 100), 100)
 }
+
+
+// utils/estadoColors.ts
+// utils/estadoColors.ts
+
+// 1. Devuelve solo el color base (sin intensidad)
+export function getBaseColorByEstado(estado: string): string {
+  const normalized = estado.toUpperCase().replace(/\s+/g, '_');
+
+  switch (normalized) {
+    case 'ENTREGADO':
+    case 'APROBADO':
+      return 'green';
+    case 'PENDIENTE':
+    case 'EN_ESPERA':
+      return 'yellow';
+    case 'EN_TRANSITO':
+    case 'PARCIAL':
+    case 'PROCESANDO':
+      return 'blue';
+    case 'CANCELADO':
+    case 'RECHAZADO':
+      return 'red';
+    case 'ALERTA':
+      return 'amber';
+    case 'EN_PROCESO':
+      return  'blue';
+    default:
+      return 'gray';
+  }
+}
+// 5. Retorna el color hexadecimal por estado (intensidad 500 por defecto)
+export function getHexColorByEstado(estado: string): string {
+  const normalized = estado.toUpperCase().replace(/\s+/g, '_');
+
+  switch (normalized) {
+    case 'ENTREGADO':
+    case 'APROBADO':
+      return '#22c55e'; // green-500
+    case 'PENDIENTE':
+    case 'EN_ESPERA':
+      return '#eab308'; // yellow-500
+    case 'EN_TRANSITO':
+    case 'PARCIAL':
+    case 'PROCESANDO':
+    case 'EN_PROCESO':
+      return '#3b82f6'; // blue-500
+    case 'CANCELADO':
+    case 'RECHAZADO':
+      return '#ef4444'; // red-500
+    case 'ALERTA':
+      return '#f59e0b'; // amber-500
+    default:
+      return '#6b7280'; // gray-500
+  }
+}
+
+// 2. Color con intensidad (por defecto 500)
+export function getRawColorByEstado(estado: string, intensity: number = 500): string {
+  const baseColor = getBaseColorByEstado(estado);
+  return `${baseColor}-${intensity}`;
+}
+
+// 3. Background class
+export function getBgColorByEstado(estado: string, intensity: number = 500): string {
+  const color = getRawColorByEstado(estado, intensity);
+  return `bg-${color}`;
+}
+
+// 4. Border class (opcional lado: 't', 'b', 'l', 'r')
+export function getBorderColorByEstado(
+  estado: string, 
+  side?: 't' | 'b' | 'l' | 'r', 
+  intensity: number = 500
+): string {
+  const color = getRawColorByEstado(estado, intensity);
+  return side ? `border-${side}-${color}` : `border-${color}`;
+}
