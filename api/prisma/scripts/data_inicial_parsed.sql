@@ -1178,5 +1178,9 @@ INSERT INTO "Municipio" ("id", "nombre", "estado", "idDepartamento")
   (gen_random_uuid(), 'Tarro', NULL),
   (gen_random_uuid(), 'Balde', NULL),
   (gen_random_uuid(), 'Rollo', NULL),
-  (gen_random_uuid(), 'Garrafa', NULL);
-
+  (gen_random_uuid(), 'Garrafa', NULL),
+  (gen_random_uuid(), 'Contenedor de Cloro 900 kg', null),
+  (gen_random_uuid(), 'Contenedor de Cloro 1000 kg', null),
+  (gen_random_uuid(), 'Cilindro de Cloro 68 kg', null),
+  (gen_random_uuid(), 'Cilindro de Cloro 60 kg', null);
+  
