@@ -18,7 +18,7 @@ const formatPrice = (price: number) => {
 
 export default function ProductoInfo({ producto }: { producto: ProductoEntity }) {
   const getUnitLabel = (unit: UnidadMedida) => {
-    const unitMap: Record<UnidadMedida, string> = {
+    const unitMap: Record<string, string> = {
       UND: "Unidades",
       MG: "Miligramos",
       GR: "Gramos",

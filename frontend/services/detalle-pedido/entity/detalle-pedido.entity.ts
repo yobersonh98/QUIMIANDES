@@ -1,6 +1,6 @@
 import { EntregaProdcutoEntity } from "@/services/entrega-pedido/entities/entrega-producto.entity";
 import { LugarEntregaEntity } from "@/services/lugares-entrega/entity/lugar-entrega.entity";
-import { UnidadMedida } from "@/types/unidades";
+import { UnidadMedida } from "@/services/productos/entities/producto.entity";
 
 export type EstadoDetallePedido = 
   | "PENDIENTE"
