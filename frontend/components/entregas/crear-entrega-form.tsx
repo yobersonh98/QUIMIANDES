@@ -99,8 +99,8 @@ export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
 
     router.back();
   }
-  const hayProductosProgramdas = form.getValues().productos.filter(p => p.cantidadDespachar > 0 && p.incluir)?.length > 0
-  const hayProductosPorProgramar = form.getValues().productos.filter(p => p.cantidadDespachar > 0)?.length > 0
+  const hayProductosProgramdas = form.getValues().productos.filter(p => p.cantidadDespachar >= 0 && p.incluir)?.length > 0
+  const hayProductosPorProgramar = form.getValues().productos.filter(p => p.cantidadDespachar >= 0)?.length > 0
   const handleSubmit = async () => {
     if (!hayProductosProgramdas) {
       toast.toast({
