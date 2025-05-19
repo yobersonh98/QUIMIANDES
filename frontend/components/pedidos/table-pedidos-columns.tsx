@@ -52,7 +52,6 @@ export const PedidoColumns: ColumnDef<PedidoDataTable>[] = [
       const detallesPedido = cell.row.original.detallesPedido
       const direccionPrincipalCliente = cell.row.original.cliente?.direccion
       const lugares = detallesPedido?.map((detalle) => obtenerLugarEntregaDetallePedido(detalle)).join(" / ")
-      console.log('lugares', lugares)
       return <TruncatedTextWithTooltip text={lugares || direccionPrincipalCliente || '-'} />
     },
   },
