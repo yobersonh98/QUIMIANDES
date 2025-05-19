@@ -18,6 +18,10 @@ export const ClientesColumns: ColumnDef<ClienteEntity>[] = [
     accessorKey: "direccion",
   },
   {
+    header: "Contacto Principal",
+    accessorKey: "contactoPrincipal",
+  },
+  {
     header: "Teléfono",
     accessorKey: "telefono",
   },

@@ -58,61 +58,132 @@ export class PedidoService {
    * @param listarPedidoDto dto para listar los pedidos
    * @returns  retorna un objeto con los pedidos paginados
    */
+  // async findAll(listarPedidoDto: ListarPedidoDto) {
+  //   const estado = getEnumValueOrUndefined(EstadoPedido, listarPedidoDto.estado);
+  //   const response = await this.paginationService.paginateGeneric({
+  //     model: 'Pedido',
+  //     pagination: listarPedidoDto,
+  //     args: {
+  //       where: {
+  //         estado,
+  //         OR: [
+  //           { cliente: { nombre: { contains: listarPedidoDto.search, mode: 'insensitive' } } },
+  //           { id: { contains: listarPedidoDto.search, mode: 'insensitive' } },
+  //           { ordenCompra: { contains: listarPedidoDto.search, mode: 'insensitive' } },
+  //         ]
+  //       },
+  //       select: {
+  //         id: true,
+  //         estado: true,
+  //         codigo: true,
+  //         cliente: {
+  //           select: {
+  //             nombre: true
+  //           }
+  //         },
+  //         fechaRecibido: true,
+  //         idCliente: true,
+  //         detallesPedido: {
+  //           select: {
+  //             lugarEntrega: {
+  //               select: {
+  //                 nombre: true,
+  //                 direccion: true,
+  //                 ciudad: {
+  //                   select: {
+  //                     id: true,
+  //                     nombre: true
+  //                   }
+  //                 }
+  //               }
+  //             }
+  //           }
+  //         },
+  //         ordenCompra: true,
+  //         _count: {
+  //           select: {
+  //             detallesPedido: true,
+  //           }
+  //         }
+  //       },
+  //       orderBy: {
+  //         fechaRecibido: 'desc'
+  //       }
+  //     }
+  //   })
+  //   return response;
+  // }
+
   async findAll(listarPedidoDto: ListarPedidoDto) {
-    const estado = getEnumValueOrUndefined(EstadoPedido, listarPedidoDto.estado);
-    const response = await this.paginationService.paginateGeneric({
-      model: 'Pedido',
-      pagination: listarPedidoDto,
-      args: {
-        where: {
-          estado,
-          OR: [
-            { cliente: { nombre: { contains: listarPedidoDto.search, mode: 'insensitive' } } },
-            { id: { contains: listarPedidoDto.search, mode: 'insensitive' } },
-            { ordenCompra: { contains: listarPedidoDto.search, mode: 'insensitive' } },
-          ]
+  const estado = getEnumValueOrUndefined(EstadoPedido, listarPedidoDto.estado);
+  const response = await this.paginationService.paginateGeneric({
+    model: 'Pedido',
+    pagination: listarPedidoDto,
+    args: {
+      where: {
+        estado,
+        OR: [
+          { cliente: { nombre: { contains: listarPedidoDto.search, mode: 'insensitive' } } },
+          { id: { contains: listarPedidoDto.search, mode: 'insensitive' } },
+          { ordenCompra: { contains: listarPedidoDto.search, mode: 'insensitive' } },
+        ]
+      },
+      select: {
+        id: true,
+        estado: true,
+        codigo: true,
+        cliente: {
+          select: {
+            nombre: true,
+            direccion: true
+          }
         },
-        select: {
-          id: true,
-          estado: true,
-          codigo: true,
-          cliente: {
-            select: {
-              nombre: true
-            }
-          },
-          fechaRecibido: true,
-          idCliente: true,
-          detallesPedido: {
-            select: {
-              lugarEntrega: {
-                select: {
-                  nombre: true,
-                  direccion: true,
-                  ciudad: {
-                    select: {
-                      id: true,
-                      nombre: true
-                    }
+        fechaRecibido: true,
+        idCliente: true,
+        detallesPedido: {
+          select: {
+            id: true,
+            codigo: true,
+            estado: true,
+            cantidad: true,
+            cantidadDespachada: true,
+            cantidadEntregada: true,
+            fechaEntrega: true,
+            producto: {
+              select: {
+                id: true,
+                nombre: true,
+                unidadMedida: true
+              }
+            },
+            lugarEntrega: {
+              select: {
+                nombre: true,
+                direccion: true,
+                ciudad: {
+                  select: {
+                    id: true,
+                    nombre: true
                   }
                 }
               }
             }
-          },
-          ordenCompra: true,
-          _count: {
-            select: {
-              detallesPedido: true,
-            }
           }
         },
-        orderBy: {
-          fechaRecibido: 'desc'
+        ordenCompra: true,
+        _count: {
+          select: {
+            detallesPedido: true,
+          }
         }
+      },
+      orderBy: {
+        fechaRecibido: 'desc'
       }
-    })
-    return response;
-  }
+    }
+  });
+  return response;
+}
 
   async findOne(id: string) {
     const pedido = await this.prisma.pedido.findUnique({

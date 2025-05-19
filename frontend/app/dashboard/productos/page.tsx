@@ -7,7 +7,6 @@ import React from 'react'
 
 export default async function Productos(props: PageProps<PaginationSearchParamsPage>) {
   const searchParams = await props.searchParams
-  console.log('searchParams', searchParams)
   return (
     <div>
       <div className="flex justify-between my-4 font-bold">

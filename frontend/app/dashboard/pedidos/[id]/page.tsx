@@ -1,4 +1,4 @@
-import PedidoInfoBasica from "@/components/pedidos/peido-info-basica"
+import PedidoInfoBasica from "@/components/pedidos/pedido-info-basica"
 import TableDetallesPedidos from "@/components/pedidos/table-detalles-pedido"
 import BackButtonLayout from "@/components/shared/back-button-layout"
 import { Button } from "@/components/ui/button"

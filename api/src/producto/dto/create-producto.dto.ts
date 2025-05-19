@@ -1,5 +1,5 @@
 import { UnidadMedida } from '@prisma/client';
-import { IsString, IsNumber } from 'class-validator';
+import { IsString, IsNumber, IsPositive } from 'class-validator';
 
 export class CreateProductoDto {
   @IsString()
@@ -12,6 +12,7 @@ export class CreateProductoDto {
   unidadMedida: UnidadMedida;
 
   @IsNumber()
+  @IsPositive()
   pesoVolumen: number;
 
   @IsNumber()
@@ -22,4 +23,6 @@ export class CreateProductoDto {
 
   @IsString()
   idPresentacion: string;
+
+  
 }

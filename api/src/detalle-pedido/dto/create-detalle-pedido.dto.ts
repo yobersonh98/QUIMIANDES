@@ -1,5 +1,5 @@
 import { TipoEntregaProducto } from '@prisma/client';
-import { IsString, IsInt, IsNumber, IsDateString, IsOptional, IsNotEmpty, Min } from 'class-validator';
+import { IsString, IsInt, IsNumber, IsDateString, IsOptional, IsNotEmpty, Min, IsPositive } from 'class-validator';
 
 export class CreateDetallePedidoDto {
   @IsString()
@@ -19,6 +19,10 @@ export class CreateDetallePedidoDto {
   @IsNumber()
   @Min(1)
   cantidad: number;
+
+  @IsNumber()
+  @IsPositive()
+  pesoTotal: number;
 
   @IsString()
   lugarEntregaId: string;

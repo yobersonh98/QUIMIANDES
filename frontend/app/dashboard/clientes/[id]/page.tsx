@@ -18,9 +18,12 @@ export default async function ClientePage(props: PageProps<PaginationSearchParam
         nombre: data.nombre,
         documento: data.documento,
         direccion: data.direccion,
+        contactoPrincipal: data.contactoPrincipal,
+        contactoPagos: data.contactoPagos,
         telefono: data.telefono,
+        telefonoPagos: data.telefonoPagos,
         email: data.email,
-         tipoDocumento: data.tipoDocumento,
+        tipoDocumento: data.tipoDocumento,
         idMunicipio: data.idMunicipio,
         zone: data.zonaBarrio,
         municipio: data.municipio?.nombre
@@ -30,7 +33,8 @@ export default async function ClientePage(props: PageProps<PaginationSearchParam
           nombre: lugar.nombre,
           ciudad: lugar.ciudad?.nombre,
           direccion: lugar.direccion,
-          contacto: lugar.contacto
+          contacto: lugar.contacto,
+          telefonoEntregas: lugar.telefonoEntregas
         })) || []
       }
       />

@@ -4,4 +4,5 @@ export interface CrearLugarEntregaModel {
   idCiudad: string;
   direccion: string;
   contacto: string;
+  telefonoEntregas: string;
 }

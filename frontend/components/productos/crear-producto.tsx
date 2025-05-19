@@ -30,7 +30,12 @@ export default function CrearProducto() {
       })
       router.back()
     } catch (error) {
-      console.log(error)
+      console.error("Error al crear producto:", error)
+      toast({
+        title: 'Error',
+        description: 'Ocurrio un error al crear el producto',
+        variant: "destructive"
+      })
     }
   }
   return (

@@ -10,34 +10,31 @@ export default function DashboardPage() {
   const [animateIn, setAnimateIn] = useState(false);
 
   useEffect(() => {
-    // Configurar saludo según la hora del día
     const hour = new Date().getHours();
     if (hour < 12) setGreeting("Buenos días");
     else if (hour < 18) setGreeting("Buenas tardes");
     else setGreeting("Buenas noches");
 
-    // Configurar fecha y hora
     const updateDateTime = () => {
       const now = new Date();
-      const options = { 
-        weekday: "long" as const, 
-        year: "numeric" as const, 
-        month: "long" as const, 
-        day: "numeric" as const 
+      const options = {
+        weekday: "long" as const,
+        year: "numeric" as const,
+        month: "long" as const,
+        day: "numeric" as const,
       };
-      setCurrentDate(now.toLocaleDateString('es-CO', options));
-      
-      const timeOptions = { 
-        hour: "2-digit" as const, 
-        minute: "2-digit" as const 
+      setCurrentDate(now.toLocaleDateString("es-CO", options));
+
+      const timeOptions = {
+        hour: "2-digit" as const,
+        minute: "2-digit" as const,
       };
-      setCurrentTime(now.toLocaleTimeString('es-CO', timeOptions));
+      setCurrentTime(now.toLocaleTimeString("es-CO", timeOptions));
     };
 
     updateDateTime();
     const interval = setInterval(updateDateTime, 60000);
-    
-    // Animación de entrada
+
     setTimeout(() => {
       setAnimateIn(true);
     }, 300);
@@ -46,8 +43,12 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div className="flex h-screen w-full items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800 p-4">
-      <div className={`flex flex-col items-center text-center transition-all duration-1000 ${animateIn ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+    <div className="flex h-screen w-full items-center justify-center p-4">
+      <div
+        className={`flex flex-col items-center text-center transition-all duration-1000 ${
+          animateIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+        }`}
+      >
         {/* Logo animado */}
         <div className="mb-8">
           <div className="relative">
@@ -78,23 +79,6 @@ export default function DashboardPage() {
         <div className="mt-4 flex flex-col items-center text-gray-600 dark:text-gray-300">
           <p className="text-lg font-medium">{currentDate}</p>
           <p className="text-xl font-semibold">{currentTime}</p>
-        </div>
-
-        {/* Partículas decorativas */}
-        <div className="absolute -z-10 opacity-20">
-          {[...Array(6)].map((_, i) => (
-            <div 
-              key={i}
-              className="absolute rounded-full bg-blue-600 dark:bg-blue-400"
-              style={{
-                width: `${Math.random() * 12 + 4}px`,
-                height: `${Math.random() * 12 + 4}px`,
-                top: `${Math.random() * 400 - 200}px`,
-                left: `${Math.random() * 400 - 200}px`,
-                opacity: Math.random() * 0.5 + 0.3
-              }}
-            />
-          ))}
         </div>
       </div>
     </div>

@@ -33,7 +33,6 @@ export function CustomFormInput({
   description,
   required
 }: CustomFormInputProps) {
-  console.log(control)
   return (
     <FormField
       control={control}

@@ -1,37 +1,14 @@
-import { PedidoService } from '@/services/pedidos/pedido.service'
-import { PaginationSearchParamsPage } from '@/types/pagination'
-import React from 'react'
-import { DataTable } from '../data_table/data_table';
-import { PedidoColumns } from './table-pedidos-columns';
+import { PedidoService } from "@/services/pedidos/pedido.service"
+import type { PaginationSearchParamsPage } from "@/types/pagination"
+import { ClientTablePedidos } from "./client-table-pedidos"
 
 export default async function TablePedidos(paginationDto: PaginationSearchParamsPage) {
-  const response = await PedidoService.getServerIntance().listar(paginationDto);
+  const response = await PedidoService.getServerIntance().listar(paginationDto)
+  
   if (!response.data) {
-    return (
-      <div>
-        No se encontraron pedidos
-      </div>
-    )
+    return <div>No se encontraron pedidos</div>
   }
-  const pedidos = response.data.data;
-  return (
-    <DataTable
-      columns={PedidoColumns}
-      data={pedidos}
-      isShowSearchInput={true}
-      pagination={response.data.meta}
-      columnToVariantFilter={{
-        'keyToVariant': 'estado',
-        'isSearchParam': true,
-        'title': 'Estado',
-        variants: [
-          { value: 'TODOS', label: 'Todos' },
-          { value: 'PENDIENTE', label: 'Pendiente' },
-          { value: 'ENTREGADO', label: 'Entregado' },
-          { value: 'EN_PROCESO', label: 'En proceso' },
-          { value: 'CANCELADO', label: 'Cancelado' },
-        ]
-      }}
-    />
-  )
+  const pedidos = response.data.data
+
+  return <ClientTablePedidos data={pedidos} pagination={response.data.meta} />
 }

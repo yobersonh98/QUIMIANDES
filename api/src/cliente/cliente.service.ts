@@ -81,7 +81,10 @@ export class ClienteService {
       tipoDocumento,
       idMunicipio,
       email,
+      contactoPrincipal,
       telefono,
+      contactoPagos,
+      telefonoPagos,
       zonaBarrio,
       lugaresEntrega,
       idLugaresEntregaEliminar,
@@ -107,7 +110,10 @@ export class ClienteService {
           tipoDocumento,
           idMunicipio,
           email,
+          contactoPrincipal,
           telefono,
+          contactoPagos,
+          telefonoPagos,
           zonaBarrio,
           lugaresEntrega: {
             createMany: lugaresEntregaAcrear.length

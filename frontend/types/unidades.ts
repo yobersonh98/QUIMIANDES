@@ -1,0 +1,1 @@
+export type UnidadMedida ="UND" | "KG" | "L" | "M3" | "M2"

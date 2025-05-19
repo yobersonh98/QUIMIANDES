@@ -18,7 +18,7 @@ import { Loader2 } from "lucide-react"
 interface ConfirmButtonProps extends ButtonProps {
   onClick: () => void | Promise<void>
   title?: string
-  description?: string
+  description?: React.ReactNode
   confirmText?: string
   cancelText?: string
   children: React.ReactNode
@@ -26,8 +26,12 @@ interface ConfirmButtonProps extends ButtonProps {
 
 export function ConfirmButton({
   onClick,
-  title = "Comfirmar Acción",
-  description = "¿Está seguro de realizar esta acción?",
+  title = "Confirmar Acción",
+  description = (
+    <>
+      ¿Está seguro de realizar esta acción?
+    </>
+  ),
   confirmText = "Confirmar",
   cancelText = "Cancelar",
   children,

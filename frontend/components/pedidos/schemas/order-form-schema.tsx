@@ -1,5 +1,5 @@
+import * as z from "zod";
 
-import * as z from "zod"
 export const OrderFormSchema = z.object({
   idCliente: z.string({
     required_error: "Por favor seleccione un cliente",
@@ -23,7 +23,9 @@ export const OrderFormSchema = z.object({
           required_error: "Por favor seleccione un producto",
         }),
         cantidad: z.string({
-          message: 'La cantidad deben purso numeros'
+          required_error: "La cantidad es requerida",
+        }).refine(val => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
+          message: "La cantidad debe ser un número válido mayor a 0"
         }),
         fechaEntrega: z.date({
           required_error: "Por favor seleccione una fecha de requerimiento",
@@ -31,11 +33,13 @@ export const OrderFormSchema = z.object({
         tipoEntrega: z.string({
           required_error: "Por favor seleccione el tipo de entrega",
         }),
-        lugarEntregaId: z.string().optional()
-      }),
+        lugarEntregaId: z.string().optional(),
+        pesoTotal: z.number({
+          required_error: "El peso total es requerido",
+        }).min(0, "El peso total no puede ser negativo")
+      })
     )
     .min(1, "Debe agregar al menos un producto"),
-})
+});
 
-
-export type OrderFormValues = z.infer<typeof OrderFormSchema>
+export type OrderFormValues = z.infer<typeof OrderFormSchema>;

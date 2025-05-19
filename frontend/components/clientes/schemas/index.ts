@@ -7,7 +7,10 @@ export const clientFormSchema = z.object({
   address: z.string().min(1, { message: "La dirección es requerida." }),
   zone: z.string().optional(),
   email: z.string().email({ message: "Ingrese un correo electrónico válido." }),
-  phone: z.string().min(1, { message: "El teléfono es requerido." }),
+  mainContact: z.string().min(1, { message: "El contacto es requerido." }),
+  mainPhone: z.string().min(1, { message: "El teléfono es requerido." }),
+  contactPayment: z.string().optional(),
+  phonePayment: z.string().optional(),
   idMunicipio: z.string().min(1, { message: 'El municipio es requerido' }),
 })
 
@@ -16,4 +19,5 @@ export const deliveryLocationSchema = z.object({
   idCiudad: z.string().min(1, { message: "La ciudad es requerida" }),
   direccion: z.string().min(1, { message: "La dirección es requerida" }),
   contacto: z.string().min(1, { message: "El contacto es requerido" }),
+  telefonoEntregas: z.string().min(1, { message: "El teléfono es requerido" }),
 })

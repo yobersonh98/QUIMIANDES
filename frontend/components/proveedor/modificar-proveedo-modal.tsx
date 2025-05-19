@@ -35,7 +35,6 @@ export function ModificarProveedorModal({ proveedor }: ModificarProveedorModalPr
         ...dataForm,
         id: proveedor.id,
       })
-      console.log(data)
       if (error) {
          toast.toast({
           title: "Error al modificar proveedor",

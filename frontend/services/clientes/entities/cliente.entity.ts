@@ -23,7 +23,10 @@ export interface ClienteEntity {
   idMunicipio: string
 
   email?: string
+  contactoPrincipal?: string
+  contactoPagos?: string
   telefono?: string
+  telefonoPagos?: string
 
   lugaresEntrega?: LugarEntregaEntity[]
 

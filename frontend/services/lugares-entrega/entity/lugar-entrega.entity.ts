@@ -5,6 +5,7 @@ export interface LugarEntregaEntity {
   nombre: string
   direccion: string
   contacto: string
+  telefonoEntregas: string
   idCiudad: string
   clienteId: string
 
