@@ -89,7 +89,6 @@ export class ClienteService {
       lugaresEntrega,
       idLugaresEntregaEliminar,
     } = updateClienteDto;
-  
     const lugaresEntregaAcrear = lugaresEntrega.filter((lugar) => !lugar.id);
   
     return this.prisma.$transaction(async (prisma) => {

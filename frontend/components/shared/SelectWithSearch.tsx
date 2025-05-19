@@ -32,7 +32,6 @@ const SelectWithSearch = ({
   maperOptions,
   disabled,
   value,
-  defaultValue,
 }: SelectWithSearchProps) => {
   const [open, setOpen] = useState(false);
   const [options, setOptions] = useState<SelectOption[]>([]);
@@ -40,10 +39,8 @@ const SelectWithSearch = ({
   const [search, setSearch] = useState("");
   const session = useSession();
   const dropdownRef = useRef<HTMLDivElement>(null);
-
   const fetchOptions = async (searchTerm = "") => {
     if (disabled || !session?.data?.user?.token) return;
-
     setLoading(true);
     try {
       const queryParams = new URLSearchParams({ ...params, search: searchTerm });
@@ -103,12 +100,6 @@ const SelectWithSearch = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Seleccionar valor por defecto si existe
-  useEffect(() => {
-    if (defaultValue) {
-      onSelect(defaultValue);
-    }
-  }, [defaultValue]);
 
   return (
     <div className="relative" ref={dropdownRef}>

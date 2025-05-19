@@ -2,7 +2,7 @@ import React from 'react'
 
 export default function Loader() {
   return (
-    <div className="bg-foreground p-6 rounded-lg shadow-xl flex flex-col items-center max-w-sm mx-auto">
+    <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center max-w-sm mx-auto">
       <div className="flex space-x-2 mb-4">
         {[...Array(3)].map((_, i) => (
           <div
