@@ -271,7 +271,7 @@ export class PedidoService {
 
     const filterDetallesPedidosUnd = detallesPedido.filter(dp => !dp.id)
     await this.pedidoDocumentoService.crearMuchos(pedido.id, pedidoDocumentoIds)
-    const destallesPedidosParaCrear: CreateDetallePedidoDto[] = filterDetallesPedidosUnd.map(dp => ({ pedidoId: pedido.id, productoId: dp.productoId, tipoEntrega: dp.tipoEntrega, cantidad: dp.cantidad, fechaEntrega: dp.fechaEntrega, lugarEntregaId: dp.lugarEntregaId, unidades: dp.unidades }))
+    const destallesPedidosParaCrear: CreateDetallePedidoDto[] = filterDetallesPedidosUnd.map(dp => ({ pedidoId: pedido.id, productoId: dp.productoId, tipoEntrega: dp.tipoEntrega, cantidad: dp.cantidad, fechaEntrega: dp.fechaEntrega, lugarEntregaId: dp.lugarEntregaId, unidades: dp.unidades, pesoTotal: dp.pesoTotal }))
     const detallesPedidoConId = this.idGeneratorService.mapearDetallesPedidoConIdsEnCreacion(id, destallesPedidosParaCrear);
 
     const detallesPedidoSaved = await tx.detallePedido.createMany({

@@ -26,7 +26,7 @@ export const obtenerLugarEntregaDetallePedido = (detallePedido?: DetallePedidoEn
   }
   // Fallback: usar la dirección del cliente si está disponible
   const direccionCliente = detallePedido?.pedido?.cliente?.direccion?.trim();
-  return direccionCliente ? `Dirección cliente: ${direccionCliente}` : 'Lugar no definido';
+  return direccionCliente ? `Dirección cliente: ${direccionCliente}` : '';
 };
 
 

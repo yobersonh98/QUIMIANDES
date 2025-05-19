@@ -80,7 +80,7 @@ export default function TableDetallesPedidos({
         </tbody>
         <tfoot>
           <tr className="border-t bg-muted/50 font-medium">
-            <td colSpan={5} className="p-2 text-right">
+            <td colSpan={4} className="p-2 text-right">
               Totales:
             </td>
             <td className="p-2 text-center">

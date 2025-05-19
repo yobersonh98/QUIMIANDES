@@ -50,8 +50,10 @@ export const PedidoColumns: ColumnDef<PedidoDataTable>[] = [
     accessorKey: "detallesPedido",
     cell: ({ cell }) => {
       const detallesPedido = cell.row.original.detallesPedido
-      const lugares = detallesPedido?.map((detalle) => obtenerLugarEntregaDetallePedido(detalle)).join(" - ")
-      return <TruncatedTextWithTooltip text={lugares || "N/A"} />
+      const direccionPrincipalCliente = cell.row.original.cliente?.direccion
+      const lugares = detallesPedido?.map((detalle) => obtenerLugarEntregaDetallePedido(detalle)).join(" / ")
+      console.log('lugares', lugares)
+      return <TruncatedTextWithTooltip text={lugares || direccionPrincipalCliente || '-'} />
     },
   },
   {

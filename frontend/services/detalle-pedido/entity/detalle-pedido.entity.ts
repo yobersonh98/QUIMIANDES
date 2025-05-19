@@ -1,4 +1,5 @@
 import { EntregaProdcutoEntity } from "@/services/entrega-pedido/entities/entrega-producto.entity";
+import { LugarEntregaEntity } from "@/services/lugares-entrega/entity/lugar-entrega.entity";
 import { UnidadMedida } from "@/types/unidades";
 
 export type EstadoDetallePedido = 
@@ -42,14 +43,7 @@ export interface DetallePedidoEntity {
   lugarEntregaId?: string;
 
   entregasDetallePedido?: EntregaProdcutoEntity[];
-  lugarEntrega: {
-    nombre: string;
-    id: string;
-    direccion?: string;
-    ciudad: {
-      nombre: string;
-    }
-  };
+  lugarEntrega?: LugarEntregaEntity;
 
   tipoEntrega: string;
 

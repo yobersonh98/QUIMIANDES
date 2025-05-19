@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Check, MapPin, Package, CheckCircle } from "lucide-react"
+import { Check, MapPin, Package, CheckCircle, Phone, User } from "lucide-react"
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -139,6 +139,18 @@ export default function FinalizarEntrega({ entrega: initialEntrega, onSave }: Fi
                         <MapPin className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm text-muted-foreground">
                           {obtenerLugarEntregaDetallePedido(producto?.detallePedido)}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <User className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">
+                          {producto.detallePedido?.lugarEntrega?.contacto || "No especificado"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Phone className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">
+                          {producto.detallePedido?.lugarEntrega?.telefonoEntregas || "No especificado"}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 mt-1">

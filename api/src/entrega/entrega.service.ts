@@ -478,6 +478,8 @@ export class EntregaService {
                     nombre: true,
                     ciudad: true,
                     direccion: true,
+                    contacto: true,
+                    telefonoEntregas: true,
                   }
                 },
                 producto: {

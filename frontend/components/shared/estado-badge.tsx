@@ -11,7 +11,7 @@ import {
   ShieldAlert,
   Loader2
 } from "lucide-react";
-import { getBgColorByEstado, getBorderColorByEstado } from "@/lib/utils";
+import { cn, getBgColorByEstado, getBorderColorByEstado } from "@/lib/utils";
 import { Badge } from "./badge";
 
 type VariantType = "default" | "destructive" | "outline" | "secondary";
@@ -129,7 +129,6 @@ export default function EstadoBadge({
   estado, 
   className = "",
   icon,
-  variant
 }: EstadoBadgeProps): React.JSX.Element {
   const estadoNormalizado = typeof estado === 'string' 
     ? estado.toUpperCase().replace(/\s+/g, '_') as EstadoKey
@@ -138,7 +137,7 @@ export default function EstadoBadge({
   const config = ESTADOS_CONFIG[estadoNormalizado] || ESTADO_DEFAULT;
 
   const iconoFinal = icon || config.icon;
-  const varianteFinal = variant || config.variant;
+  const varianteFinal = "default";
 
   const textoEstado = estadoNormalizado.replace(/_/g, ' ');
   const bgColor = getBgColorByEstado(estado);
@@ -146,7 +145,11 @@ export default function EstadoBadge({
   return (
     <Badge
       variant={varianteFinal} 
-      className={`flex items-center gap-1 text-white ${bgColor} ${className}`}
+      className={cn(
+        "flex items-center gap-1 text-white",
+        bgColor,
+        className
+      )}
     >
       {iconoFinal}
       {textoEstado}

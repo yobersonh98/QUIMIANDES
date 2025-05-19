@@ -26,6 +26,7 @@ export interface PedidoDataTable {
   id?:string;
   cliente?: {
     nombre?: string
+    direccion?: string
   };
   idCliente?: string
   detallesPedido?: DetallePedidoEntity[]
