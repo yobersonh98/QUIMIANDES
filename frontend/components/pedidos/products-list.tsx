@@ -44,12 +44,15 @@ export function ProductsList({ detallesPedido }: ProductsListProps) {
   }
 
   const footer = (detalle: DetallePedidoEntity) => {
-    if (detalle.estado === 'ENTREGADO' || detalle.estado === 'CANCELADO') {
+    if (detalle.estado !== "PARCIAL") {
       return null
-    }
+    } 
     return (<div className="flex flex-1 justify-end">
-      <ConfirmButton size={"sm"} title="Marcar como entregado" onClick={() => marcarComoEntregado(detalle.id)}>
-        Entregar
+      <ConfirmButton size={"sm"}
+
+        title="Marcar como entregado"
+        description="¿Está seguro de marcarlo como entregado?, esto marcara de manera definitiva la operación de entrega del producto." onClick={() => marcarComoEntregado(detalle.id)}>
+        Finalizar entrega
       </ConfirmButton>
     </div>
   )
