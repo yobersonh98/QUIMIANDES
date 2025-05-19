@@ -1,26 +1,27 @@
-import EditarClienteForm from '@/components/clientes/editar-cliente-form'
+import { ClientForm } from '@/components/clientes/client-form'
 import BackButtonLayout from '@/components/shared/back-button-layout'
 import { ClienteService } from '@/services/clientes/clientes.service'
 import React from 'react'
+
 type ClientePageProps = {
-  params: Promise< {
+  params: {
     id: string
-}>
-}
-export default async function page( props: ClientePageProps) {
-  const params = await props.params
-  const {data} = await ClienteService.getServerInstance().consultar(params.id)
-  if (!data) {
-    return <div>No se encontro ningun cliente</div>
   }
+}
+
+export default async function Page({ params }: ClientePageProps) {
+  const { data } = await ClienteService.getServerInstance().consultar(params.id)
+  
+  if (!data) {
+    return <div>No se encontró ningún cliente</div>
+  }
+
   return (
-    <BackButtonLayout
-      title='Modificar Cliente'
-    >
-      <EditarClienteForm  
-      clientId={data.id}
-      initialData={data}
-    />
+    <BackButtonLayout title="Modificar Cliente">
+      <ClientForm 
+        mode="edit"
+        clientData={data}
+      />
     </BackButtonLayout>
   )
 }

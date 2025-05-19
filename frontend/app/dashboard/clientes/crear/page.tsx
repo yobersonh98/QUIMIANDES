@@ -5,7 +5,7 @@ import React from 'react'
 export default function CrearCliente() {
   return (
     <BackButtonLayout title="Crear cliente">
-      <ClientForm/>
+      <ClientForm mode="create" />
     </BackButtonLayout>
   )
 }

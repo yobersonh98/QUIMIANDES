@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
@@ -28,6 +28,7 @@ import SelectWithSearch from "../shared/SelectWithSearch";
 import { BACKEND_URL } from "@/config/envs";
 import { ClienteService } from "@/services/clientes/clientes.service";
 import { CrearClienteModel } from "@/services/clientes/models/crear-cliente.model";
+import { ActualizarClienteModel } from "@/services/clientes/models/actualizar-cliente.model";
 import { CrearLugarEntregaModel } from "@/services/lugares-entrega/mode/crear-lugar-entrega.mode";
 import { CustomSelect } from "../shared/custom-select";
 import { TipoDocumentoArray } from "@/core/constantes/tipo-documentos";
@@ -35,11 +36,16 @@ import { useSession } from "next-auth/react";
 import { clientFormSchema, deliveryLocationSchema } from "./schemas";
 import { ClientFormValues, DeliveryLocation } from "./types";
 
-export function ClientForm() {
+type ClientFormProps = {
+  mode?: "create" | "edit";
+  clientData?: ActualizarClienteModel;
+  onSuccess?: () => void;
+};
+
+export function ClientForm({ mode = "create", clientData, onSuccess }: ClientFormProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [deliveryLocations, setDeliveryLocations] = useState<
-    CrearLugarEntregaModel[]
-  >([]);
+  const [deliveryLocations, setDeliveryLocations] = useState<CrearLugarEntregaModel[]>([]);
+  const [locationsToDelete, setLocationsToDelete] = useState<string[]>([]);
   const { toast } = useToast();
   const session = useSession();
 
@@ -71,6 +77,29 @@ export function ClientForm() {
     },
   });
 
+  // Load client data when in edit mode
+  useEffect(() => {
+    if (mode === "edit" && clientData) {
+      clientForm.reset({
+        name: clientData.nombre,
+        documentType: clientData.tipoDocumento,
+        documentNumber: clientData.documento,
+        address: clientData.direccion,
+        zone: clientData.zonaBarrio || "",
+        email: clientData.email || "",
+        mainContact: clientData.contactoPrincipal || "",
+        mainPhone: clientData.telefono || "",
+        contactPayment: clientData.contactoPagos || "",
+        phonePayment: clientData.telefonoPagos || "",
+        idMunicipio: clientData.idMunicipio,
+      });
+
+      if (clientData.lugaresEntrega) {
+        setDeliveryLocations(clientData.lugaresEntrega);
+      }
+    }
+  }, [mode, clientData, clientForm]);
+
   const handleAddDeliveryLocation = (data: DeliveryLocation) => {
     setDeliveryLocations([...deliveryLocations, data]);
     setIsModalOpen(false);
@@ -82,39 +111,87 @@ export function ClientForm() {
   };
 
   const removeDeliveryLocation = (index: number) => {
+    const location = deliveryLocations[index];
+    if (location.id) {
+      setLocationsToDelete([...locationsToDelete, location.id]);
+    }
     setDeliveryLocations(deliveryLocations.filter((_, i) => i !== index));
   };
 
   async function onSubmit(data: ClientFormValues) {
-    const createClienteModel: CrearClienteModel = {
-      nombre: data.name,
-      tipoDocumento: data.documentType,
-      documento: data.documentNumber,
-      direccion: data.address,
-      zonaBarrio: data.zone,
-      idMunicipio: data.idMunicipio,
-      contactoPrincipal: data.mainContact,
-      telefono: data.mainPhone,
-      contactoPagos: data.contactPayment,
-      telefonoPagos: data.phonePayment,
-      email: data.email,
-      lugaresEntrega: deliveryLocations,
-    };
-    const respose = await new ClienteService(session.data?.user.token).crear(
-      createClienteModel
-    );
-    if (respose.error) {
-      return toast({
-        title: "Error creando cliente",
-        description: respose.error.message,
+    if (mode === "create") {
+      const createClienteModel: CrearClienteModel = {
+        nombre: data.name,
+        tipoDocumento: data.documentType,
+        documento: data.documentNumber,
+        direccion: data.address,
+        zonaBarrio: data.zone,
+        idMunicipio: data.idMunicipio,
+        contactoPrincipal: data.mainContact,
+        telefono: data.mainPhone,
+        contactoPagos: data.contactPayment,
+        telefonoPagos: data.phonePayment,
+        email: data.email,
+        lugaresEntrega: deliveryLocations,
+      };
+      
+      const response = await new ClienteService(session.data?.user.token).crear(
+        createClienteModel
+      );
+      
+      if (response.error) {
+        return toast({
+          title: "Error creando cliente",
+          description: response.error.message,
+          variant: "destructive",
+        });
+      }
+      
+      toast({
+        title: "Cliente creado",
+        description: "El cliente ha sido creado con éxito.",
+      });
+      clientForm.reset();
+      setDeliveryLocations([]);
+    } else if (mode === "edit" && clientData) {
+      const updateClienteModel: ActualizarClienteModel = {
+        id: clientData.id,
+        nombre: data.name,
+        tipoDocumento: data.documentType,
+        documento: data.documentNumber,
+        direccion: data.address,
+        zonaBarrio: data.zone,
+        idMunicipio: data.idMunicipio,
+        contactoPrincipal: data.mainContact,
+        telefono: data.mainPhone,
+        contactoPagos: data.contactPayment,
+        telefonoPagos: data.phonePayment,
+        email: data.email,
+        lugaresEntrega: deliveryLocations,
+        idLugaresEntregaEliminar: locationsToDelete.length > 0 ? locationsToDelete : undefined,
+      };
+      
+      const response = await new ClienteService(session.data?.user.token).actualizar(
+        updateClienteModel
+      );
+      
+      if (response.error) {
+        return toast({
+          title: "Error actualizando cliente",
+          description: response.error.message,
+          variant: "destructive",
+        });
+      }
+      
+      toast({
+        title: "Cliente actualizado",
+        description: "El cliente ha sido actualizado con éxito.",
       });
     }
-    toast({
-      title: "Cliente creado",
-      description: "El cliente ha sido creado con éxito.",
-    });
-    clientForm.reset();
-    setDeliveryLocations([]);
+
+    if (onSuccess) {
+      onSuccess();
+    }
   }
 
   return (
@@ -155,7 +232,6 @@ export function ClientForm() {
                             label: tipo,
                           }))}
                         />
-                        {/* <Input placeholder="NIT, Cédula, etc." {...field} /> */}
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -430,7 +506,7 @@ export function ClientForm() {
                   type="submit"
                   isLoading={clientForm.formState.isSubmitting}
                 >
-                  Crear Cliente
+                  {mode === "create" ? "Crear Cliente" : "Actualizar Cliente"}
                 </Button>
               </div>
             </form>
