@@ -10,7 +10,10 @@ interface DatosClienteProps {
     direccion: string;
     zone: string;
     email?: string;
+    contactoPrincipal?: string;
     telefono?: string;
+    contactoPagos?: string;
+    telefonoPagos?: string;
     idMunicipio: string;
     municipio?: string;
   };
@@ -18,7 +21,8 @@ interface DatosClienteProps {
     nombre: string;
     ciudad?: string;
     direccion: string;
-    contacto: string;
+    contacto?: string;
+    telefonoEntregas?: string;
   }[];
 }
 
@@ -46,6 +50,10 @@ export default function VisualizacionCliente({ datosCliente, datosEntrega }: Dat
               </p>
             </div>
             <div>
+              <p className="text-sm font-medium text-muted-foreground">Ciudad</p>
+              <p>{datosCliente.municipio}</p>
+            </div>
+            <div>
               <p className="text-sm font-medium text-muted-foreground">Dirección</p>
               <p>{datosCliente.direccion}</p>
             </div>
@@ -62,19 +70,42 @@ export default function VisualizacionCliente({ datosCliente, datosEntrega }: Dat
                 </p>
               </div>
             )}
+            {datosCliente.contactoPrincipal && (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Contacto Principal</p>
+                <p className="flex items-center space-x-2">
+                  <Phone className="h-4 w-4" />
+                  <span>{datosCliente.contactoPrincipal}</span>
+                </p>
+              </div>
+            )}
             {datosCliente.telefono && (
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Teléfono</p>
+                <p className="text-sm font-medium text-muted-foreground">Teléfono Pricipal</p>
                 <p className="flex items-center space-x-2">
                   <Phone className="h-4 w-4" />
                   <span>{datosCliente.telefono}</span>
                 </p>
               </div>
             )}
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Ciudad</p>
-              <p>{datosCliente.municipio}</p>
-            </div>
+            {datosCliente.contactoPagos && (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Contacto Pagos</p>
+                <p className="flex items-center space-x-2">
+                  <Phone className="h-4 w-4" />
+                  <span>{datosCliente.contactoPagos}</span>
+                </p>
+              </div>
+            )}
+            {datosCliente.telefonoPagos && (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Teléfono Pagos</p>
+                <p className="flex items-center space-x-2">
+                  <Phone className="h-4 w-4" />
+                  <span>{datosCliente.telefonoPagos}</span>
+                </p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -100,8 +131,10 @@ export default function VisualizacionCliente({ datosCliente, datosEntrega }: Dat
                   <MapPin className="h-4 w-4" />
                   <span>{entrega.direccion}</span>
                 </p>
-                <p className="text-sm font-medium text-muted-foreground mt-2">Contacto</p>
+                <p className="text-sm font-medium text-muted-foreground mt-2">Contacto Entregas</p>
                 <p>{entrega.contacto}</p>
+                <p className="text-sm font-medium text-muted-foreground mt-2">Telefono Entregas</p>
+                <p>{entrega.telefonoEntregas}</p>
               </div>
             ))}
           </div>

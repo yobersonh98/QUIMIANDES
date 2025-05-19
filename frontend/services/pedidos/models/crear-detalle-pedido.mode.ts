@@ -13,4 +13,6 @@ export interface CrearDetallePedidoModel {
   tipoEntrega: string;
 
   fechaEntrega: Date;
+
+  pesoTotal?: number;
 }

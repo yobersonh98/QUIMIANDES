@@ -77,7 +77,6 @@ export class ApiService {
             );
             return response.data;
         } catch (error) {
-            console.log(error);
             if (defaultErrorResponse) {
                 return defaultErrorResponse;
             }

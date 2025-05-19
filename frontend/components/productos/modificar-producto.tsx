@@ -35,7 +35,12 @@ export default function ModificarProducto( {producto}: Props) {
       })
       router.back()
     } catch (error) {
-      console.log(error)
+      console.error("Error al modificar producto:", error)
+      toast({
+        title: 'Error',
+        description: 'Ocurrio un error al modificar el producto',
+        variant: "destructive"
+      })
     }
   }
   return (

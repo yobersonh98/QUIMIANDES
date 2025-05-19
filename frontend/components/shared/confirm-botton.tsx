@@ -30,9 +30,6 @@ export function ConfirmButton({
   description = (
     <>
       ¿Está seguro de realizar esta acción?
-      <br />
-      <br />
-      Tenga en cuenta que esta acción marcará el pedido como entregado y no podrá revertirse.
     </>
   ),
   confirmText = "Confirmar",

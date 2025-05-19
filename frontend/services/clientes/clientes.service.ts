@@ -22,7 +22,7 @@ export class ClienteService  extends ApiService {
       return new SuccessResponse(response);
     } catch (e) {
       return ErrorResponse.fromUnknownError(e);
-    }
+    };
   }
 
   async consultar(id: string):Promise<SuccessResponse<ClienteEntity>> {

@@ -66,7 +66,7 @@ export function ClientForm() {
       nombre: "",
       idCiudad: "",
       direccion: "",
-      contactoEntregas: "",
+      contacto: "",
       telefonoEntregas: "",
     },
   });
@@ -100,7 +100,6 @@ export function ClientForm() {
       email: data.email,
       lugaresEntrega: deliveryLocations,
     };
-    console.log(createClienteModel);
     const respose = await new ClienteService(session.data?.user.token).crear(
       createClienteModel
     );
@@ -382,7 +381,7 @@ export function ClientForm() {
 
                         <FormField
                           control={deliveryForm.control}
-                          name="contactoEntregas"
+                          name="contacto"
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Contacto de entregas</FormLabel>
@@ -404,7 +403,7 @@ export function ClientForm() {
                               <FormLabel>Telefono de entregas</FormLabel>
                               <FormControl>
                                 <Input
-                                  placeholder="Nombre del contacto"
+                                  placeholder="Numero de telefono"
                                   {...field}
                                 />
                               </FormControl>
@@ -462,7 +461,7 @@ export function ClientForm() {
                     <strong>Dirección:</strong> {location.direccion}
                   </p>
                   <p>
-                    <strong>Contacto:</strong> {location.contactoEntregas}
+                    <strong>Contacto:</strong> {location.contacto}
                   </p>
                   <p>
                     <strong>Teléfono:</strong> {location.telefonoEntregas}

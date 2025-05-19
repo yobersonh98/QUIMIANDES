@@ -1,4 +1,5 @@
 import { EntregaProdcutoEntity } from "@/services/entrega-pedido/entities/entrega-producto.entity";
+import { UnidadMedida } from "@/types/unidades";
 
 export type EstadoDetallePedido = 
   | "PENDIENTE"
@@ -23,11 +24,13 @@ export interface DetallePedidoEntity {
   producto: {
     nombre: string;
     id: string;
+    unidadMedida: UnidadMedida
   };
   estado: EstadoDetallePedido;
   unidades: number;
 
   cantidad: number;
+  pesoTotal: number;
   codigo: string;
 
   cantidadDespachada: number;

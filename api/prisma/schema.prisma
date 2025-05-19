@@ -188,6 +188,7 @@ model DetallePedido {
   remision       String?
   unidades       Float          @default(0)
   cantidad       Float        @default(0)
+  pesoTotal      Float?        @default(0)
   estado       EstadoDetallePedido @default(PENDIENTE)
   tipoEntrega    TipoEntregaProducto @default(ENTREGA_AL_CLIENTE)
   precioUnitario        Float             @default(0) // el precio en el que se genero el producto
@@ -242,8 +243,8 @@ model LugarEntrega {
   nombre    String
   idCiudad  String
   direccion String
-  contactoEntregas  String
-  telefonoEntregas  String
+  contacto  String?
+  telefonoEntregas  String?
 
   activo          Boolean         @default(true)
   cliente         Cliente         @relation(fields: [idCliente], references: [id])

@@ -43,6 +43,12 @@ export class ProductoService {
 
   async search(search: string) {
     return await this.prisma.producto.findMany({
+      select:{
+        id:true,
+        nombre:true,
+        unidadMedida:true,
+        pesoVolumen:true,
+      },
       where: {
         nombre: {
           contains: search,

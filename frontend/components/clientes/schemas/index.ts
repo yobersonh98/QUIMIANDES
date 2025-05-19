@@ -18,6 +18,6 @@ export const deliveryLocationSchema = z.object({
   nombre: z.string().min(1, { message: "El nombre es requerido" }),
   idCiudad: z.string().min(1, { message: "La ciudad es requerida" }),
   direccion: z.string().min(1, { message: "La dirección es requerida" }),
-  contactoEntregas: z.string().min(1, { message: "El contacto es requerido" }),
+  contacto: z.string().min(1, { message: "El contacto es requerido" }),
   telefonoEntregas: z.string().min(1, { message: "El teléfono es requerido" }),
 })

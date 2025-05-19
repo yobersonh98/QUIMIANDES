@@ -3,6 +3,6 @@ export interface CrearLugarEntregaModel {
   nombre: string;
   idCiudad: string;
   direccion: string;
-  contactoEntregas: string;
+  contacto: string;
   telefonoEntregas: string;
 }

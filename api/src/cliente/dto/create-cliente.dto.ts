@@ -71,7 +71,7 @@ export class CrearLugarEntregaDto {
   @ApiProperty({ example: 'Juan Pérez', description: 'Nombre de contacto del lugar de entrega' })
   @IsString()
   @IsNotEmpty()
-  contactoEntregas: string;
+  contacto: string;
 
   @ApiProperty({ example: '1234567890', description: 'Teléfono de contacto del lugar de entrega' })
   @IsString()

@@ -2,6 +2,8 @@ import React from "react";
 import { DetallePedidoEntity } from "@/services/detalle-pedido/entity/detalle-pedido.entity";
 import { formatFecha } from "@/lib/utils";
 import EstadoBadge from "../shared/estado-badge";
+import { getUnidadMedidaLabel } from "@/utils/unidades";
+import { TipoEntregaProducto } from "@/core/constantes/pedido";
 
 type DetallesPedidosProps = {
   detallesPedidos: DetallePedidoEntity[];
@@ -23,7 +25,7 @@ export default function TableDetallesPedidos({
             <th className="p-2 text-center">Fecha entrega</th>
             <th className="p-2 text-center">Unidad</th>
             <th className="p-2 text-center">Cantidad</th>
-            <th className="p-2 text-center">Peso Total (kg)</th>
+            <th className="p-2 text-center">Total</th>
             <th className="p-2 text-center">Cant. Despachada</th>
             <th className="p-2 text-center">Cant. Entregada</th>
             <th className="p-2 text-center">Tipo Entrega</th>
@@ -33,15 +35,12 @@ export default function TableDetallesPedidos({
         </thead>
         <tbody>
           {detallesPedidos.map((item) => {
-            // Asumimos que tienes el peso por unidad en el producto, por ejemplo:
-            const pesoPorUnidadKg = item.pesoRecibido / item.cantidad || 0;
-            const pesoTotal = item.cantidad * pesoPorUnidadKg;
-            
-            // Asegurarse de que lugarEntrega existe antes de acceder a sus propiedades
+            const pesoTotal = item.pesoTotal || 0;
             const nombreLugar = item.lugarEntrega ? item.lugarEntrega.nombre : "N/A";
             const nombreCiudad = item.lugarEntrega && item.lugarEntrega.ciudad 
               ? item.lugarEntrega.ciudad.nombre 
               : "N/A";
+            const unidadMedida = item.producto.unidadMedida;
 
             return (
               <tr key={item.id} className="border-b">
@@ -55,16 +54,24 @@ export default function TableDetallesPedidos({
                 <td className="p-2 text-center">
                   {formatFecha(item.fechaEntrega)}
                 </td>
-                <td className="p-2 text-center">{item.unidades}</td>
-                <td className="p-2 text-center">{item.cantidad}</td>
+                <td className="p-2 text-center">
+                  {getUnidadMedidaLabel(unidadMedida)}
+                </td>
+                <td className="p-2 text-center">
+                  {item.cantidad.toLocaleString()}
+                </td>
                 <td className="p-2 text-center">
                   {pesoTotal.toLocaleString(undefined, {
                     maximumFractionDigits: 2,
-                  })}
+                  })} {getUnidadMedidaLabel(unidadMedida)}
                 </td>
                 <td className="p-2 text-center">{item.cantidadDespachada}</td>
                 <td className="p-2 text-center">{item.cantidadEntregada}</td>
-                <td className="p-2 text-center">{item.tipoEntrega}</td>
+                <td className="p-2 text-center">
+                  {item.tipoEntrega === TipoEntregaProducto.ENTREGA_AL_CLIENTE 
+                    ? "Entrega" 
+                    : "Recoge"}
+                </td>
                 <td className="p-2 text-center">{nombreLugar}</td>
                 <td className="p-2 text-center">{nombreCiudad}</td>
               </tr>
@@ -73,7 +80,7 @@ export default function TableDetallesPedidos({
         </tbody>
         <tfoot>
           <tr className="border-t bg-muted/50 font-medium">
-            <td colSpan={4} className="p-2 text-right">
+            <td colSpan={5} className="p-2 text-right">
               Totales:
             </td>
             <td className="p-2 text-center">
@@ -83,10 +90,7 @@ export default function TableDetallesPedidos({
             </td>
             <td className="p-2 text-center">
               {detallesPedidos
-                .reduce((sum, p) => {
-                  const pesoUnidad = p.pesoRecibido / p.cantidad || 0;
-                  return sum + p.cantidad * pesoUnidad;
-                }, 0)
+                .reduce((sum, p) => sum + (p.pesoTotal || 0), 0)
                 .toLocaleString(undefined, { maximumFractionDigits: 2 })}
             </td>
             <td className="p-2 text-center">
