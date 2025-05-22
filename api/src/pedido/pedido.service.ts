@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -10,6 +10,7 @@ import { ListarPedidoDto } from './dto/listar-pedido.dto';
 import { EstadoPedido, Prisma } from '@prisma/client';
 import { PedidoDocumentoService } from './../pedido-documento/pedido-documento.service';
 import { CreateDetallePedidoDto } from './../detalle-pedido/dto/create-detalle-pedido.dto';
+import { EntregaService } from './../entrega/entrega.service';
 
 @Injectable()
 export class PedidoService {
@@ -281,21 +282,49 @@ export class PedidoService {
   }
 
   async finalizarEntregaPedido(id: string, tx: PrismaTransacction = this.prisma) {
+    const hayAlgunaEntregaEnProceso = await tx.entrega.findFirst({
+      where: {
+        pedidoId: id,
+        estado: {
+          in: ["EN_TRANSITO", "PENDIENTE"]
+        }
+      }
+    });
+    
+    if (hayAlgunaEntregaEnProceso) {
+      throw new ConflictException(
+        'Existen entregas en tránsito o pendientes. Por favor, finalízalas o cancélalas antes de cerrar el pedido.'
+      );
+    }
+    
     const pedido = await this.prisma.pedido.findUnique({
       where: {
         id,
         estado: {
           in: ['EN_PROCESO']
-        }
+        },
       },
       include: {
         detallesPedido: true,
       }
     });
+    
     if (!pedido) {
-      throw new NotFoundException(`El pedido con ID ${id} no existe o no está en estado EN_PROCESO`);
+      throw new NotFoundException(
+        'El pedido no existe o no se encuentra en estado EN_PROCESO.'
+      );
     }
-
+    
+    const hayDetallesPendientes = pedido.detallesPedido.find(detalle =>
+      detalle.estado === 'PENDIENTE' || detalle.estado === 'EN_TRANSITO'
+    );
+    
+    if (hayDetallesPendientes) {
+      throw new ConflictException(
+        'Este pedido aún tiene productos pendientes o en tránsito. Debes finalizar la entrega de todos los productos antes de cerrar el pedido.'
+      );
+    }
+    
     const detallesPedido = pedido.detallesPedido.map(detalle => ({
       ...detalle,
       estado: 'ENTREGADO',
@@ -320,7 +349,8 @@ export class PedidoService {
     const pedido = await this.prisma.pedido.findUnique({
       where: { id },
       include: {
-        detallesPedido: true
+        detallesPedido: true,
+        entregas: true
       }
     });
     if (!pedido) {
@@ -332,16 +362,17 @@ export class PedidoService {
     if (pedido.estado === 'ENTREGADO') {
       throw new BadRequestException(`El pedido con ID ${id} ya está entregado`);
     }
-    const isSomeDetallePedidoEntregado = pedido.detallesPedido.some(detalle => detalle.estado === 'ENTREGADO');
-    if (isSomeDetallePedidoEntregado) {
-      throw new BadRequestException(`No se puede cancelar el pedido con ID ${id} porque tiene detalles entregados, debe marcarlo como entregado`);
+    const todosLosProductosEstanEnPendiente = pedido.detallesPedido.every(dp=> dp.estado === 'PENDIENTE');
+    if (!todosLosProductosEstanEnPendiente) {
+      throw new ConflictException('Todos los productos del pedido deberian estar en estado pediente.')
+    }
+    const hayAlgunaEntregaSinFinalizar = pedido.entregas.some(e => e.estado === 'PENDIENTE' || e.estado === 'EN_TRANSITO')
+    if (hayAlgunaEntregaSinFinalizar) {
+      throw new ConflictException('Hay entregas gestionadas para el pedido, debe finalizar o cancelar las entregas programadas del pedido.')
     }
     await this.prisma.detallePedido.updateMany({
       where: {
-        pedidoId: id,
-        estado: {
-          in: ['PENDIENTE']
-        }
+        pedidoId: id
       },
       data: {
         estado: 'CANCELADO'
