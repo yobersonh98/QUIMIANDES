@@ -141,13 +141,13 @@ private simplifyErrors(messages: string[] | string): string {
                     const errorMessage = this.simplifyErrors(response.data?.message || response.data);
                     throw new BadRequestError(errorMessage);
                 case 401:
-                    throw new UnauthorizedError("Acceso no autorizado");
+                    throw new UnauthorizedError(response.data?.message || "Acceso no autorizado");
                 case 404:
-                    throw new NotFoundError("No se encontró lo solicitado");
+                    throw new NotFoundError(response.data?.message || "No se encontró lo solicitado");
                 case 409:
-                    throw new ConflictError("Datos en conflicto");
+                    throw new ConflictError(response.data?.message || "Datos en conflicto");
                 default:
-                    throw new UnknownError("Error en el servidor");
+                    throw new UnknownError(response.data?.message || "Error en el servidor");
             }
         }
         
