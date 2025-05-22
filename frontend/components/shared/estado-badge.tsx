@@ -141,13 +141,13 @@ export default function EstadoBadge({
 
   const textoEstado = estadoNormalizado.replace(/_/g, ' ');
   const bgColor = getBgColorByEstado(estado);
-
   return (
     <Badge
       variant={varianteFinal} 
       className={cn(
         "flex items-center gap-1 text-white",
         bgColor,
+        `hover:bg-${bgColor}`,
         className
       )}
     >

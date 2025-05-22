@@ -119,7 +119,6 @@ export function OrderDeliveryManager({ pedido }: OrderDeliveryManagerProps) {
 
   const noPuedeModificar =
     pedido.estado == "CANCELADO" || pedido.estado == "ENTREGADO";
-
   return (
     <div className="space-y-4">
       {/* Información básica del pedido */}
@@ -152,7 +151,7 @@ export function OrderDeliveryManager({ pedido }: OrderDeliveryManagerProps) {
                 //variant="secondary"
                 disabled={noPuedeModificar}
               >
-                Finalizar Entrega
+                Finalizar Pedido
               </ConfirmButton>
               <ConfirmButton
                 size="sm"

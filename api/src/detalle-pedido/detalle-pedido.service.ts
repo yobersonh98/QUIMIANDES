@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateDetallePedidoDto } from './dto/create-detalle-pedido.dto';
 import { UpdateDetallePedidoDto } from './dto/update-detalle-pedido.dto';
@@ -49,6 +49,27 @@ export class DetallePedidoService {
   }
 
   async update(id: string, updateDetallePedidoDto: UpdateDetallePedidoDto, tx: PrismaTransacction = this.prisma) {
+    if (updateDetallePedidoDto.estado === 'ENTREGADO') {
+      const detallePedido = await tx.detallePedido.findFirst({
+        where: {
+          id,
+          entregasDetallePedido: {
+            some: {
+              entrega: {
+                estado: {
+                  in: ['EN_TRANSITO', 'PENDIENTE']
+                }
+              }
+            }
+          }
+        }
+      })
+      if (detallePedido) {
+        throw new ConflictException(
+          'No es posible marcar este producto como entregado porque tiene entregas en tránsito o pendientes por finalizar.'
+        );
+      }
+    }
     return await tx.detallePedido.update({
       where: { id },
       data: updateDetallePedidoDto,
