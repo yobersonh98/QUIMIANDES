@@ -1,41 +1,54 @@
 import { TipoEntregaProducto } from '@prisma/client';
-import { IsString, IsInt, IsNumber, IsDateString, IsOptional, IsNotEmpty, Min, IsPositive } from 'class-validator';
+import { 
+  IsString, 
+  IsNumber, 
+  IsDateString, 
+  IsOptional, 
+  IsNotEmpty, 
+  Min, 
+  IsPositive,
+  IsEnum 
+} from 'class-validator';
 
 export class CreateDetallePedidoDto {
-  @IsString()
+  @IsString({ message: 'Por favor ingrese un código de pedido válido' })
   @IsOptional()
-  @IsNotEmpty()
-  pedidoId: string;
+  @IsNotEmpty({ message: 'El código de pedido no puede estar vacío' })
+  pedidoId?: string;
 
-  @IsString()
-  @IsNotEmpty()
+  @IsString({ message: 'Por favor seleccione un producto de la lista' })
+  @IsNotEmpty({ message: 'Debe seleccionar un producto para continuar' })
   productoId: string;
 
-  @IsNumber({
-  })
+  @IsNumber({}, { message: 'Las unidades deben ser un número válido' })
   @IsOptional()
+  @Min(0, { message: 'Las unidades no pueden ser negativas' })
   unidades?: number;
 
-  @IsNumber()
-  @Min(1)
+  @IsNumber({}, { message: 'Ingrese una cantidad válida' })
+  @Min(1, { message: 'La cantidad mínima es 1' })
   cantidad: number;
 
-  @IsNumber()
-  @IsPositive()
+  @IsNumber({}, { message: 'Ingrese un peso válido' })
+  @IsPositive({ message: 'El peso debe ser mayor a cero' })
   pesoTotal: number;
 
-  @IsString()
+  @IsString({ message: 'Seleccione un lugar de entrega válido' })
+  @IsNotEmpty({ message: 'Debe seleccionar un lugar de entrega' })
   lugarEntregaId: string;
 
-  @IsString()
-  @IsNotEmpty()
+  @IsString({ message: 'Seleccione un tipo de entrega válido' })
+  @IsNotEmpty({ message: 'Debe elegir cómo recibirá el pedido' })
+  @IsEnum(TipoEntregaProducto, { 
+    message: `Elija una opción válida: ${Object.values(TipoEntregaProducto).join(', ')}` 
+  })
   tipoEntrega: TipoEntregaProducto;
 
-  @IsDateString()
+  @IsDateString({}, { message: 'Ingrese una fecha válida (DD/MM/AAAA)' })
   @IsOptional()
-  fechaEntrega?: Date
+  fechaEntrega?: Date;
 
-  @IsString()
+  @IsString({ message: 'Ingrese un número de remisión válido' })
   @IsOptional()
-  remision?: string
+  remision?: string;
 }
