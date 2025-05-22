@@ -43,7 +43,7 @@ export class ApiService {
     // Detecta si el error proviene de un campo dentro de un array (ej: detallesPedido.0.productoId)
     const arrayFieldMatch = message.match(/^(\w+)\.(\d+)\.(\w+)/);
     if (arrayFieldMatch) {
-        const [, arrayName, , subField] = arrayFieldMatch;
+        const [, , , subField] = arrayFieldMatch;
         const readableField = fieldMap[subField] || subField;
         const matchedError = Object.entries(errorMap).find(([key]) => message.includes(key));
         const readableError = matchedError ? matchedError[1] : 'tiene un error';
@@ -78,7 +78,7 @@ private simplifyErrors(messages: string[] | string): string {
         return result;
     }
 
-    return this.getClientFriendlyMessage(messages.toString());
+    return messages;
 }
 
 
