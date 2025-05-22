@@ -12,7 +12,6 @@ import {
   Loader2
 } from "lucide-react";
 import { cn, getBgColorByEstado, getBorderColorByEstado } from "@/lib/utils";
-import { Badge } from "./badge";
 
 type VariantType = "default" | "destructive" | "outline" | "secondary";
 
@@ -114,45 +113,43 @@ export interface EstadoBadgeProps {
   variant?: VariantType;
 }
 
-/**
- * Componente que muestra un badge con un ícono según el estado proporcionado
- * 
- * @param props - Propiedades del componente
- * @param props.estado - Estado en español (ej: "PENDIENTE", "ENTREGADO")
- * @param props.className - Clases adicionales para el Badge
- * @param props.icon - Ícono personalizado (opcional)
- * @param props.variant - Variante personalizada del Badge (opcional)
- * @returns Badge con ícono y texto del estado
- */
 
-export default function EstadoBadge({ 
-  estado, 
+export interface EstadoBadgeProps {
+  estado: string;
+  className?: string;
+  icon?: React.ReactNode;
+}
+
+/**
+ * Componente Badge personalizado con Tailwind puro
+ * Muestra un estado con color e ícono, basado en la configuración
+ */
+export default function EstadoBadge({
+  estado,
   className = "",
   icon,
 }: EstadoBadgeProps): React.JSX.Element {
-  const estadoNormalizado = typeof estado === 'string' 
-    ? estado.toUpperCase().replace(/\s+/g, '_') as EstadoKey
-    : '' as EstadoKey;
+  const estadoNormalizado = typeof estado === 'string'
+    ? estado.toUpperCase().replace(/\s+/g, "_")
+    : "";
 
-  const config = ESTADOS_CONFIG[estadoNormalizado] || ESTADO_DEFAULT;
+  const config = ESTADOS_CONFIG[estadoNormalizado as keyof typeof ESTADOS_CONFIG] || ESTADO_DEFAULT;
 
   const iconoFinal = icon || config.icon;
-  const varianteFinal = "default";
-
-  const textoEstado = estadoNormalizado.replace(/_/g, ' ');
-  const bgColor = getBgColorByEstado(estado);
+  const textoEstado = estadoNormalizado.replace(/_/g, " ");
+  const bgColorClass = getBgColorByEstado(estado); // ej: "bg-rose-500"
+  
+  console.log(bgColorClass === 'bg-red-500')
   return (
-    <Badge
-      variant={varianteFinal} 
+    <div
       className={cn(
-        "flex items-center gap-1 text-white",
-        bgColor,
-        `hover:bg-${bgColor}`,
+        "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium text-white",
+        bgColorClass,
         className
       )}
     >
       {iconoFinal}
-      {textoEstado}
-    </Badge>
+      <span className="ml-1">{textoEstado}</span>
+    </div>
   );
 }
