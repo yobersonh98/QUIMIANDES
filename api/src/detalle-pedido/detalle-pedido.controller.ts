@@ -24,7 +24,7 @@ export class DetallePedidoController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateDetallePedidoDto: UpdateDetallePedidoDto) {
-    return this.detallePedidoService.update(id, updateDetallePedidoDto);
+    return this.detallePedidoService.actualizarConValidacion(id, updateDetallePedidoDto);
   }
 
   @Delete(':id')

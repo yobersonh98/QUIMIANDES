@@ -4,7 +4,7 @@ import { CreateDetallePedidoDto } from './dto/create-detalle-pedido.dto';
 import { UpdateDetallePedidoDto } from './dto/update-detalle-pedido.dto';
 import { IdGeneratorService } from './../services/IdGeneratorService';
 import { esVacio } from './../common/utils/string.util';
-import { DetallePedido } from '@prisma/client';
+import { DetallePedido, EstadoDetallePedido, PrismaClient } from '@prisma/client';
 import { PrismaTransacction } from './../common/types';
 
 @Injectable()
@@ -49,33 +49,44 @@ export class DetallePedidoService {
   }
 
   async update(id: string, updateDetallePedidoDto: UpdateDetallePedidoDto, tx: PrismaTransacction = this.prisma) {
-    if (updateDetallePedidoDto.estado === 'ENTREGADO') {
-      const detallePedido = await tx.detallePedido.findFirst({
-        where: {
-          id,
-          entregasDetallePedido: {
-            some: {
-              entrega: {
-                estado: {
-                  in: ['EN_TRANSITO', 'PENDIENTE']
-                }
-              }
-            }
-          }
-        }
-      })
-      if (detallePedido) {
-        throw new ConflictException(
-          'No es posible marcar este producto como entregado porque tiene entregas en tránsito o pendientes por finalizar.'
-        );
-      }
-    }
     return await tx.detallePedido.update({
       where: { id },
       data: updateDetallePedidoDto,
     });
   }
 
+  async actualizarConValidacion(id: string, updateDetallePedidoDto: UpdateDetallePedidoDto) {
+    await this.hayAlgunaEntregaSinGestionar(id);
+    return this.update(id, updateDetallePedidoDto)
+  }
+
+  public async hayAlgunaEntregaSinGestionar(detallePedidoId: string, tx:PrismaClient= this.prisma) {
+    const detallePedido = await tx.detallePedido.findFirst({
+      where: {
+        id: detallePedidoId,
+        entregasDetallePedido: {
+          some: {
+            entrega: {
+              estado: {
+                in: ['EN_TRANSITO', 'PENDIENTE']
+              }
+            }
+          }
+        }
+      }
+    })
+    if (detallePedido) throw new ConflictException(
+      'No es posible marcar este producto como entregado porque tiene entregas en tránsito o pendientes por finalizar.'
+    );
+    return detallePedido
+  }
+
+  public async marcarComoEntregado(detallePedidoId: string) {
+    await this.hayAlgunaEntregaSinGestionar(detallePedidoId);
+    return this.update(detallePedidoId, {
+      estado: EstadoDetallePedido.ENTREGADO
+    })
+  }
   public esCantidadTotalDespachada (detallesPedido: DetallePedido[] = []): boolean {
       const esCantidadTotalDespachada = detallesPedido.every(dp => {
         return dp.cantidadDespachada >= dp.cantidad
