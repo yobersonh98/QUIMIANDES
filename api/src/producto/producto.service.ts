@@ -9,7 +9,7 @@ import { PaginationResponse } from './../common/interfaces/IPaginationResponse';
 
 @Injectable()
 export class ProductoService {
-  constructor(private readonly prisma: PrismaService, private paginationService: PrismaGenericPaginationService) {}
+  constructor(private readonly prisma: PrismaService, private paginationService: PrismaGenericPaginationService) { }
 
   async create(createProductoDto: CreateProductoDto) {
     return await this.prisma.producto.create({
@@ -25,35 +25,47 @@ export class ProductoService {
       },
     }
 
-    return this.paginationService.paginate('Producto', { where, select: {
-      id: true,
-      nombre: true,
-      precioBase: true,
-      unidadMedida: true,
-      proveedor: {
-        select: {
-          id: true,
-          nombre: true,
-        }
-      },
-      presentacion: true,
-    }}, paginationDto);
+    return this.paginationService.paginate('Producto', {
+      where, select: {
+        id: true,
+        nombre: true,
+        precioBase: true,
+        unidadMedida: true,
+        proveedor: {
+          select: {
+            id: true,
+            nombre: true,
+          }
+        },
+        presentacion: true,
+      }
+    }, paginationDto);
 
   }
 
   async search(search: string) {
     return await this.prisma.producto.findMany({
-      select:{
-        id:true,
-        nombre:true,
-        unidadMedida:true,
-        pesoVolumen:true,
+      select: {
+        id: true,
+        nombre: true,
+        unidadMedida: true,
+        pesoVolumen: true,
       },
       where: {
-        nombre: {
-          contains: search,
-          mode: 'insensitive',
-        },
+        OR: [
+          {
+            nombre: {
+              contains: search || '',
+              mode: 'insensitive',
+            },
+          },
+          {
+            id: {
+              contains: search || '',
+              mode: 'insensitive'
+            }
+          }
+        ]
       },
       take: 50
     });

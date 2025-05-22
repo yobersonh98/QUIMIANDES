@@ -8,7 +8,7 @@ import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ProveedorService {
-  constructor(private readonly prisma: PrismaService,private paginationService: PrismaGenericPaginationService) {}
+  constructor(private readonly prisma: PrismaService, private paginationService: PrismaGenericPaginationService) { }
 
   async create(createProveedorDto: CreateProveedorDto) {
     return await this.prisma.proveedor.create({
@@ -21,16 +21,26 @@ export class ProveedorService {
     const whereInput: Prisma.ProveedorWhereInput = {
       nombre: search ? { contains: search, mode: 'insensitive' } : undefined,
     };
-    return this.paginationService.paginate('Proveedor', {where: whereInput}, findAllDto);
+    return this.paginationService.paginate('Proveedor', { where: whereInput }, findAllDto);
   }
 
   async search(search: string) {
     return this.prisma.proveedor.findMany({
       where: {
-        nombre: {
-          contains: search,
-          mode: 'insensitive',
-        },
+        OR: [
+          {
+            nombre: {
+              contains: search || '',
+              mode: 'insensitive',
+            },
+          },
+          {
+            id: {
+              contains: search || '',
+              mode: 'insensitive'
+            }
+          }
+        ]
       },
     });
   }

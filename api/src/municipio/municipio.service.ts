@@ -8,12 +8,22 @@ export class MunicipioService {
   async findAll(search?: string) {
     return this.prisma.municipio.findMany({
       where: {
-        nombre: {
-          contains: search || '', // Busca coincidencias parciales en el nombre
-          mode: 'insensitive', // Ignora mayúsculas y minúsculas
-        },
+        OR: [
+          {
+            nombre: {
+              contains: search || '',
+              mode: 'insensitive',
+            }
+          },
+          {
+            id: {
+              contains: search || '',
+              mode: 'insensitive'
+            }
+          }
+        ]
       },
-      take: 30, // Limita la consulta a 20 resultados
+      take: 30,
     });
   }
 }

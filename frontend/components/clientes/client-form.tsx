@@ -55,7 +55,7 @@ export function ClientForm({ mode = "create", clientData, onSuccess }: ClientFor
       name: clientData?.nombre || '',
       documentType: clientData?.tipoDocumento || '',
       documentNumber: clientData?.documento ||'',
-      address: clientData?.documento,
+      address: clientData?.direccion || '',
       zone: clientData?.zonaBarrio || '',
       email: clientData?.email || '',
       mainContact: clientData?.contactoPrincipal,

@@ -2,13 +2,13 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
-import {  Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { ClienteListarDto } from './dto/cliente-listar.dto';
 import { PrismaGenericPaginationService } from './../prisma/prisma-generic-pagination.service';
 
 @Injectable()
 export class ClienteService {
-  constructor(private readonly prisma: PrismaService, private prismaPagination: PrismaGenericPaginationService) {}
+  constructor(private readonly prisma: PrismaService, private prismaPagination: PrismaGenericPaginationService) { }
 
   async findAll(findAllDto: ClienteListarDto) {
     const { search } = findAllDto;
@@ -24,6 +24,7 @@ export class ClienteService {
         OR: [
           { nombre: { contains: search, mode: 'insensitive' } },
           { documento: { contains: search, mode: 'insensitive' } },
+          { id: { contains: search || '', mode: 'insensitive' } }
         ],
       },
       select: { id: true, nombre: true, documento: true },
@@ -58,7 +59,7 @@ export class ClienteService {
     return cliente;
   }
   async create(createClienteDto: CreateClienteDto) {
-    const { documento, lugaresEntrega=[] } = createClienteDto;
+    const { documento, lugaresEntrega = [] } = createClienteDto;
 
     const existingCliente = await this.prisma.cliente.findUnique({ where: { documento } });
     if (existingCliente) throw new BadRequestException('El cliente ya existe');
@@ -90,7 +91,7 @@ export class ClienteService {
       idLugaresEntregaEliminar,
     } = updateClienteDto;
     const lugaresEntregaAcrear = lugaresEntrega.filter((lugar) => !lugar.id);
-  
+
     return this.prisma.$transaction(async (prisma) => {
       if (idLugaresEntregaEliminar && idLugaresEntregaEliminar.length > 0) {
         await prisma.lugarEntrega.updateMany({
@@ -123,5 +124,5 @@ export class ClienteService {
       });
     });
   }
-  
+
 }
