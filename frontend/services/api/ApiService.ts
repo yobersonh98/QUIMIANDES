@@ -92,18 +92,28 @@ private simplifyErrors(messages: string[] | string): string {
             }
         };
     }
-
+    
+    /**
+     * Makes an API request with the given parameters.
+     * @param endpoint - The API endpoint to request.
+     * @param method - The HTTP method to use for the request.
+     * @param data - The data to send with the request (for POST and PUT methods).
+     * @param searchParams - Query parameters to append to the URL.
+     * @param defaultErrorResponse - A default response to return in case of an error.
+     * @param isPublic - Indicates whether the endpoint is public (doesn't require authentication).
+     * @returns A Promise that resolves with the response data.
+     * @throws {ResponseError} If an error occurs during the request.
+     */
     protected async makeRequest<T>(request?: RequestParams): Promise<T> {
         const { method = 'get', endpoint = '', data = {}, searchParams, defaultErrorResponse, isPublic } = request || {};
-        
         try {
             const headers = isPublic ? {} : await this.authHeaders();
             let url = `${this.pathName}${endpoint}`;
-            
+            // Add search params to the URL if provided
             if (searchParams) {
                 const searchParamsString = new URLSearchParams(
-                    Object.entries(searchParams).map(([key, value]) => [key, String(value)]
-                ).toString());
+                    Object.entries(searchParams).map(([key, value]) => [key, String(value)])
+                ).toString();
                 url += `?${searchParamsString}`;
             }
 
@@ -117,14 +127,13 @@ private simplifyErrors(messages: string[] | string): string {
                 method === 'get' || method === 'delete' ? config : data,
                 method === 'post' || method === 'put' || method === "patch" ? config : undefined
             );
-            
             return response.data;
         } catch (error) {
             if (defaultErrorResponse) {
                 return defaultErrorResponse;
             }
             this.handlerError(error);
-            throw error;
+            throw error; // Re-throw the error after handling
         }
     }
 
