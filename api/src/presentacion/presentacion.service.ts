@@ -7,7 +7,7 @@ import { PrismaService } from './../prisma/prisma.service';
 export class PresentacionService {
   constructor(
     private prisma: PrismaService
-  ) {}
+  ) { }
   create(createPresentacionDto: CreatePresentacionDto) {
     return 'This action adds a new presentacion';
   }
@@ -19,10 +19,20 @@ export class PresentacionService {
   search(search: string) {
     return this.prisma.presentacion.findMany({
       where: {
-        nombre: {
-          contains: search,
-          mode: 'insensitive'
-        }
+        OR: [
+          {
+            nombre: {
+              contains: search || '',
+              mode: 'insensitive'
+            }
+          },
+          {
+            id: {
+              contains: search || '',
+              mode: 'insensitive'
+            }
+          }
+        ]
       }
     })
   }

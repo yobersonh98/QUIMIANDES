@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
@@ -35,34 +35,34 @@ import { TipoDocumentoArray } from "@/core/constantes/tipo-documentos";
 import { useSession } from "next-auth/react";
 import { clientFormSchema, deliveryLocationSchema } from "./schemas";
 import { ClientFormValues, DeliveryLocation } from "./types";
+import { ClienteEntity } from "@/services/clientes/entities/cliente.entity";
 
 type ClientFormProps = {
   mode?: "create" | "edit";
-  clientData?: ActualizarClienteModel;
+  clientData?: ClienteEntity;
   onSuccess?: () => void;
 };
 
 export function ClientForm({ mode = "create", clientData, onSuccess }: ClientFormProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [deliveryLocations, setDeliveryLocations] = useState<CrearLugarEntregaModel[]>([]);
+  const [deliveryLocations, setDeliveryLocations] = useState<CrearLugarEntregaModel[]>(clientData?.lugaresEntrega || []);
   const [locationsToDelete, setLocationsToDelete] = useState<string[]>([]);
   const { toast } = useToast();
   const session = useSession();
-
   const clientForm = useForm<ClientFormValues>({
     resolver: zodResolver(clientFormSchema),
     defaultValues: {
-      name: "",
-      documentType: "",
-      documentNumber: "",
-      address: "",
-      zone: "",
-      email: "",
-      mainContact: "",
-      mainPhone: "",
-      contactPayment: "",
-      phonePayment: "",
-      idMunicipio: "",
+      name: clientData?.nombre || '',
+      documentType: clientData?.tipoDocumento || '',
+      documentNumber: clientData?.documento ||'',
+      address: clientData?.direccion || '',
+      zone: clientData?.zonaBarrio || '',
+      email: clientData?.email || '',
+      mainContact: clientData?.contactoPrincipal,
+      mainPhone: clientData?.telefono || '',
+      contactPayment: clientData?.contactoPagos,
+      phonePayment: clientData?.telefonoPagos,
+      idMunicipio: clientData?.idMunicipio || '',
     },
   });
 
@@ -76,29 +76,6 @@ export function ClientForm({ mode = "create", clientData, onSuccess }: ClientFor
       telefonoEntregas: "",
     },
   });
-
-  // Load client data when in edit mode
-  useEffect(() => {
-    if (mode === "edit" && clientData) {
-      clientForm.reset({
-        name: clientData.nombre,
-        documentType: clientData.tipoDocumento,
-        documentNumber: clientData.documento,
-        address: clientData.direccion,
-        zone: clientData.zonaBarrio || "",
-        email: clientData.email || "",
-        mainContact: clientData.contactoPrincipal || "",
-        mainPhone: clientData.telefono || "",
-        contactPayment: clientData.contactoPagos || "",
-        phonePayment: clientData.telefonoPagos || "",
-        idMunicipio: clientData.idMunicipio,
-      });
-
-      if (clientData.lugaresEntrega) {
-        setDeliveryLocations(clientData.lugaresEntrega);
-      }
-    }
-  }, [mode, clientData, clientForm]);
 
   const handleAddDeliveryLocation = (data: DeliveryLocation) => {
     setDeliveryLocations([...deliveryLocations, data]);
@@ -168,7 +145,7 @@ export function ClientForm({ mode = "create", clientData, onSuccess }: ClientFor
         telefonoPagos: data.phonePayment,
         email: data.email,
         lugaresEntrega: deliveryLocations,
-        idLugaresEntregaEliminar: locationsToDelete.length > 0 ? locationsToDelete : undefined,
+        idLugaresEntregaEliminar: locationsToDelete,
       };
       
       const response = await new ClienteService(session.data?.user.token).actualizar(

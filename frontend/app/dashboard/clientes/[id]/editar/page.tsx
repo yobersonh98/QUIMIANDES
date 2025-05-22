@@ -1,16 +1,12 @@
 import { ClientForm } from '@/components/clientes/client-form'
 import BackButtonLayout from '@/components/shared/back-button-layout'
 import { ClienteService } from '@/services/clientes/clientes.service'
+import { PageProps, PaginationSearchParamsPage } from '@/types/pagination'
 import React from 'react'
 
-type ClientePageProps = {
-  params: {
-    id: string
-  }
-}
-
-export default async function Page({ params }: ClientePageProps) {
-  const { data } = await ClienteService.getServerInstance().consultar(params.id)
+export default async function Page(props: PageProps<PaginationSearchParamsPage>) {
+  const params = await props.params;
+  const { data } = await ClienteService.getServerInstance().consultar(params?.id || '')
   
   if (!data) {
     return <div>No se encontró ningún cliente</div>

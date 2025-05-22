@@ -2,6 +2,7 @@ import { PartialType } from '@nestjs/mapped-types';
 import { CreateClienteDto } from './create-cliente.dto';
 import { ApiProperty } from '@nestjs/swagger';
 import { EstadoCliente, TipoDocumento } from '@prisma/client';
+import { IsArray, IsOptional } from 'class-validator';
 
 export class UpdateClienteDto extends PartialType(CreateClienteDto) {
   @ApiProperty({ example: '12345678', description: 'Número de documento del cliente', required: false })
@@ -31,5 +32,7 @@ export class UpdateClienteDto extends PartialType(CreateClienteDto) {
 
 
   @ApiProperty({ example: ['550e8400-e29b-41d4-a716-446655440000'], description: 'Lista de IDs de lugares de entrega a agregar', required: false })
+  @IsArray()
+  @IsOptional()
   idLugaresEntregaEliminar?: string[];
 }

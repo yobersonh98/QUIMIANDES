@@ -1,7 +1,7 @@
-import { UnidadMedida } from "@/types/unidades";
+import { UnidadMedida } from "@/services/productos/entities/producto.entity";
 
 export const getUnidadMedidaLabel = (unidad: UnidadMedida): string => {
-  const labels: Record<UnidadMedida, string> = {
+  const labels: Record<string, string> = {
     UND: "unid",
     KG: "kg",
     L: "L",
