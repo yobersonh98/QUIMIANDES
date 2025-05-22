@@ -1,9 +1,10 @@
-import { IsArray, IsDate, IsDateString, IsInt, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsArray, IsDate, IsDateString, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { CreateDetallePedidoDto } from '../../detalle-pedido/dto/create-detalle-pedido.dto';
 import { Type } from 'class-transformer';
 
 export class CreatePedidoDto {
   @IsString()
+  @IsNotEmpty()
   idCliente: string;
 
   @IsOptional()

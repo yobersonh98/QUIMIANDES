@@ -1,195 +1,156 @@
 import { AxiosError, AxiosResponse } from "axios";
 import { API } from "@/lib/Api";
-import {
-  BadRequestError,
-  ConflictError,
-  NotFoundError,
-  UnauthorizedError,
-  UnknownError,
-} from "@/core/errors/errors";
+import { BadRequestError, ConflictError, NotFoundError, UnauthorizedError, UnknownError } from "@/core/errors/errors";
 import { GetServerSession } from "@/auth/get-server-session";
 
-/**
- * Defines the parameters for making an API request.
- */
-export type RequestParams<T = unknown, D = unknown> = {
-  method?: "get" | "post" | "put" | "delete" | "patch";
-  endpoint?: string;
-  data?: D;
-  searchParams?: Record<string, string | number | boolean>;
-  defaultErrorResponse?: T;
-  isPublic?: boolean;
+export type RequestParams = {
+    method?: 'get' | 'post' | 'put' | 'delete' | 'patch';
+    endpoint?: string;
+    data?: any;
+    searchParams?: Record<string, string | number | boolean>;
+    defaultErrorResponse?: any;
+    isPublic?: boolean;
 };
 
-/**
- * ApiService class for handling API requests.
- */
 export class ApiService {
-  /**
-   * Creates an instance of ApiService.
-   * @param pathName - The base path for API endpoints.
-   * @param token - The user's token for authentication if you want use in client environment.
-   */
-  constructor(protected readonly pathName: string, private token?: string) {}
+    constructor(protected readonly pathName: string, private token?: string) { }
 
-  /**
-   * Retrieves authentication headers for API requests.
-   * @returns An object containing the Authorization header with the user's token.
-   */
-  protected async authHeaders() {
-    if (!this.token) {
-      this.token = await GetServerSession().then((session) => session.token);
-    }
-    return {
-      headers: {
-        Authorization: `Bearer ${this.token}`,
-      },
-    };
-  }
-
-  /**
-   * Makes an API request with the given parameters.
-   * @param request - The request parameters.
-   * @returns A Promise that resolves with the response data.
-   * @throws {ResponseError} If an error occurs during the request.
-   */
-  protected async makeRequest<T = unknown, D = unknown>(
-  request?: RequestParams<T, D>
-): Promise<T> {
-  const {
-    method = "get",
-    endpoint = "",
-    data = {} as D,
-    searchParams,
-    defaultErrorResponse,
-    isPublic,
-  } = request || {};
-
-  try {
-    const headers = isPublic ? {} : await this.authHeaders();
-    let url = `${this.pathName}${endpoint}`;
-
-    // Add search params to the URL if provided
-    if (searchParams) {
-      const searchParamsString = new URLSearchParams(
-        Object.entries(searchParams).map(([key, value]) => [
-          key,
-          String(value),
-        ])
-      ).toString();
-      url += `?${searchParamsString}`;
-    }
-
-    // Configuración base para todas las solicitudes
-    const baseConfig = {
-      ...headers,
-      url,
+    private getClientFriendlyMessage(message: string): string {
+    const fieldMap: Record<string, string> = {
+        'idCliente': 'El cliente',
+        'fechaEntrega': 'La fecha de entrega',
+        'fechaRecibido': 'La fecha de recepción',
+        'pedidoId': 'La referencia del pedido',
+        'productoId': 'El producto',
+        'cantidad': 'La cantidad',
+        'pesoTotal': 'El peso',
+        'tipoEntrega': 'El tipo de entrega',
+        'detallesPedido': 'Los productos',
+        'lugarEntregaId': 'El lugar de entrega',
+        'unidades': 'Las unidades'
     };
 
-    let response: AxiosResponse<T>;
+    const errorMap: Record<string, string> = {
+        'should not be empty': 'es obligatorio',
+        'must be a string': 'debe ser un texto válido',
+        'must be a number': 'debe ser un número',
+        'must be a positive number': 'debe ser positivo',
+        'must not be less than 1': 'debe ser al menos 1',
+        'must be a Date instance': 'no es una fecha válida',
+        'must be a valid ISO 8601 date string': 'no tiene el formato de fecha correcto'
+    };
 
-    switch (method) {
-      case "get":
-      case "delete":
-        response = await API[method]<T>(url, {
-          ...baseConfig,
-          params: data,
-        });
-        break;
-      case "post":
-      case "put":
-      case "patch":
-        response = await API[method]<T>(url, data, baseConfig);
-        break;
-      default:
-        throw new Error(`Unsupported HTTP method: ${method}`);
+    // Detecta si el error proviene de un campo dentro de un array (ej: detallesPedido.0.productoId)
+    const arrayFieldMatch = message.match(/^(\w+)\.(\d+)\.(\w+)/);
+    if (arrayFieldMatch) {
+        const [, arrayName, , subField] = arrayFieldMatch;
+        const readableField = fieldMap[subField] || subField;
+        const matchedError = Object.entries(errorMap).find(([key]) => message.includes(key));
+        const readableError = matchedError ? matchedError[1] : 'tiene un error';
+        return `${readableField} ${readableError}`;
     }
 
-    return response.data;
-  } catch (error) {
-    if (defaultErrorResponse) {
-      return defaultErrorResponse;
+    // Detecta campos simples (ej: idCliente should not be empty)
+    const fieldMatch = message.match(/^(\w+)/);
+    if (fieldMatch) {
+        const field = fieldMatch[1];
+        const readableField = fieldMap[field] || field;
+        const matchedError = Object.entries(errorMap).find(([key]) => message.includes(key));
+        const readableError = matchedError ? matchedError[1] : 'tiene un error';
+        return `${readableField} ${readableError}`;
     }
-    this.handlerError(error);
-    throw error;
-  }
+
+    return 'Error de validación desconocido';
 }
 
-  /**
-   * Handles errors that occur during API requests.
-   * @param error - The error object to handle.
-   * @throws {ResponseError} With appropriate error type and message.
-   */
-  protected handlerError(error: unknown): never {
-    if (error instanceof AxiosError) {
-      const errorData = error.response?.data as { message?: string };
+private simplifyErrors(messages: string[] | string): string {
+    if (Array.isArray(messages)) {
+        const processedErrors = messages.map(msg => this.getClientFriendlyMessage(msg));
+        const uniqueErrors = [...new Set(processedErrors)].slice(0, 12);
 
-      switch (error.response?.status) {
-        case 400:
-          throw new BadRequestError(
-            this.transformValidationErrors(errorData?.message || "Bad request")
-          );
-        case 401:
-          throw new UnauthorizedError(errorData?.message || "Unauthorized");
-        case 404:
-          throw new NotFoundError(errorData?.message || "Not found");
-        case 409:
-          throw new ConflictError(errorData?.message || "Conflict");
-        default:
-          throw new UnknownError(errorData?.message || "Unknown error");
-      }
-    }
+        let result = "Revise los siguientes datos:\n";
+        result += uniqueErrors.map(err => `• ${err}`).join('\n');
 
-    throw new UnknownError(
-      error instanceof Error ? error.message : "Unknown error"
-    );
-  }
-
-  /**
-   * Transforms validation error messages into user-friendly messages.
-   * @param errorMessage - The original error message.
-   * @returns A user-friendly error message.
-   */
-  private transformValidationErrors(errorMessage: string): string {
-    const errorMap: Record<string, string> = {
-      "detailedPedido.0.productold should not be empty":
-        "Por favor, seleccione un producto",
-      "detallesPedido.0.pesoTotal must be a positive number":
-        "El peso total debe ser un número positivo",
-      "detallesPedido.0.tipoEntrega should not be empty":
-        "Por favor, seleccione un tipo de entrega",
-    };
-
-    // Check for exact matches first
-    if (errorMap[errorMessage]) {
-      return errorMap[errorMessage];
-    }
-
-    // Check for partial matches
-    for (const [key, value] of Object.entries(errorMap)) {
-      if (errorMessage.includes(key)) {
-        return value;
-      }
-    }
-
-    // Handle multiple errors concatenated
-    const errorParts = errorMessage.split(/(?=[a-z])/);
-    const friendlyErrors: string[] = [];
-
-    errorParts.forEach(part => {
-      part = part.trim();
-      if (!part) return;
-
-      for (const [key, value] of Object.entries(errorMap)) {
-        if (part.includes(key)) {
-          friendlyErrors.push(value);
-          return;
+        if (processedErrors.length > 3) {
+            result += `\n• Complete los ${processedErrors.length} campos requeridos`;
         }
-      }
-    });
 
-    return friendlyErrors.length > 0
-      ? friendlyErrors.join(". ")
-      : "Por favor, verifique los datos ingresados. Hay errores en el formulario.";
-  }
+        return result;
+    }
+
+    return this.getClientFriendlyMessage(messages.toString());
+}
+
+
+    protected async authHeaders() {
+        if (!this.token) {
+            this.token = await GetServerSession().then(session => session?.token);
+        }
+        return {
+            headers: {
+                "Authorization": `Bearer ${this.token}`
+            }
+        };
+    }
+
+    protected async makeRequest<T>(request?: RequestParams): Promise<T> {
+        const { method = 'get', endpoint = '', data = {}, searchParams, defaultErrorResponse, isPublic } = request || {};
+        
+        try {
+            const headers = isPublic ? {} : await this.authHeaders();
+            let url = `${this.pathName}${endpoint}`;
+            
+            if (searchParams) {
+                const searchParamsString = new URLSearchParams(
+                    Object.entries(searchParams).map(([key, value]) => [key, String(value)]
+                ).toString());
+                url += `?${searchParamsString}`;
+            }
+
+            const config = {
+                ...headers,
+                ...(method === 'get' || method === 'delete' ? { params: data } : {})
+            };
+
+            const response: AxiosResponse<T> = await API[method](
+                url,
+                method === 'get' || method === 'delete' ? config : data,
+                method === 'post' || method === 'put' || method === "patch" ? config : undefined
+            );
+            
+            return response.data;
+        } catch (error) {
+            if (defaultErrorResponse) {
+                return defaultErrorResponse;
+            }
+            this.handlerError(error);
+            throw error;
+        }
+    }
+
+    protected handlerError(error: unknown) {
+        if (error instanceof AxiosError) {
+            const response = error.response;
+            
+            if (!response) {
+                throw new UnknownError("Problema de conexión con el servidor");
+            }
+
+            switch (response.status) {
+                case 400:
+                    const errorMessage = this.simplifyErrors(response.data?.message || response.data);
+                    throw new BadRequestError(errorMessage);
+                case 401:
+                    throw new UnauthorizedError("Acceso no autorizado");
+                case 404:
+                    throw new NotFoundError("No se encontró lo solicitado");
+                case 409:
+                    throw new ConflictError("Datos en conflicto");
+                default:
+                    throw new UnknownError("Error en el servidor");
+            }
+        }
+        
+        throw new UnknownError("Error inesperado");
+    }
 }
