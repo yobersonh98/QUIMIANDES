@@ -50,7 +50,7 @@ export default function FinalizarEntrega({ entrega: initialEntrega, onSave }: Fi
     ) || {},
   )
 
-  const entregaProductos = entrega.entregaProductos?.filter(i=> (i.detallePedido?.estado !== 'ENTREGADO'))
+  const entregaProductos = entrega.entregaProductos?.filter(i=> i.detallePedido?.estado !== 'ENTREGADO')
   const handleDeliveredQuantityChange = (id: string, value: number) => {
     setDeliveredQuantities((prev) => ({
       ...prev,
@@ -68,7 +68,7 @@ export default function FinalizarEntrega({ entrega: initialEntrega, onSave }: Fi
   const handleFinalizeDelivery = async () => {
 
     // Update the entrega object with the new delivered quantities
-    const updatedEntregaProductos = entrega.entregaProductos?.map((producto) => ({
+    const updatedEntregaProductos = entregaProductos?.map((producto) => ({
       ...producto,
       cantidadEntregada: deliveredQuantities[producto.id],
       observaciones: productObservations[producto.id],

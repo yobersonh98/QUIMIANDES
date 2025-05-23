@@ -43,10 +43,11 @@ export default function ConfirmacionEntrega({ entrega: initialEntrega }: Confirm
       [id]: value,
     }))
   }
+  const entregaProductos = entrega.entregaProductos?.filter(i=> i.detallePedido?.estado !== 'ENTREGADO')
 
   const handleConfirmDispatch = async () => {
     // Update the entrega object with the new dispatch quantities
-    const updatedEntregaProductos = entrega.entregaProductos?.map((producto) => ({
+    const updatedEntregaProductos = entregaProductos?.map((producto) => ({
       ...producto,
       cantidadDespachada: dispatchQuantities[producto.id],
     }))
@@ -100,7 +101,7 @@ export default function ConfirmacionEntrega({ entrega: initialEntrega }: Confirm
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              {entrega.entregaProductos?.map((producto) => (
+              {entregaProductos?.map((producto) => (
                 <div key={producto.id} className="border rounded-lg p-4 space-y-3">
                   <div className="flex items-start justify-between">
                     <div>
