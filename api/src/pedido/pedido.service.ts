@@ -54,67 +54,6 @@ export class PedidoService {
     return response;
   }
 
-  /**
-   * Función para listar los pedidos paginados
-   * @param listarPedidoDto dto para listar los pedidos
-   * @returns  retorna un objeto con los pedidos paginados
-   */
-  // async findAll(listarPedidoDto: ListarPedidoDto) {
-  //   const estado = getEnumValueOrUndefined(EstadoPedido, listarPedidoDto.estado);
-  //   const response = await this.paginationService.paginateGeneric({
-  //     model: 'Pedido',
-  //     pagination: listarPedidoDto,
-  //     args: {
-  //       where: {
-  //         estado,
-  //         OR: [
-  //           { cliente: { nombre: { contains: listarPedidoDto.search, mode: 'insensitive' } } },
-  //           { id: { contains: listarPedidoDto.search, mode: 'insensitive' } },
-  //           { ordenCompra: { contains: listarPedidoDto.search, mode: 'insensitive' } },
-  //         ]
-  //       },
-  //       select: {
-  //         id: true,
-  //         estado: true,
-  //         codigo: true,
-  //         cliente: {
-  //           select: {
-  //             nombre: true
-  //           }
-  //         },
-  //         fechaRecibido: true,
-  //         idCliente: true,
-  //         detallesPedido: {
-  //           select: {
-  //             lugarEntrega: {
-  //               select: {
-  //                 nombre: true,
-  //                 direccion: true,
-  //                 ciudad: {
-  //                   select: {
-  //                     id: true,
-  //                     nombre: true
-  //                   }
-  //                 }
-  //               }
-  //             }
-  //           }
-  //         },
-  //         ordenCompra: true,
-  //         _count: {
-  //           select: {
-  //             detallesPedido: true,
-  //           }
-  //         }
-  //       },
-  //       orderBy: {
-  //         fechaRecibido: 'desc'
-  //       }
-  //     }
-  //   })
-  //   return response;
-  // }
-
   async findAll(listarPedidoDto: ListarPedidoDto) {
   const estado = getEnumValueOrUndefined(EstadoPedido, listarPedidoDto.estado);
   const response = await this.paginationService.paginateGeneric({
@@ -263,8 +202,9 @@ export class PedidoService {
             tipoEntrega: dp.tipoEntrega,
             cantidad: dp.cantidad,
             fechaEntrega: dp.fechaEntrega,
-            lugarEntregaId: dp.lugarEntregaId,
-            unidades: dp.unidades
+            lugarEntregaId: dp.lugarEntregaId || undefined, 
+            unidades: dp.unidades,
+            pesoTotal: dp.pesoTotal
           }
         })
       )
@@ -275,7 +215,7 @@ export class PedidoService {
     const destallesPedidosParaCrear: CreateDetallePedidoDto[] = filterDetallesPedidosUnd.map(dp => ({ pedidoId: pedido.id, productoId: dp.productoId, tipoEntrega: dp.tipoEntrega, cantidad: dp.cantidad, fechaEntrega: dp.fechaEntrega, lugarEntregaId: dp.lugarEntregaId, unidades: dp.unidades, pesoTotal: dp.pesoTotal }))
     const detallesPedidoConId = this.idGeneratorService.mapearDetallesPedidoConIdsEnCreacion(id, destallesPedidosParaCrear);
 
-    const detallesPedidoSaved = await tx.detallePedido.createMany({
+    await tx.detallePedido.createMany({
       data: detallesPedidoConId
     })
     return pedido
