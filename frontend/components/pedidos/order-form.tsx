@@ -33,6 +33,7 @@ type OrderFormProps = {
 }
 
 export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderFormProps) {
+  console.log(pedido)
   const session = useSession();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -152,6 +153,12 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
       let response;
 
       if (isEditing && pedido) {
+        if (pedido.idCliente  !== datos.idCliente) {
+          return toast({
+            variant: 'destructive',
+            description: 'No puede modificar el cliente'
+          })
+        }
         response = await new PedidoService(session.data?.user.token).actualizar(pedido.id, datos);
         if (!response.error) {
           toast({

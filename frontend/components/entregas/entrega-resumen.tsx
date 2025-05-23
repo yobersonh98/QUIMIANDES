@@ -77,14 +77,6 @@ export default function EntregaResumen({
 
         <div>
           <Label htmlFor="observaciones">Observaciones</Label>
-          {/* {modoEdicion ? (
-            <Textarea 
-              id="observaciones" 
-              value={entrega.observaciones || ""} 
-              onChange={(e) => onChangeObservaciones && onChangeObservaciones(e.target.value)} 
-              className="mt-2" 
-            />
-          ) : ( */}
             <Textarea 
               id="observaciones" 
               value={entrega.observaciones || ""} 

@@ -16,7 +16,7 @@ export default async function Page(props: PageProps<PaginationSearchParamsPage>)
   }
   return (
     <BackButtonLayout
-      title={`Modificar Pedido: ${response.data.id || ''}`}
+      title={`Modificar Pedido: ${response.data.codigo || ''}`}
     >
       <OrderForm
         pedido={response.data}

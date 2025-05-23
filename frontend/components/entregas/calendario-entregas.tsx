@@ -140,6 +140,10 @@ export default function CalendarioEntregas({ entregas }: CalendarioEntregasProps
                 fechaEntrega={selectedEntrega.fechaEntrega?.toString()}
                 observaciones={selectedEntrega.observaciones}
                 remision={selectedEntrega.remision}
+                pedido={{
+                  codigo: selectedEntrega.pedido.codigo,
+                  cliente: selectedEntrega.pedido.cliente
+                }}
                 vehiculo={selectedEntrega.vehiculoInterno || selectedEntrega.vehiculoExterno}
                 lugaresEntrega={Array.from(
                   new Map(

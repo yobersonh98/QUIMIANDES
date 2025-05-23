@@ -140,6 +140,7 @@ private simplifyErrors(messages: string[] | string): string {
     protected handlerError(error: unknown) {
         if (error instanceof AxiosError) {
             const response = error.response;
+            console.error('ResponseError: ', response)
             
             if (!response) {
                 throw new UnknownError("Problema de conexión con el servidor");

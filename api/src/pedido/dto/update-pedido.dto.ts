@@ -2,16 +2,20 @@ import { EstadoPedido } from '@prisma/client';
 import { IsArray, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { UpdateDetallePedidoDto } from '../../detalle-pedido/dto/update-detalle-pedido.dto';
-import { CreateDetallePedidoDto } from '../../detalle-pedido/dto/create-detalle-pedido.dto';
 
-export class UpdatePedidoDto  {
+export class UpdatePedidoDto {
 
     @IsOptional() // ✅ Hace que estado sea opcional
     estado?: EstadoPedido
 
     @IsOptional()
+    @IsString()
+    idCliente?:string
+
+    @IsOptional()
     @IsNumber()
     pesoDespachado?: number
+    
     @IsOptional()
     fechaEntrega?: string 
 
