@@ -19,6 +19,7 @@ export interface EntregaListadoItemEntity{
     codigo: string;
     cliente: {
       nombre: string;
+      direccion: string
     };
   }
 }

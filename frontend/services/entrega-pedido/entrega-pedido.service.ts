@@ -17,7 +17,8 @@ export class EntregaPedidoService extends ApiService {
     try {
       const data = await this.makeRequest<PaginationResponse<EntregaListadoItemEntity[]>>({
         searchParams: {
-          ...listarEntregaModel
+          ...listarEntregaModel,
+          limit: listarEntregaModel.limit || 100
         }
       })
       return new SuccessResponse(data)

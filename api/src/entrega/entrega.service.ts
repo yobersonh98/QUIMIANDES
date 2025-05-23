@@ -388,6 +388,7 @@ export class EntregaService {
               cliente: {
                 select: {
                   nombre: true,
+                  direccion:true,
                 }
               },
               codigo: true,

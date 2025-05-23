@@ -1,5 +1,5 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { CalendarIcon, MapPin, Truck, User } from "lucide-react";
+import { CalendarIcon, File, LocateIcon, MapPin, Truck, User } from "lucide-react";
 import moment from "moment";
 import EstadoBadge from "../shared/estado-badge";
 import CardEntregaProductos from "./card-entrega-productos";
@@ -12,6 +12,12 @@ interface CardEntregaInfoProps {
   observaciones?: string | null;
   remision?: string | null;
   vehiculo?: string | null;
+  pedido?: {
+    codigo?: string
+    cliente: {
+      direccion: string
+    }
+  }
   lugaresEntrega: {
     id?: string;
     nombre?: string;
@@ -39,33 +45,44 @@ export default function CardEntregaInfo({
   productos = [],
   mostrarProductos = false,
   showTitle = true,
+  pedido,
 }: CardEntregaInfoProps) {
   return (
     <div className="space-y-3">
       <Card>
-          <CardHeader className="pb-2">
-            {showTitle && (
-              <CardTitle className="text-base flex items-center gap-2">
+        <CardHeader className="pb-2">
+          {showTitle && (
+            <CardTitle className="text-base flex items-center gap-2">
               <Truck className="h-4 w-4" />
               Entrega {codigo}
             </CardTitle>
-            )}
-          </CardHeader>
+          )}
+        </CardHeader>
         <CardContent className="space-y-2 text-sm">
           <div className="flex items-center gap-2">
-            <User className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">Cliente:</span>
-            <span>{clienteNombre}</span>
+            <File className="h-4 w-4 text-muted-foreground" />
+            <span className="font-medium">Pedido:</span>
+            <span>{pedido?.codigo}</span>
           </div>
-
+          <div className="flex justify-between flex-wrap">
+            <div className="flex items-center gap-2">
+              <User className="h-4 w-4 text-muted-foreground" />
+              <span className="font-medium">Cliente:</span>
+              <span>{clienteNombre}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <LocateIcon className="h-4 w-4 text-muted-foreground" />
+              <span className="font-medium">Dirección:</span>
+              <span>{pedido?.cliente.direccion || '-'}</span>
+            </div>
+          </div>
           <div className="flex items-center gap-2">
             <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">Fecha:</span>
+            <span className="font-medium">Fecha de Entrega:</span>
             <span>{fechaEntrega ? moment(fechaEntrega).format("DD/MM/YYYY") : "No programada"}</span>
           </div>
-
           <div className="flex items-center gap-2">
-            <span className="font-medium">Estado:</span>
+            <span className="font-medium">Estado Entrega:</span>
             <EstadoBadge estado={estado} />
           </div>
 
