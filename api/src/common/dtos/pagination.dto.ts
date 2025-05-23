@@ -1,4 +1,4 @@
-import { IsNumber, IsOptional, IsString } from "class-validator";
+import { IsNumber, IsOptional, IsString, Min } from "class-validator";
 import { PaginationMetadata, PaginationResponse } from "../interfaces/IPaginationResponse";
 import { Type } from "class-transformer";
 
@@ -8,8 +8,8 @@ export class Pagination {
     offset: number;
     constructor(paginationDto: PaginationDto) {
         const { limit = 10, offset = 0 } = paginationDto;
-        this.limit = limit;
-        this.offset = offset
+        this.limit = Number(limit);
+        this.offset = Number(offset)
     }
 
     calculatePagination(totalItems: number): PaginationMetadata {
@@ -52,16 +52,19 @@ export class Pagination {
     }
 }
 
+
 export class PaginationDto {
-    @IsNumber()
     @IsOptional()
     @Type(() => Number)
-    limit?: number = 10
-    
     @IsNumber()
+    @Min(1) // Evita valores 0 o negativos
+    limit: number = 10;
+  
     @IsOptional()
     @Type(() => Number)
-    offset?: number = 0
+    @IsNumber()
+    @Min(0)
+    offset: number = 0;
 
     @IsString()
     @IsOptional()
