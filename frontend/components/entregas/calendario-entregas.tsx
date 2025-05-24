@@ -27,7 +27,6 @@ type CalendarEvent = {
 
 type HandleSelectEvent = ((event: CalendarEvent, e: React.SyntheticEvent<HTMLElement>) => void) | undefined
 
-
 const messages = {
   allDay: "Todo el día",
   previous: "Anterior",
@@ -41,7 +40,7 @@ const messages = {
   time: "Hora",
   event: "Evento",
   noEventsInRange: "No hay eventos en este rango",
-  showMore: (total: number) => `+ Ver más (${total})`,
+  showMore: (total: number) => `+ Ver (${total})`,
 }
 
 interface CalendarioEntregasProps {
@@ -88,13 +87,18 @@ export default function CalendarioEntregas({ entregas }: CalendarioEntregasProps
     }
   }
 
-
   const onNavigate = (newDate: Date) => {
     setDate(newDate)
   }
 
   const onView = (newView: View) => {
     setView(newView)
+  }
+
+  const onShowMore = (events: CalendarEvent[], date: Date) => {
+    setView('agenda')
+    setDate(date)
+    return false;
   }
 
   const esPendiente = selectedEntrega?.estado === "PENDIENTE"
@@ -116,7 +120,8 @@ export default function CalendarioEntregas({ entregas }: CalendarioEntregasProps
         view={view}
         onNavigate={onNavigate}
         onView={onView}
-        popup
+        popup={false}
+        onShowMore={onShowMore}
         culture="es"
       />
 
@@ -182,7 +187,7 @@ export default function CalendarioEntregas({ entregas }: CalendarioEntregasProps
                     </Button>
                   )}
                   {esEnTransito && (
-                    <Button  className="w-full">
+                    <Button className="w-full">
                       <Link href={`/dashboard/pedidos/${selectedEntrega.pedidoId}/gestionar/entregas/${selectedEntrega.id}/finalizar-entrega`}>
                         Finalizar Entrega
                       </Link>
