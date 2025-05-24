@@ -12,7 +12,7 @@ export const obtenerCantidadPorProgramar = (detallePedido: DetallePedidoEntity, 
   return cantidadPorProgramar > 0 ? cantidadPorProgramar : 0;
 }
 
-export const obtenerLugarEntregaDetallePedido = (detallePedido?: DetallePedidoEntity): string => {
+export const obtenerLugarEntregaDetallePedido = (detallePedido?: DetallePedidoEntity, direccionPorDefecto= ''): string => {
   if (detallePedido?.lugarEntrega) {
     const { nombre, ciudad, direccion } = detallePedido.lugarEntrega;
 
@@ -26,7 +26,7 @@ export const obtenerLugarEntregaDetallePedido = (detallePedido?: DetallePedidoEn
   }
   // Fallback: usar la dirección del cliente si está disponible
   const direccionCliente = detallePedido?.pedido?.cliente?.direccion?.trim();
-  return direccionCliente ? `Dirección cliente: ${direccionCliente}` : '';
+  return direccionCliente ? `Dirección cliente: ${direccionCliente}` : direccionPorDefecto;
 };
 
 

@@ -11,6 +11,7 @@ interface CancelarEntregaButtonProps {
   description?: string
   children?: React.ReactNode // Texto visible en el botón
   size?: "sm" | "default" | "lg" | "icon" | null | undefined
+  className?:string
 }
 
 export default function CancelarEntregaButton({
@@ -18,7 +19,8 @@ export default function CancelarEntregaButton({
   title = 'Cancelar entrega',
   description = '¿Está seguro de que desea cancelar la entrega?',
   children = 'Cancelar',
-  size= "sm"
+  size= "sm",
+  className
 }: CancelarEntregaButtonProps) {
   const { toast } = useToast()
   const pathName = usePathname()
@@ -38,6 +40,7 @@ export default function CancelarEntregaButton({
       variant={'destructive'}
       description={description}
       size={size}
+      className={className}
     >
       {children}
     </ConfirmButton>

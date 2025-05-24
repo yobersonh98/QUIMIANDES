@@ -17,6 +17,7 @@ export interface PedidoEntity {
   pedidoDocumentos?: PedidoDocumentoEntity[]
   cliente: {
     nombre: string;
+    direccion?:string;
     id: string;
     documento: string;
   }

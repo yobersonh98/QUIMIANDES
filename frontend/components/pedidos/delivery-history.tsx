@@ -100,7 +100,7 @@ function DeliveryCard({
         </div>
 
         <div className="flex items-center gap-1 self-end sm:self-auto ml-auto">
-          {(esPediente || esEnTransito) && <CancelarEntregaButton entregaId={entrega.id} />}
+          {(esPediente || esEnTransito) && <CancelarEntregaButton entregaId={entrega.id}  className="text-xs h-7 px-2"/>}
 
           {esPediente && (
             <Link href={`/dashboard/pedidos/${pedidoId}/gestionar/entregas/${entrega.id}/despacho`}>
