@@ -7,9 +7,13 @@ import { IdGeneratorService } from './../services/IdGeneratorService';
 import { getEnumValueOrUndefined } from './../common/utils/string.util';
 import { PrismaTransacction } from './../common/types';
 import { ListarPedidoDto } from './dto/listar-pedido.dto';
-import { EstadoPedido, Prisma } from '@prisma/client';
+import { EstadoPedido, Prisma, TipoEntregaProducto } from '@prisma/client';
 import { PedidoDocumentoService } from './../pedido-documento/pedido-documento.service';
 import { CreateDetallePedidoDto } from './../detalle-pedido/dto/create-detalle-pedido.dto';
+import { PedidoDatasource } from './pedido.datasource';
+import { isEmpty } from 'class-validator';
+import { groupBy } from './../common/utils/lists.util';
+import { CreateEntregaDto } from './../entrega/dto/create-entrega.dto';
 import { EntregaService } from './../entrega/entrega.service';
 
 @Injectable()
@@ -19,9 +23,12 @@ export class PedidoService {
     private readonly prisma: PrismaService,
     private paginationService: PrismaGenericPaginationService,
     private idGeneratorService: IdGeneratorService,
-    private pedidoDocumentoService: PedidoDocumentoService
+    private pedidoDocumentoService: PedidoDocumentoService,
+    private entregaService:EntregaService,
   ) { }
   async create({ detallesPedido, pedidoDocumentoIds, ...infoPedido }: CreatePedidoDto) {
+    let entregasACrear: CreateEntregaDto[]= []
+
     const response = await this.prisma.$transaction(async (prisma) => {
       try {
         const pedido = await prisma.pedido.create({
@@ -33,7 +40,7 @@ export class PedidoService {
                   documentoId
                 }))
               }
-            }
+            },
           }
         });
         const detallesPedidoConId = this.idGeneratorService.mapearDetallesPedidoConIdsEnCreacion(pedido.id, detallesPedido);
@@ -41,6 +48,21 @@ export class PedidoService {
         const detallesPedidoSaved = await prisma.detallePedido.createMany({
           data: detallesPedidoConId
         })
+        const detallesPedidoConTipoEntregaEnPlanta = detallesPedidoConId.filter(i => i.tipoEntrega === TipoEntregaProducto.RECOGE_EN_PLANTA);
+        if (!isEmpty(detallesPedidoConTipoEntregaEnPlanta)) {
+          const detallesPedidosAgrupadosPorFechaEntrega = groupBy(detallesPedidoConTipoEntregaEnPlanta, 'fechaEntrega')
+          for (const [fechaEntrega, detalles] of Object.entries(detallesPedidosAgrupadosPorFechaEntrega)) {
+            entregasACrear.push({
+              fechaEntrega: new Date(fechaEntrega),
+              pedidoId: pedido.id,
+              entregasProducto:  detalles.map((dtp)=> ({
+                cantidadDespachar: dtp.cantidad,
+                detallePedidoId: dtp.id,
+              }))
+            })
+          }
+        }
+
         return {
           ...pedido,
           detallesPedido: detallesPedidoSaved,
@@ -48,82 +70,87 @@ export class PedidoService {
       } catch (error) {
         this.logger.error(error)
         throw new BadRequestException("Error al crear el pedido")
-      } finally {
       }
     }, { timeout: this.prisma.TimeToWait })
+    try {
+      await Promise.all(entregasACrear.map(async e=> await this.entregaService.programarEntrega(e, false)))
+    } catch (error) {
+      this.logger.warn('Error creando las entregas de los productos reocoje en planta.')
+    }
+
     return response;
   }
 
   async findAll(listarPedidoDto: ListarPedidoDto) {
-  const estado = getEnumValueOrUndefined(EstadoPedido, listarPedidoDto.estado);
-  const response = await this.paginationService.paginateGeneric({
-    model: 'Pedido',
-    pagination: listarPedidoDto,
-    args: {
-      where: {
-        estado,
-        OR: [
-          { cliente: { nombre: { contains: listarPedidoDto.search, mode: 'insensitive' } } },
-          { id: { contains: listarPedidoDto.search, mode: 'insensitive' } },
-          { ordenCompra: { contains: listarPedidoDto.search, mode: 'insensitive' } },
-        ]
-      },
-      select: {
-        id: true,
-        estado: true,
-        codigo: true,
-        cliente: {
-          select: {
-            nombre: true,
-            direccion: true
-          }
+    const estado = getEnumValueOrUndefined(EstadoPedido, listarPedidoDto.estado);
+    const response = await this.paginationService.paginateGeneric({
+      model: 'Pedido',
+      pagination: listarPedidoDto,
+      args: {
+        where: {
+          estado,
+          OR: [
+            { cliente: { nombre: { contains: listarPedidoDto.search, mode: 'insensitive' } } },
+            { id: { contains: listarPedidoDto.search, mode: 'insensitive' } },
+            { ordenCompra: { contains: listarPedidoDto.search, mode: 'insensitive' } },
+          ]
         },
-        fechaRecibido: true,
-        idCliente: true,
-        detallesPedido: {
-          select: {
-            id: true,
-            codigo: true,
-            estado: true,
-            cantidad: true,
-            cantidadDespachada: true,
-            cantidadEntregada: true,
-            fechaEntrega: true,
-            producto: {
-              select: {
-                id: true,
-                nombre: true,
-                unidadMedida: true
-              }
-            },
-            lugarEntrega: {
-              select: {
-                nombre: true,
-                direccion: true,
-                ciudad: {
-                  select: {
-                    id: true,
-                    nombre: true
+        select: {
+          id: true,
+          estado: true,
+          codigo: true,
+          cliente: {
+            select: {
+              nombre: true,
+              direccion: true
+            }
+          },
+          fechaRecibido: true,
+          idCliente: true,
+          detallesPedido: {
+            select: {
+              id: true,
+              codigo: true,
+              estado: true,
+              cantidad: true,
+              cantidadDespachada: true,
+              cantidadEntregada: true,
+              fechaEntrega: true,
+              producto: {
+                select: {
+                  id: true,
+                  nombre: true,
+                  unidadMedida: true
+                }
+              },
+              lugarEntrega: {
+                select: {
+                  nombre: true,
+                  direccion: true,
+                  ciudad: {
+                    select: {
+                      id: true,
+                      nombre: true
+                    }
                   }
                 }
               }
             }
+          },
+          ordenCompra: true,
+          _count: {
+            select: {
+              detallesPedido: true,
+            }
           }
         },
-        ordenCompra: true,
-        _count: {
-          select: {
-            detallesPedido: true,
-          }
+        orderBy: {
+          fechaRecibido: 'desc'
         }
-      },
-      orderBy: {
-        fechaRecibido: 'desc'
       }
-    }
-  });
-  return response;
-}
+    });
+    return response;
+  }
 
   async findOne(id: string) {
     const pedido = await this.prisma.pedido.findUnique({
@@ -167,18 +194,7 @@ export class PedidoService {
     }
     return pedido;
   }
-  findOneBasicInfo(id: string) {
-    return this.prisma.pedido.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        estado: true,
-        fechaRecibido: true,
-        idCliente: true,
-        ordenCompra: true,
-      }
-    });
-  }
+
   async update(id: string, updatePedidoDto: UpdatePedidoDto, tx: PrismaTransacction = this.prisma) {
     const { estado, pesoDespachado, fechaEntrega, observaciones, ordenCompra, detallesPedido = [], pedidoDocumentoIds = [] } = updatePedidoDto;
     const pedido = await tx.pedido.update({
@@ -202,7 +218,7 @@ export class PedidoService {
             tipoEntrega: dp.tipoEntrega,
             cantidad: dp.cantidad,
             fechaEntrega: dp.fechaEntrega,
-            lugarEntregaId: dp.lugarEntregaId || undefined, 
+            lugarEntregaId: dp.lugarEntregaId || undefined,
             unidades: dp.unidades,
             pesoTotal: dp.pesoTotal
           }
@@ -230,13 +246,13 @@ export class PedidoService {
         }
       }
     });
-    
+
     if (hayAlgunaEntregaEnProceso) {
       throw new ConflictException(
         'Existen entregas en tránsito o pendientes. Por favor, finalízalas o cancélalas antes de cerrar el pedido.'
       );
     }
-    
+
     const pedido = await this.prisma.pedido.findUnique({
       where: {
         id,
@@ -248,23 +264,23 @@ export class PedidoService {
         detallesPedido: true,
       }
     });
-    
+
     if (!pedido) {
       throw new NotFoundException(
         'El pedido no existe o no se encuentra en estado EN_PROCESO.'
       );
     }
-    
+
     const hayDetallesPendientes = pedido.detallesPedido.find(detalle =>
       detalle.estado === 'PENDIENTE' || detalle.estado === 'EN_TRANSITO'
     );
-    
+
     if (hayDetallesPendientes) {
       throw new ConflictException(
         'Este pedido aún tiene productos pendientes o en tránsito. Debes finalizar la entrega de todos los productos antes de cerrar el pedido.'
       );
     }
-    
+
     const detallesPedido = pedido.detallesPedido.map(detalle => ({
       ...detalle,
       estado: 'ENTREGADO',
@@ -302,7 +318,7 @@ export class PedidoService {
     if (pedido.estado === 'ENTREGADO') {
       throw new BadRequestException(`El pedido con ID ${id} ya está entregado`);
     }
-    const todosLosProductosEstanEnPendiente = pedido.detallesPedido.every(dp=> dp.estado === 'PENDIENTE');
+    const todosLosProductosEstanEnPendiente = pedido.detallesPedido.every(dp => dp.estado === 'PENDIENTE');
     if (!todosLosProductosEstanEnPendiente) {
       throw new ConflictException('Todos los productos del pedido deberian estar en estado pediente.')
     }

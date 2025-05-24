@@ -4,6 +4,9 @@ import { IsString, IsInt, IsNumber, IsDateString, IsOptional, IsNotEmpty, Min, I
 export class CreateDetallePedidoDto {
   @IsString()
   @IsOptional()
+  id?: string;
+  @IsString()
+  @IsOptional()
   pedidoId: string;
 
   @IsString()

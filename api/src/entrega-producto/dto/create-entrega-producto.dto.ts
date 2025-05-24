@@ -4,7 +4,7 @@ import { IsDate, IsDateString, IsNumber, IsNumberString, IsOptional, IsString, M
 export class CreateEntregaProductoDto {
   @IsString()
   @IsOptional()
-  entregaId:   string
+  entregaId?:   string
 
   @IsString()
   detallePedidoId: string
@@ -12,18 +12,18 @@ export class CreateEntregaProductoDto {
   @IsNumber()
   @Min(1)
   @IsOptional()
-  cantidadDespachada: number 
+  cantidadDespachada?: number 
 
 
   @IsNumber()
   @Min(1)
-  cantidadDespachar: number 
+  cantidadDespachar?: number 
 
   @IsDateString()
   @IsOptional()
-  fechaEntrega   ?: string
+  fechaEntrega?: string
 
   @IsOptional()
   @IsString()
-  observaciones    ?:  string
+  observaciones?:  string
 }

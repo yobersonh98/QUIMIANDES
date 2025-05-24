@@ -20,7 +20,7 @@ export class CreateEntregaDto {
   vehiculoExterno?: string;
 
   @IsString()
-  entregadoPorA: string;
+  entregadoPorA?: string;
 
   @IsOptional()
   @IsString()

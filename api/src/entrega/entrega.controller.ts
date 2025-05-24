@@ -29,7 +29,7 @@ export class EntregaController {
 
   @Post() 
   create(@Body() createEntregaDto: CreateEntregaDto) {
-    return this.entregaService.create(createEntregaDto);
+    return this.entregaService.programarEntrega(createEntregaDto);
   }
 
   @Get()

@@ -4,6 +4,7 @@ import { PrismaTransacction } from './../common/types';
 import { CreateDetallePedidoDto } from './../detalle-pedido/dto/create-detalle-pedido.dto';
 import { esVacio } from './../common/utils/string.util';
 import { DetallePedido } from '@prisma/client';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class IdGeneratorService {
@@ -81,6 +82,7 @@ export class IdGeneratorService {
     return detallesPedido.map((dp, i) => {
       return {
         ...dp,
+        id: randomUUID(),
         pedidoId,
         lugarEntregaId: esVacio(dp.lugarEntregaId) ? undefined : dp.lugarEntregaId,
       };

@@ -5,17 +5,16 @@ import { UpdateEntregaDto } from './dto/update-entrega.dto';
 import { EntregaProductoService } from './../entrega-producto/entrega-producto.service';
 import { DetallePedidoService } from './../detalle-pedido/detalle-pedido.service';
 import { Entrega, EstadoDetallePedido, EstadoEntrega, EstadoPedido, TipoEntregaProducto } from '@prisma/client';
-import { PedidoService } from './../pedido/pedido.service';
 import { RegistrarDespachoDetallePedidoDto } from './../entrega-producto/dto/registrar-despacho-detalle-pedido.dto';
 import { CompletarEntregaDto } from './dto/finalizar-entrega.dto';
 import { PrismaTransacction } from './../common/types';
-import { IdGeneratorService } from './../services/IdGeneratorService';
 import { ListarEntregasDto } from './dto/listar-entregas.dto';
 import { getEnumValueOrUndefined } from './../common/utils/string.util';
 import { PrismaGenericPaginationService } from './../prisma/prisma-generic-pagination.service';
 import { PaginationResponse } from './../common/interfaces/IPaginationResponse';
 import { EntregaListadoItem } from './entities/entrega-listado-item';
 import { isEmpty } from 'class-validator';
+import { PedidoDatasource } from './../pedido/pedido.datasource';
 
 @Injectable()
 export class EntregaService {
@@ -23,25 +22,30 @@ export class EntregaService {
   constructor(private readonly prisma: PrismaService,
     private readonly entregraProductoService: EntregaProductoService,
     private readonly detallePedidoService: DetallePedidoService,
-    private readonly pedidoService: PedidoService,
-    private readonly idGeneratorService: IdGeneratorService,
-    private readonly prismaGenericPagination: PrismaGenericPaginationService
+    private readonly prismaGenericPagination: PrismaGenericPaginationService,
+    private readonly pedidoDatasource: PedidoDatasource
   ) { }
 
-  async create(createEntregaDto: CreateEntregaDto): Promise<Entrega> {
+  async programarEntrega(createEntregaDto: CreateEntregaDto, validar = true): Promise<Entrega> {
     const { pedidoId, vehiculoExterno, vehiculoInterno, remision, entregadoPorA, observaciones, entregasProducto, fechaEntrega } = createEntregaDto;
-    if (isEmpty(entregasProducto)) {
+    if (isEmpty(entregasProducto) && validar) {
       throw new BadRequestException('No se han registrado productos para la entrega');
     }
-    const pedido = await this.pedidoService.findOneBasicInfo(pedidoId);
-    if (!pedido) {
+    const pedido = await this.pedidoDatasource.findOneBasicInfo(pedidoId);
+    if (!pedido && validar) {
       throw new NotFoundException(`Pedido con id ${pedidoId} no encontrado`);
     }
-    if (pedido.estado === EstadoPedido.CANCELADO || pedido.estado === EstadoPedido.ENTREGADO) {
+    if (validar && (pedido.estado === EstadoPedido.CANCELADO || pedido.estado === EstadoPedido.ENTREGADO)) {
       throw new BadRequestException('El pedido ha sido Cancelado o Entregado, no se puede registrar más entregas.')
     }
-    const detallesPedido = await this.detallePedidoService.findAll(pedidoId);
+    const detallesPedido = validar ? await this.detallePedidoService.findAll(pedidoId): [];
     const detallesPedidoAModificarCantidadProgramada = entregasProducto.map(i => {
+      if (!validar) {
+        return {
+          detallePedidoId:i.detallePedidoId,
+          cantidadProgramada: i.cantidadDespachar
+        }
+      }
       const detallePedido = detallesPedido.find(d => d.id === i.detallePedidoId)
       if (!this.detallePedidoService.puedeSerModificado(detallePedido)) {
         throw new BadRequestException(
@@ -77,8 +81,8 @@ export class EntregaService {
         },
       });
 
-      if (pedido.estado === EstadoPedido.PENDIENTE) {
-        await this.pedidoService.update(pedidoId, {
+      if (!validar || pedido?.estado === EstadoPedido.PENDIENTE) {
+        await this.pedidoDatasource.update(pedidoId, {
           estado: EstadoPedido.EN_PROCESO,
         }, tx)
       }
@@ -250,7 +254,7 @@ export class EntregaService {
       });
       const esPedidoEntregadoCompleto = this.detallePedidoService.esCantidadTotalEntregada(detallesPedidoActualizados);
       if (esPedidoEntregadoCompleto) {
-        await this.pedidoService.update(entrega.pedidoId, {
+        await this.pedidoDatasource.update(entrega.pedidoId, {
           estado: EstadoPedido.ENTREGADO
         }, tx);
       }
