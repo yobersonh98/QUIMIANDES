@@ -92,7 +92,7 @@ export function ProductFormItem({ index, onRemove, isRemoveDisabled }: ProductFo
             name={`detallesPedido.${index}.productoId`}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Producto</FormLabel>
+                <FormLabel>Producto {index+1}</FormLabel>
                 <SelectWithSearch
                   endpoint="productos/search"
                   onSelect={(value) => {
@@ -150,7 +150,8 @@ export function ProductFormItem({ index, onRemove, isRemoveDisabled }: ProductFo
           <CustomFormDatePicker
             control={control}
             name={`detallesPedido.${index}.fechaEntrega`}
-            label="Fecha de Entrega"
+            label="Requerida para"
+            placeholder="Seleccione una fech de entrega"
           />
 
           <FormField
