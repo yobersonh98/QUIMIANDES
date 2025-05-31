@@ -79,7 +79,7 @@ export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
         ),
       };
     })
-    .filter((detalle) => detalle.cantidadDespachar > 0);
+    .filter((detalle) => detalle.cantidadDespachar > 0 && (detalle.estado === 'PARCIAL' || detalle.estado === 'PENDIENTE'));
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

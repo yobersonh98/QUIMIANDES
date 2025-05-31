@@ -4,7 +4,7 @@ import { CreateDetallePedidoDto } from './dto/create-detalle-pedido.dto';
 import { UpdateDetallePedidoDto } from './dto/update-detalle-pedido.dto';
 import { IdGeneratorService } from './../services/IdGeneratorService';
 import { esVacio } from './../common/utils/string.util';
-import { DetallePedido, EstadoDetallePedido, PrismaClient } from '@prisma/client';
+import { DetallePedido, EstadoDetallePedido, Prisma, PrismaClient } from '@prisma/client';
 import { PrismaTransacction } from './../common/types';
 
 @Injectable()
@@ -60,7 +60,8 @@ export class DetallePedidoService {
       await this.hayAlgunaEntregaSinGestionar(id);
     }
     if (updateDetallePedidoDto.estado === 'ENTREGADO') {
-      const cantidadSinFinalizar = await this.contarDetallesPedidoSinFinalizar(id, updateDetallePedidoDto.pedidoId);
+      const cantidadSinFinalizar = await this.contarDetallesPedidoSinFinalizar(updateDetallePedidoDto.pedidoId, id) ;
+      this.logger.debug('actualizandoProducto', cantidadSinFinalizar)
       if (!cantidadSinFinalizar && updateDetallePedidoDto.pedidoId) {
         await this.prisma.pedido.update({
           where: {
@@ -160,19 +161,42 @@ export class DetallePedidoService {
     }
   }
 
-  async contarDetallesPedidoSinFinalizar (pedidoId: string, detallePedidoId?:string) {
-    return await this.prisma.detallePedido.count({
-      where: {
-        NOT:{
-          id: detallePedidoId
-        },
-        pedidoId,
-        estado: {
-          notIn:['CANCELADO', 'ENTREGADO']
-        }
+
+  /**
+   * Cuenta la cantidad de detalles de pedido que aún no han sido finalizados 
+   * (es decir, que no están en estado 'CANCELADO' ni 'ENTREGADO') para un pedido específico.
+   *
+   * @param pedidoId - El ID del pedido al cual pertenecen los detalles a evaluar.
+   * @param detallePedidoId - (Opcional) ID de un detalle de pedido que se debe excluir del conteo, 
+   *                           por ejemplo, porque será marcado como entregado próximamente.
+   * 
+   * @returns Una promesa que resuelve en el número de detalles de pedido que aún están pendientes o parcialmente entregados.
+   * 
+   * @example
+   * // Contar todos los detalles no finalizados de un pedido
+   * const pendientes = await contarDetallesPedidoSinFinalizar('pedido-123');
+   *
+   * @example
+   * // Contar detalles no finalizados, excluyendo uno que ya se está procesando
+   * const pendientes = await contarDetallesPedidoSinFinalizar('pedido-123', 'detalle-456');
+  */
+  async contarDetallesPedidoSinFinalizar(pedidoId: string, detallePedidoId?: string) {
+    const where: Prisma.DetallePedidoWhereInput = {
+      pedidoId,
+      estado: {
+        notIn: ['CANCELADO', 'ENTREGADO']
       }
+    };
+    // Excluir un detalle específico si se proporciona
+    if (detallePedidoId) {
+      where.id = { not: detallePedidoId };
+    }
+    const detalles = await this.prisma.detallePedido.findMany({
+      where
     })
+    return await this.prisma.detallePedido.count({ where });
   }
+
 
   async remove(id: string) {
     return await this.prisma.detallePedido.delete({
