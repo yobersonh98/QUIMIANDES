@@ -15,6 +15,7 @@ interface EntregaResumenProps {
   entrega: EntregaEntity
   modoEdicion?: boolean
   onChange?: (value: EntregaEntity) => void
+  disabledFields?: (keyof EntregaEntity)[]
   onGuardar?: () => void
 }
 
@@ -22,12 +23,16 @@ export default function EntregaResumen({
   entrega, 
   modoEdicion = false,
   onChange,
-  onGuardar
+  onGuardar,
+  disabledFields
 }: EntregaResumenProps) {
   const onChangeRemision = (value: string) => {
     if (onChange) {
       onChange({ ...entrega, remision: value })
     }
+  }
+  const onChangeObservacion = (value:string) => {
+    if (onChange) onChange({...entrega, observaciones: value})
   }
   return (
     <Card>
@@ -61,7 +66,7 @@ export default function EntregaResumen({
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-muted-foreground" />
             <span className="font-medium">Remisión:</span> 
-            {modoEdicion ? (
+            {modoEdicion && !disabledFields?.includes('remision')? (
               <Input 
                 value={entrega.remision || ""} 
                 onChange={(e) => onChangeRemision && onChangeRemision(e.target.value)} 
@@ -79,8 +84,9 @@ export default function EntregaResumen({
           <Label htmlFor="observaciones">Observaciones</Label>
             <Textarea 
               id="observaciones" 
-              value={entrega.observaciones || ""} 
-              readOnly 
+              value={entrega.observaciones || ""}
+              readOnly={!modoEdicion || disabledFields?.includes('observaciones')}
+              onChange={e => onChangeObservacion(e.target.value)} 
               className="mt-2" 
             />
           {/* )} */}

@@ -55,8 +55,23 @@ export class DetallePedidoService {
     });
   }
 
-  async actualizarConValidacion(id: string, updateDetallePedidoDto: UpdateDetallePedidoDto) {
-    await this.hayAlgunaEntregaSinGestionar(id);
+  async actualizarConValidacion(id: string, updateDetallePedidoDto: UpdateDetallePedidoDto, omitValidacionEntregas= false) {
+    if (!omitValidacionEntregas) {
+      await this.hayAlgunaEntregaSinGestionar(id);
+    }
+    if (updateDetallePedidoDto.estado === 'ENTREGADO') {
+      const cantidadSinFinalizar = await this.contarDetallesPedidoSinFinalizar(id, updateDetallePedidoDto.pedidoId);
+      if (!cantidadSinFinalizar && updateDetallePedidoDto.pedidoId) {
+        await this.prisma.pedido.update({
+          where: {
+            id: updateDetallePedidoDto.pedidoId,
+          },
+          data: {
+            estado: 'ENTREGADO'
+          }
+        })
+      }
+    }
     return this.update(id, updateDetallePedidoDto)
   }
 
@@ -143,6 +158,20 @@ export class DetallePedidoService {
       this.logger.error(error);
       return false;
     }
+  }
+
+  async contarDetallesPedidoSinFinalizar (pedidoId: string, detallePedidoId?:string) {
+    return await this.prisma.detallePedido.count({
+      where: {
+        NOT:{
+          id: detallePedidoId
+        },
+        pedidoId,
+        estado: {
+          notIn:['CANCELADO', 'ENTREGADO']
+        }
+      }
+    })
   }
 
   async remove(id: string) {

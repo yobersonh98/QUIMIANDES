@@ -21,10 +21,11 @@ export function ProductsList({ detallesPedido }: ProductsListProps) {
   const token = useSession().data?.user.token
   const pathname = usePathname()
 
-  const marcarComoEntregado = async (detallePedidoId: string) => {
+  const marcarComoEntregado = async (detallePedidoId: string, pedidoId?: string) => {
     const response = await new DetallePedidoService(token).actualizar({
       id: detallePedidoId,
       estado: "ENTREGADO",
+      pedidoId
     })
     
     if (!response.data) {
@@ -49,9 +50,9 @@ export function ProductsList({ detallesPedido }: ProductsListProps) {
     } 
     return (<div className="flex flex-1 justify-end">
       <ConfirmButton size={"sm"}
-
         title="Marcar como entregado"
-        description="¿Está seguro de marcarlo como entregado?, esto marcara de manera definitiva la operación de entrega del producto." onClick={() => marcarComoEntregado(detalle.id)}>
+        description="¿Está seguro de marcarlo como entregado?, esto marcara de manera definitiva la operación de entrega del producto."
+         onClick={() => marcarComoEntregado(detalle.id, detalle.pedidoId)}>
         Finalizar entrega
       </ConfirmButton>
     </div>

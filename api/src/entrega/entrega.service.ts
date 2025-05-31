@@ -107,7 +107,7 @@ export class EntregaService {
    * @param despachosEntregaProducto lista de despachos de entrega
    * @returns  entrega actualizada
    */
-  async confirmarEntrega({ entregaId, despachosEntregaProducto, remision }: RegistrarDespachoDetallePedidoDto): Promise<Entrega> {
+  async confirmarEntrega({ entregaId, despachosEntregaProducto, remision, observaciones }: RegistrarDespachoDetallePedidoDto): Promise<Entrega> {
     const entrega = await this.prisma.entrega.findUnique({
       where: { id: entregaId },
     });
@@ -134,27 +134,35 @@ export class EntregaService {
       }
 
       const cantidadTotalDespachada = detallePedido.cantidadDespachada + cantidadDespachada;
-
       const esEntregaEnPlanta = detallePedido.tipoEntrega === TipoEntregaProducto.RECOGE_EN_PLANTA;
-      const estado =
-        esEntregaEnPlanta
+      const esEntregaCompleta = cantidadTotalDespachada >= detallePedido.cantidad;
+
+      let nuevoEstado: EstadoDetallePedido;
+
+      if (esEntregaEnPlanta) {
+        nuevoEstado = esEntregaCompleta
           ? EstadoDetallePedido.ENTREGADO
-          : EstadoDetallePedido.EN_TRANSITO
+          : EstadoDetallePedido.PARCIAL;
+      } else {
+        nuevoEstado = EstadoDetallePedido.EN_TRANSITO;
+      }
 
       return {
         entregaProductoId,
         cantidadDespachada,
-        cantidadEntregada: esEntregaEnPlanta ? cantidadTotalDespachada : undefined, // solo se asigna si es entrega en planta
+        cantidadEntregada: esEntregaEnPlanta ? cantidadTotalDespachada : undefined,
         observaciones: entregaProducto.observaciones,
         detallePedidoId: detallePedido.id,
-        nuevoEstado: estado,
+        nuevoEstado,
         cantidadTotalDespachada,
       };
     });
-    return this.prisma.$transaction(async (tx) => {
+
+      
+    const entregaSaved = await this.prisma.$transaction(async (tx) => {
       await Promise.all(
         validacionesPreparadas.map(async (val) => {
-          const entregaProductoActualizado = await this.entregraProductoService.update(
+          await this.entregraProductoService.update(
             val.entregaProductoId,
             {
               cantidadDespachada: val.cantidadDespachada,
@@ -164,30 +172,42 @@ export class EntregaService {
             tx
           );
 
-          await this.detallePedidoService.update(
+          await this.detallePedidoService.actualizarConValidacion(
             val.detallePedidoId,
             {
               cantidadDespachada: val.cantidadTotalDespachada,
               cantidadEntregada: val.cantidadEntregada,
               estado: val.nuevoEstado,
             },
-            tx
+            true
           );
-
-          return entregaProductoActualizado;
         })
       );
+      const todosEntregaEnPlanta = validacionesPreparadas.every((val) => {
+        const detalle = detallesPedido.find(dp => dp.id === val.detallePedidoId);
+        return detalle?.tipoEntrega === TipoEntregaProducto.RECOGE_EN_PLANTA;
+      });
 
+      const estadoEntregaFinal = todosEntregaEnPlanta
+        ? EstadoEntrega.ENTREGADO
+        : EstadoEntrega.EN_TRANSITO;
+      // Lógica para actualizar el estado general de la entrega
       return await this.update(
         entrega.id,
         {
-          estado: EstadoEntrega.EN_TRANSITO,
+          estado: estadoEntregaFinal,
           remision,
+          observaciones,
         },
         tx
       );
-
     }, { timeout: this.prisma.TimeToWait });
+    const cantidadEntregados = await this.detallePedidoService.contarDetallesPedidoSinFinalizar(entrega.pedidoId)
+    this.logger.debug('cantidadEntregados: ', cantidadEntregados)
+    if (!cantidadEntregados) {
+      await this.pedidoDatasource.update(entrega.pedidoId, {estado: 'ENTREGADO'})
+    }
+    return entregaSaved
   }
 
 
@@ -200,47 +220,55 @@ export class EntregaService {
    * @throws BadRequestException si el detalle de pedido ya está en estado entregado o cancelado
    * @throws BadRequestException si la cantidad entregada es menor a la cantidad despachada
    */
-  async completarEntrega({ entregaId, entregaProductos }: CompletarEntregaDto): Promise<Entrega> {
-    this.logger.log(`Finalizando entrega con id ${entregaId}`);
-
+  async completarEntrega({ entregaId, entregaProductos, observaciones }: CompletarEntregaDto): Promise<Entrega> {
     const entrega = await this.prisma.entrega.findUnique({
       where: { id: entregaId },
     });
+
     if (!entrega) {
       throw new NotFoundException(`Entrega con id ${entregaId} no encontrada`);
     }
+
     const detallesPedido = await this.detallePedidoService.findAll(entrega.pedidoId);
-    const detallesPedidoActualizados = entregaProductos.map(({ detallePedidoId, cantidadEntregada }) => {
-      const detallePedido = detallesPedido.find(dp => dp.id === detallePedidoId);
-      const cantidadTotalEntregadoDetallePedido = detallePedido.cantidadEntregada + cantidadEntregada;
-      detallePedido.cantidadEntregada = cantidadTotalEntregadoDetallePedido;
-      if (!detallePedido) {
+
+    for (const { detallePedidoId, cantidadEntregada } of entregaProductos) {
+      const detalle = detallesPedido.find(dp => dp.id === detallePedidoId);
+
+      if (!detalle) {
         throw new NotFoundException(`Detalle de pedido con id ${detallePedidoId} no encontrado`);
       }
 
-      if (detallePedido.estado == EstadoDetallePedido.ENTREGADO || detallePedido.estado == EstadoDetallePedido.CANCELADO) {
-        throw new BadRequestException(`El detalle de pedido con id ${detallePedidoId} ya está en estado entregado o cancelado`);
+      if (([EstadoDetallePedido.ENTREGADO, EstadoDetallePedido.CANCELADO] as EstadoDetallePedido[]).includes(detalle.estado)) {
+        throw new BadRequestException(`Detalle de pedido con id ${detallePedidoId} ya está en estado entregado o cancelado`);
       }
-      if (cantidadTotalEntregadoDetallePedido >= detallePedido.cantidad) {
-        detallePedido.estado = EstadoDetallePedido.ENTREGADO;
-      } else {
-        detallePedido.estado = EstadoDetallePedido.PARCIAL
-      }
-      return detallePedido
-    })
+
+      const nuevaCantidadEntregada = detalle.cantidadEntregada + cantidadEntregada;
+      detalle.cantidadEntregada = nuevaCantidadEntregada;
+
+      detalle.estado = nuevaCantidadEntregada >= detalle.cantidad
+        ? EstadoDetallePedido.ENTREGADO
+        : EstadoDetallePedido.PARCIAL;
+    }
+
+    // ✅ Aquí evalúas TODOS los productos del pedido (no solo los que llegaron en esta entrega)
+    const esPedidoEntregadoCompleto = detallesPedido.every(
+      (detalle) => detalle.estado === EstadoDetallePedido.ENTREGADO
+    );
     return this.prisma.$transaction(async (tx) => {
       await Promise.all(
-        detallesPedidoActualizados.map(async (detallePedido) => {
-          await this.detallePedidoService.update(detallePedido.id, {
-            cantidadEntregada: detallePedido.cantidadEntregada,
-            estado: detallePedido.estado,
+        detallesPedido.map(async (detalle) => {
+          await this.detallePedidoService.update(detalle.id, {
+            cantidadEntregada: detalle.cantidadEntregada,
+            estado: detalle.estado,
           }, tx);
         })
       );
+
       const entregaFinalizada = await tx.entrega.update({
         where: { id: entregaId },
         data: {
           estado: EstadoPedido.ENTREGADO,
+          observaciones,
           entregaProductos: {
             updateMany: entregaProductos.map(({ entregaProductoId, cantidadEntregada, observaciones }) => ({
               where: { id: entregaProductoId },
@@ -252,15 +280,17 @@ export class EntregaService {
           }
         },
       });
-      const esPedidoEntregadoCompleto = this.detallePedidoService.esCantidadTotalEntregada(detallesPedidoActualizados);
+
       if (esPedidoEntregadoCompleto) {
         await this.pedidoDatasource.update(entrega.pedidoId, {
           estado: EstadoPedido.ENTREGADO
         }, tx);
       }
+
       return entregaFinalizada;
     }, { timeout: this.prisma.TimeToWait });
   }
+
 
   async cancelarEntrega(id: string): Promise<Entrega> {
     const entrega = await this.prisma.entrega.findUnique({

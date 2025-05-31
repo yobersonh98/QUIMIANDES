@@ -7,6 +7,10 @@ export class RegistrarDespachoDetallePedidoDto {
 
   @IsString()
   @IsOptional()
+  observaciones?:string
+
+  @IsString()
+  @IsOptional()
   remision?:string
 
   @ValidateNested({ each: true })

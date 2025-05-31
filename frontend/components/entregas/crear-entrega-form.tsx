@@ -379,7 +379,7 @@ export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
                               />
                             )}
                           />
-                          <FormField
+                          {/* <FormField
                             control={form.control}
                             name={`productos.${index}.observaciones`}
                             render={({ field }) => (
@@ -395,7 +395,7 @@ export function CrearEntregaForm({ pedido }: { pedido: PedidoEntity }) {
                                 <FormMessage />
                               </FormItem>
                             )}
-                          />
+                          /> */}
                         </div>
                       );
                     }

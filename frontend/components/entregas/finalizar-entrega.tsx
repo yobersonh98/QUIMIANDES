@@ -6,7 +6,6 @@ import { Check, MapPin, Package, CheckCircle, Phone, User } from "lucide-react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { useToast } from "@/hooks/use-toast"
@@ -39,16 +38,16 @@ export default function FinalizarEntrega({ entrega: initialEntrega, onSave }: Fi
       },
       {} as Record<string, number>,
     ) || {},
-  )
-  const [productObservations, setProductObservations] = useState<Record<string, string>>(
-    entrega.entregaProductos?.reduce(
-      (acc, producto) => {
-        acc[producto.id] = producto.observaciones || ""
-        return acc
-      },
-      {} as Record<string, string>,
-    ) || {},
-  )
+  ) 
+  // const [productObservations, setProductObservations] = useState<Record<string, string>>(
+  //   entrega.entregaProductos?.reduce(
+  //     (acc, producto) => {
+  //       acc[producto.id] = producto.observaciones || ""
+  //       return acc
+  //     },
+  //     {} as Record<string, string>,
+  //   ) || {},
+  // )
 
   const entregaProductos = entrega.entregaProductos?.filter(i=> i.detallePedido?.estado !== 'ENTREGADO')
   const handleDeliveredQuantityChange = (id: string, value: number) => {
@@ -58,12 +57,12 @@ export default function FinalizarEntrega({ entrega: initialEntrega, onSave }: Fi
     }))
   }
 
-  const handleObservationChange = (id: string, value: string) => {
-    setProductObservations((prev) => ({
-      ...prev,
-      [id]: value,
-    }))
-  }
+  // const handleObservationChange = (id: string, value: string) => {
+  //   setProductObservations((prev) => ({
+  //     ...prev,
+  //     [id]: value,
+  //   }))
+  // }
 
   const handleFinalizeDelivery = async () => {
 
@@ -71,7 +70,7 @@ export default function FinalizarEntrega({ entrega: initialEntrega, onSave }: Fi
     const updatedEntregaProductos = entregaProductos?.map((producto) => ({
       ...producto,
       cantidadEntregada: deliveredQuantities[producto.id],
-      observaciones: productObservations[producto.id],
+      // observaciones: productObservations[producto.id],
     }))
 
     const updatedEntrega = {
@@ -81,11 +80,11 @@ export default function FinalizarEntrega({ entrega: initialEntrega, onSave }: Fi
     }
     const data: CompletarEntregaModel = {
       entregaId: entrega.id,
+      observaciones: entrega.observaciones,
       entregaProductos: updatedEntregaProductos?.map(etp=> ({
         entregaProductoId: etp.id,
         cantidadEntregada: etp.cantidadEntregada,
         detallePedidoId: etp.detallePedidoId,
-        observaciones: etp.observaciones,
       })) || []
     }
     const {error} = await new EntregaPedidoService(token).completarEntrega(data)
@@ -122,7 +121,7 @@ export default function FinalizarEntrega({ entrega: initialEntrega, onSave }: Fi
     <div className="container mx-auto py-6">
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <EntregaResumen entrega={entrega} />
+        <EntregaResumen entrega={entrega} modoEdicion disabledFields={['remision']} onChange={setEntrega}/>
 
         <Card>
           <CardHeader>
@@ -190,7 +189,7 @@ export default function FinalizarEntrega({ entrega: initialEntrega, onSave }: Fi
                     </div>
                   </div>
 
-                  <div>
+                  {/* <div>
                     <Label htmlFor={`observaciones-${producto.id}`}>Observaciones de Entrega</Label>
                     <Textarea
                       id={`observaciones-${producto.id}`}
@@ -199,7 +198,7 @@ export default function FinalizarEntrega({ entrega: initialEntrega, onSave }: Fi
                       placeholder="Ingrese observaciones sobre la entrega de este producto"
                       className="mt-1"
                     />
-                  </div>
+                  </div> */}
 
                   {calculateProgress(producto) === 100 && (
                     <div className="flex items-center gap-2 text-green-600">

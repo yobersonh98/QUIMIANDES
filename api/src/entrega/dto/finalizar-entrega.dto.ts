@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsArray, IsNotEmpty, IsNumber, IsString, Min, ValidateNested } from "class-validator";
+import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, Min, ValidateNested } from "class-validator";
 
 export class FinalizarEntregaProductoDto {
   @IsString()
@@ -11,6 +11,7 @@ export class FinalizarEntregaProductoDto {
   detallePedidoId: string;
 
   @IsString()
+  @IsOptional()
   observaciones?: string;
 
   @IsNumber()
@@ -22,6 +23,10 @@ export class CompletarEntregaDto {
   @IsString()
   @IsNotEmpty()
   entregaId: string;
+
+  @IsOptional()
+  @IsString()
+  observaciones?:string
 
   @ValidateNested({ each: true })
   @IsArray()

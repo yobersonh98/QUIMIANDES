@@ -61,34 +61,34 @@ export function OrderDeliveryManager({ pedido }: OrderDeliveryManagerProps) {
   const pathName = usePathname();
   const { toast } = useToast();
 
-  const handleFinalizarPedido = async () => {
-    const response = await new PedidoService(token).finalizarEntregaPedido(
-      pedido.id
-    );
-    if (response.error) {
-      toast({
-        title: "Error",
-        description: response.error.message,
-        variant: "destructive",
-      });
-      return;
-    }
-    if (response.data) {
-      toast({
-        title: "Éxito",
-        description: "Pedido finalizado correctamente.",
-        variant: "default",
-      });
-      await RefreshPage(pathName);
-    } else {
-      toast({
-        title: "Error",
-        description: "No se pudo finalizar el pedido.",
-        variant: "destructive",
-      });
-      return;
-    }
-  };
+  // const handleFinalizarPedido = async () => {
+  //   const response = await new PedidoService(token).finalizarEntregaPedido(
+  //     pedido.id
+  //   );
+  //   if (response.error) {
+  //     toast({
+  //       title: "Error",
+  //       description: response.error.message,
+  //       variant: "destructive",
+  //     });
+  //     return;
+  //   }
+  //   if (response.data) {
+  //     toast({
+  //       title: "Éxito",
+  //       description: "Pedido finalizado correctamente.",
+  //       variant: "default",
+  //     });
+  //     await RefreshPage(pathName);
+  //   } else {
+  //     toast({
+  //       title: "Error",
+  //       description: "No se pudo finalizar el pedido.",
+  //       variant: "destructive",
+  //     });
+  //     return;
+  //   }
+  // };
 
   const handleCancelarPedido = async () => {
     const response = await new PedidoService(token).cancelarPedido(pedido.id);
@@ -142,7 +142,7 @@ export function OrderDeliveryManager({ pedido }: OrderDeliveryManagerProps) {
               </Link>
             )}
             <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-              <ConfirmButton
+              {/* <ConfirmButton
                 size="sm"
                 className="flex-1 sm:flex-none text-xs bg-green-500 hover:bg-green-600 text-white"
                 title="¿Finalizar pedido?"
@@ -152,7 +152,7 @@ export function OrderDeliveryManager({ pedido }: OrderDeliveryManagerProps) {
                 disabled={noPuedeModificar}
               >
                 Finalizar Pedido
-              </ConfirmButton>
+              </ConfirmButton> */}
               <ConfirmButton
                 size="sm"
                 className="flex-1 sm:flex-none text-xs"

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Check, Info, MapPin, Package } from "lucide-react"
+import { Check  , MapPin, Package } from "lucide-react"
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -61,13 +61,14 @@ export default function ConfirmacionEntrega({ entrega: initialEntrega }: Confirm
     const dataConfirmacionEntrega: ConfirmarEntregaModel = {
       entregaId: updatedEntrega.id,
       remision: updatedEntrega.remision,
+      observaciones: updatedEntrega.observaciones,
       despachosEntregaProducto: updatedEntrega.entregaProductos?.map((producto) => ({
         entregaProductoId: producto.id,
         cantidadDespachada: producto.cantidadDespachada,
         observaciones: producto.observaciones,
       })) || []
     }
-    const {error} = await new EntregaPedidoService(token).confirmarEntrega(dataConfirmacionEntrega)
+    const {error, data} = await new EntregaPedidoService(token).confirmarEntrega(dataConfirmacionEntrega)
     if (error) {
       toast({
         title: "Error",
@@ -76,7 +77,7 @@ export default function ConfirmacionEntrega({ entrega: initialEntrega }: Confirm
       })
       return
     }
-    setEntrega(updatedEntrega)
+    setEntrega({...updatedEntrega, estado: data?.estado || updatedEntrega.estado})
     // Call the onSave callback if provided
     RefreshPage(`/dashboard/pedidos/${entrega.pedidoId}/gestionar`)
     toast({
@@ -141,14 +142,14 @@ export default function ConfirmacionEntrega({ entrega: initialEntrega }: Confirm
                     </div>
                   </div>
 
-                  {producto.observaciones && (
+                  {/* {producto.observaciones && (
                     <div className="flex items-start gap-2 mt-2">
                       <Info className="h-4 w-4 text-muted-foreground mt-1" />
                       <div className="text-sm text-muted-foreground">
                         <span className="font-medium">Observaciones:</span> {producto.observaciones}
                       </div>
                     </div>
-                  )}
+                  )} */}
                 </div>
               ))}
             </div>
