@@ -203,7 +203,6 @@ export class EntregaService {
       );
     }, { timeout: this.prisma.TimeToWait });
     const cantidadEntregados = await this.detallePedidoService.contarDetallesPedidoSinFinalizar(entrega.pedidoId)
-    this.logger.debug('cantidadEntregados: ', cantidadEntregados)
     if (!cantidadEntregados) {
       await this.pedidoDatasource.update(entrega.pedidoId, {estado: 'ENTREGADO'})
     }
