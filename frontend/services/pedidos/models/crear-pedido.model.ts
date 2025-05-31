@@ -17,5 +17,6 @@ export interface CrearPedidoModel {
 
   pedidoDocumentoIds?: string[];
 
+  detallePedidoIdsEliminar?: string[]
 
 }

@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { PrismaExceptionFilter } from './filters/prisma-exception.filter';
 declare global {
   interface BigInt {
     toJSON(): string;
@@ -10,6 +11,7 @@ declare global {
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.useGlobalFilters(new PrismaExceptionFilter())
   // Configuración de Swagger
   const config = new DocumentBuilder()
     .setTitle('QuimiAndes API')

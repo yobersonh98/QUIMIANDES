@@ -206,6 +206,7 @@ export class PedidoService {
         ordenCompra
       },
     });
+    this.logger.debug(updatePedidoDto)
     const filterDetallesPedidos = detallesPedido.filter(dp => dp.id !== undefined && dp.id !== null)
     await this.pedidoDocumentoService.crearMuchos(pedido.id, pedidoDocumentoIds)
     await Promise.all(
@@ -229,7 +230,9 @@ export class PedidoService {
     await this.pedidoDocumentoService.crearMuchos(pedido.id, pedidoDocumentoIds)
     const destallesPedidosParaCrear: CreateDetallePedidoDto[] = filterDetallesPedidosUnd.map(dp => ({ pedidoId: pedido.id, productoId: dp.productoId, tipoEntrega: dp.tipoEntrega, cantidad: dp.cantidad, fechaEntrega: dp.fechaEntrega, lugarEntregaId: dp.lugarEntregaId, unidades: dp.unidades, pesoTotal: dp.pesoTotal }))
     const detallesPedidoConId = this.idGeneratorService.mapearDetallesPedidoConIdsEnCreacion(id, destallesPedidosParaCrear);
-
+    if (!isEmpty(updatePedidoDto.detallePedidoIdsEliminar)) {
+      this.logger.debug(await this.eliminarMuchos(updatePedidoDto.detallePedidoIdsEliminar,tx))
+    }
     await tx.detallePedido.createMany({
       data: detallesPedidoConId
     })
@@ -349,5 +352,30 @@ export class PedidoService {
     return pedidoEliminado;
 
   }
+
+/**
+ * Elimina múltiples registros de detalles de pedido según una lista de IDs proporcionada.
+ *
+ * @param detallePedidoIds - Un arreglo de IDs de los detalles de pedido que se desean eliminar.
+ * @param tx - (Opcional) Transacción Prisma para ejecutar la operación de manera transaccional. 
+ *             Por defecto se usa la instancia principal de Prisma.
+ *
+ * @returns Una promesa que resuelve con el resultado de la operación `deleteMany`.
+ * 
+ * @throws BadRequestException si el arreglo de IDs está vacío.
+ *
+ * @example
+ * await eliminarMuchos(['id1', 'id2'], tx);
+ */
+async eliminarMuchos(detallePedidoIds: string[], tx: PrismaTransacction = this.prisma) {
+  this.logger.debug(detallePedidoIds)
+  return tx.detallePedido.deleteMany({
+    where: {
+      id: {
+        in: detallePedidoIds
+      }
+    }
+  });
+}
 
 }

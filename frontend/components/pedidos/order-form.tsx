@@ -34,7 +34,6 @@ type OrderFormProps = {
 }
 
 export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderFormProps) {
-  console.log(pedido)
   const session = useSession()
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
@@ -42,7 +41,7 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
   const isEditing = !!pedido
   const pathName = usePathname()
   const [files, setFiles] = useState<DocumentoEntity[]>(pedido?.pedidoDocumentos?.map((i) => i.documento) || [])
-
+  const [detallePedidoIdsEliminar, setDetallePedidoIdsEliminar] = useState<string[]>([])
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(OrderFormSchema),
     defaultValues: {
@@ -59,6 +58,7 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
         lugarEntregaId: dp.lugarEntregaId,
         tipoEntrega: dp.tipoEntrega,
         pesoTotal: dp.pesoTotal || 0, // Añadí esta línea
+        detallePedidoId: dp.id
       })) || [
         {
           pesoTotal: 0, // Añadí esta línea para el objeto vacío inicial
@@ -71,6 +71,12 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
     name: "detallesPedido",
     control: form.control,
   })
+  const handleEliminarProducto = (index: number, detallePedidoId?: string) => {
+    remove(index)
+    if (detallePedidoId && pedido?.detallesPedido.some(dp => dp.id === detallePedidoId)) {
+      setDetallePedidoIdsEliminar(prev => [...prev, detallePedidoId])
+    }
+  }
 
   const detallesPedido = useWatch({
     control: form.control,
@@ -144,7 +150,9 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
           lugarEntregaId: p.lugarEntregaId || "",
           unidades: 0,
           pesoTotal: p.pesoTotal || 0, // Añade esta línea
+          detallePedidoId: p.id
         })),
+        detallePedidoIdsEliminar
       }
 
       const esAlgunaFechaEntregaMal = detallesPedido.some((p) => {
@@ -404,12 +412,11 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
               <ProductFormItem
                 key={field.id}
                 index={index}
-                onRemove={() => remove(index)}
+                onRemove={() => handleEliminarProducto(index, field.detallePedidoId)}
                 isRemoveDisabled={fields.length === 1}
               />
             ))}
             <div className="justify-end flex">
-              {!isEditing && (
                 <Button
                   type="button"
                   variant="outline"
@@ -428,9 +435,7 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
                   <Plus className="h-4 w-4 mr-2" />
                   Agregar Producto
                 </Button>
-              )}
             </div>
-            
           </CardContent>
         </Card>
 
@@ -460,11 +465,16 @@ export function OrderForm({ pedido, pathNameToRefresh, isGoBack = true }: OrderF
         </Card>
 
         <div className="flex justify-end gap-4">
-          <Button type="button" variant="outline" size="lg" onClick={() => router.back()}>
+          <Button type="button" variant="outline" onClick={() => router.back()}>
             Cancelar
           </Button>
 
-          <Button type="button" size="lg" isLoading={isLoading} onClick={onSubmit}>
+          <Button
+            type="button"
+            isLoading={isLoading}
+            onClick={onSubmit}
+            disabled={pedido?.estado === 'CANCELADO' || pedido?.estado === 'ENTREGADO'}
+          >
             {isEditing ? "Actualizar Pedido" : "Crear Pedido"}
           </Button>
         </div>

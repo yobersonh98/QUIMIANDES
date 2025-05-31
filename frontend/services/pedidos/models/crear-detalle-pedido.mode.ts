@@ -15,4 +15,6 @@ export interface CrearDetallePedidoModel {
   fechaEntrega: Date;
 
   pesoTotal?: number;
+
+  detallePedidoId?:string
 }

@@ -36,4 +36,8 @@ export class UpdatePedidoDto {
     @IsArray()
     @IsOptional()
     pedidoDocumentoIds?: string[]
+
+    @IsOptional()
+    @IsArray()
+    detallePedidoIdsEliminar?: string[]
 }
