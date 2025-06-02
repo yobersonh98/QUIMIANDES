@@ -14,6 +14,7 @@ export class PresentacionService {
 
   findAll() {
     return this.prisma.presentacion.findMany();
+
   }
 
   search(search: string) {
