@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Search, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Search, Query, UseInterceptors, Request } from '@nestjs/common';
 import { EntregaService } from './entrega.service';
 import { CreateEntregaDto } from './dto/create-entrega.dto';
 import { UpdateEntregaDto } from './dto/update-entrega.dto';
@@ -12,23 +12,26 @@ export class EntregaController {
 
 
   @Patch('confirmar-entrega')
-  confirmarEntrega(@Body() body: RegistrarDespachoDetallePedidoDto) {
+  confirmarEntrega(@Body() body: RegistrarDespachoDetallePedidoDto, @Request() req) {
+    body.usuarioId = req.user.sub
     return this.entregaService.confirmarEntrega(body);
   }
 
   @Patch('completar-entrega')
-  completarEntrega(@Body() body: CompletarEntregaDto) {
+  completarEntrega(@Body() body: CompletarEntregaDto, @Request() req) {
+    body.usuarioId = req.user.sub
     return this.entregaService.completarEntrega(body);
   }
 
   @Patch('/:id/cancelar') 
-  cancelarEntrega(@Param('id') entregaId: string) {
-    return this.entregaService.cancelarEntrega(entregaId)
+  cancelarEntrega(@Param('id') entregaId: string, @Request() req) {
+    return this.entregaService.cancelarEntrega(req.user.sub, entregaId)
   }
 
 
   @Post() 
-  create(@Body() createEntregaDto: CreateEntregaDto) {
+  create(@Body() createEntregaDto: CreateEntregaDto, @Request() req) {
+    createEntregaDto.usuarioId = req.user.sub;
     return this.entregaService.programarEntrega(createEntregaDto);
   }
 

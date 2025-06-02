@@ -18,6 +18,8 @@ export class RegistrarDespachoDetallePedidoDto {
   @Type(() => DespachoDetallePedidoDto)
   despachosEntregaProducto: DespachoDetallePedidoDto[];
 
+  usuarioId?:string
+
 }
 
 export class DespachoDetallePedidoDto {

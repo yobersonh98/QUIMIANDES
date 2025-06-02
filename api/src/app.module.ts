@@ -26,6 +26,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { DocumentModule } from './document/document.module';
 import { PedidoDocumentoService } from './pedido-documento/pedido-documento.service';
+import { AuditoriaLogModule } from './auditoria-log/auditoria-log.module';
 @Module({
   imports: [
     UserModule,
@@ -54,10 +55,11 @@ import { PedidoDocumentoService } from './pedido-documento/pedido-documento.serv
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/uploads',
     }),
-    DocumentModule
+    DocumentModule,
+    AuditoriaLogModule
   ],
   controllers: [AppController],
-  exports: [PrismaModule],
+  exports: [PrismaModule, AuditoriaLogModule],
   providers: [AppService,
     {
       provide: 'APP_GUARD',

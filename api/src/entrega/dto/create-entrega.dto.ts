@@ -35,4 +35,8 @@ export class CreateEntregaDto {
   @ValidateNested({ each: true }) // ✅ Valida cada elemento dentro del array
   @Type(() => CreateEntregaProductoDto) // ✅ Transforma los datos al tipo esperado
   entregasProducto?: CreateEntregaProductoDto[]
+
+  @IsOptional()
+  @IsString()
+  usuarioId?:string
 }
