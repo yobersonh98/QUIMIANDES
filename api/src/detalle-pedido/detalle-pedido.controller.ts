@@ -24,6 +24,7 @@ export class DetallePedidoController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateDetallePedidoDto: UpdateDetallePedidoDto, @Request() req) {
+    updateDetallePedidoDto.usuarioId = req?.user?.sub
     return this.detallePedidoService.actualizarConValidacion(id, updateDetallePedidoDto);
   }
 

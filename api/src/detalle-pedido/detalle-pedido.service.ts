@@ -76,6 +76,7 @@ export class DetallePedidoService {
           descripcion: `Se ha marcado como entregado el pedido ${pedido.codigo} automaticamente`,
           tipoOperacion: TipoOperacion.ACTUALIZAR,
           nivel: 'INFO',
+          entidadId: pedido.id,
           usuarioId: updateDetallePedidoDto.usuarioId,
           entidad: 'Pedido'
         })
