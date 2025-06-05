@@ -63,6 +63,7 @@ function MobileStackedRow<TData,TValue>({ row, columns }: { row: Row<TData>, col
             )
           })}
         </div>
+
       </CardContent>
     </Card>
   )
