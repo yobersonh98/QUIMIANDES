@@ -7,13 +7,14 @@ import { IdGeneratorService } from './../services/IdGeneratorService';
 import { getEnumValueOrUndefined } from './../common/utils/string.util';
 import { PrismaTransacction } from './../common/types';
 import { ListarPedidoDto } from './dto/listar-pedido.dto';
-import { EstadoPedido, TipoEntregaProducto } from '@prisma/client';
+import { EstadoPedido, TipoEntregaProducto, TipoOperacion } from '@prisma/client';
 import { PedidoDocumentoService } from './../pedido-documento/pedido-documento.service';
 import { CreateDetallePedidoDto } from './../detalle-pedido/dto/create-detalle-pedido.dto';
 import { isEmpty } from 'class-validator';
 import { groupBy } from './../common/utils/lists.util';
 import { CreateEntregaDto } from './../entrega/dto/create-entrega.dto';
 import { EntregaService } from './../entrega/entrega.service';
+import { AuditoriaLogService } from './../auditoria-log/auditoria-log.service';
 
 @Injectable()
 export class PedidoService {
@@ -24,8 +25,9 @@ export class PedidoService {
     private idGeneratorService: IdGeneratorService,
     private pedidoDocumentoService: PedidoDocumentoService,
     private entregaService:EntregaService,
+    private auditService: AuditoriaLogService
   ) { }
-  async create({ detallesPedido, pedidoDocumentoIds, ...infoPedido }: CreatePedidoDto) {
+  async create({ detallesPedido, pedidoDocumentoIds, usuarioId, ...infoPedido }: CreatePedidoDto) {
     let entregasACrear: CreateEntregaDto[]= []
 
     const response = await this.prisma.$transaction(async (prisma) => {
@@ -76,7 +78,15 @@ export class PedidoService {
     } catch (error) {
       this.logger.warn('Error creando las entregas de los productos reocoje en planta.')
     }
-
+    await this.auditService.log({
+      usuarioId,
+      entidad: 'Pedido',
+      tipoOperacion: TipoOperacion.CREAR,
+      descripcion: 'Se ha creado un nuevo pedido con código ' + response.codigo,
+      modulo: 'Pedidos',
+      accion: 'crearPedido',
+      entidadId: response.id
+    })
     return response;
   }
 
@@ -206,7 +216,6 @@ export class PedidoService {
         ordenCompra
       },
     });
-    this.logger.debug(updatePedidoDto)
     const filterDetallesPedidos = detallesPedido.filter(dp => dp.id !== undefined && dp.id !== null)
     await this.pedidoDocumentoService.crearMuchos(pedido.id, pedidoDocumentoIds)
     await Promise.all(

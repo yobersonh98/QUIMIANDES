@@ -18,6 +18,7 @@ model User {
   email    String  @unique
   password String
   role     Role    @default(USER)
+  auditoriaLogs AuditoriaLog[]
 }
 
 enum Role {
@@ -299,4 +300,69 @@ model Document {
   updatedAt   DateTime @updatedAt
 
   pedidoDocumentos PedidoDocumento[]
+}
+
+
+
+enum TipoOperacion {
+  CREAR
+  ACTUALIZAR
+  ELIMINAR
+  INICIAR_SESION
+  CERRAR_SESION
+  VER
+  EXPORTAR
+  IMPORTAR
+  APROBAR
+  RECHAZAR
+  CANCELAR
+  ACTIVAR
+  DESACTIVAR
+}
+
+
+enum NivelAuditoria {
+  INFO
+  ADVERTENCIA
+  ERROR
+  CRITICO
+}
+
+model AuditoriaLog {
+  id            String         @id @default(cuid())
+  fechaHora     DateTime       @default(now())
+  
+  // Usuario que ejecutó la acción
+  usuarioId     String?
+  
+  // Información de la operación
+  tipoOperacion TipoOperacion
+  entidad       String         // Nombre del modelo/tabla afectada (ej: "Cliente", "Pedido", "Producto")
+  entidadId     String?        // ID del registro afectado
+  nivel         NivelAuditoria @default(INFO)
+  
+  // Detalles de la operación
+  descripcion   String         // Descripción legible de la acción
+  modulo        String?        // Módulo de la aplicación (ej: "Ventas", "Inventario", "Usuarios")
+  accion        String?        // Acción específica (ej: "crear_pedido", "actualizar_cliente")
+  
+  // Datos técnicos
+  valoresAnteriores Json?       // Estado anterior del registro (para UPDATE/DELETE)
+  valoresNuevos     Json?       // Estado nuevo del registro (para CREATE/UPDATE)
+  
+  // Información del contexto
+  ipAddress     String?
+  userAgent     String?
+  sessionId     String?
+  
+  // Información adicional
+  observaciones String?
+  metadata      Json?          // Información adicional en formato JSON
+  
+  usuario User? @relation(fields: [usuarioId], references: [id])
+  // Índices para optimizar consultas
+  @@index([entidad, entidadId])
+  @@index([fechaHora, tipoOperacion])
+  @@index([usuarioId, fechaHora])
+
 }

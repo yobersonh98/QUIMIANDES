@@ -32,4 +32,6 @@ export class CompletarEntregaDto {
   @IsArray()
   @Type(() => FinalizarEntregaProductoDto)
   entregaProductos: FinalizarEntregaProductoDto[];
+
+  usuarioId?:string
 }

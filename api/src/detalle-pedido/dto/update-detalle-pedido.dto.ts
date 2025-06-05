@@ -23,4 +23,6 @@ export class UpdateDetallePedidoDto extends PartialType(CreateDetallePedidoDto) 
   @IsEnum(EstadoDetallePedido)
   @IsOptional()
   estado?: EstadoDetallePedido
+
+  usuarioId?:string
 }

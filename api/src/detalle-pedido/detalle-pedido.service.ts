@@ -4,14 +4,16 @@ import { CreateDetallePedidoDto } from './dto/create-detalle-pedido.dto';
 import { UpdateDetallePedidoDto } from './dto/update-detalle-pedido.dto';
 import { IdGeneratorService } from './../services/IdGeneratorService';
 import { esVacio } from './../common/utils/string.util';
-import { DetallePedido, EstadoDetallePedido, Prisma, PrismaClient } from '@prisma/client';
+import { DetallePedido, EstadoDetallePedido, Prisma, PrismaClient, TipoOperacion } from '@prisma/client';
 import { PrismaTransacction } from './../common/types';
+import { AuditoriaLogService } from './../auditoria-log/auditoria-log.service';
 
 @Injectable()
 export class DetallePedidoService {
   private logger = new Logger(DetallePedidoService.name)
   constructor(private readonly prisma: PrismaService,
     private idGeneratorService: IdGeneratorService,
+    private auditService: AuditoriaLogService
 
   ) {}
 
@@ -61,9 +63,8 @@ export class DetallePedidoService {
     }
     if (updateDetallePedidoDto.estado === 'ENTREGADO') {
       const cantidadSinFinalizar = await this.contarDetallesPedidoSinFinalizar(updateDetallePedidoDto.pedidoId, id) ;
-      this.logger.debug('actualizandoProducto', cantidadSinFinalizar)
       if (!cantidadSinFinalizar && updateDetallePedidoDto.pedidoId) {
-        await this.prisma.pedido.update({
+        const pedido  = await this.prisma.pedido.update({
           where: {
             id: updateDetallePedidoDto.pedidoId,
           },
@@ -71,9 +72,19 @@ export class DetallePedidoService {
             estado: 'ENTREGADO'
           }
         })
+        await this.auditService.log({
+          descripcion: `Se ha marcado como entregado el pedido ${pedido.codigo} automaticamente`,
+          tipoOperacion: TipoOperacion.ACTUALIZAR,
+          nivel: 'INFO',
+          entidadId: pedido.id,
+          usuarioId: updateDetallePedidoDto.usuarioId,
+          entidad: 'Pedido'
+        })
       }
     }
-    return this.update(id, updateDetallePedidoDto)
+    const detallePedido = await this.update(id, updateDetallePedidoDto)
+    await this.auditService.logUpdate('Detalle Pedido',detallePedido.id, undefined, detallePedido, updateDetallePedidoDto.usuarioId)
+    return detallePedido
   }
 
   public async hayAlgunaEntregaSinGestionar(detallePedidoId: string, tx:PrismaClient= this.prisma) {

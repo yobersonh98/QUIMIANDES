@@ -1,4 +1,4 @@
-import { IsNumber, IsOptional, IsString, Min } from "class-validator";
+import { IsDateString, IsNumber, IsOptional, IsString, Min } from "class-validator";
 import { PaginationMetadata, PaginationResponse } from "../interfaces/IPaginationResponse";
 import { Type } from "class-transformer";
 
@@ -69,4 +69,13 @@ export class PaginationDto {
     @IsString()
     @IsOptional()
     search?: string;
+
+    @IsOptional()
+    @IsDateString()
+    initDate?: string;
+
+    @IsOptional()
+    @IsDateString()
+    endDate?: string;
+    
 }

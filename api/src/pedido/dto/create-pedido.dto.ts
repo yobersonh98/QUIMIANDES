@@ -41,4 +41,5 @@ export class CreatePedidoDto {
   @IsArray()
   pedidoDocumentoIds?: string[]
   
+  usuarioId?:string
 }

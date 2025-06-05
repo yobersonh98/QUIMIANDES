@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { PrismaExceptionFilter } from './filters/prisma-exception.filter';
+import { PrismaExceptionFilter } from './nest/filters/prisma-exception.filter';
 declare global {
   interface BigInt {
     toJSON(): string;

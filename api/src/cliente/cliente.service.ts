@@ -5,6 +5,7 @@ import { UpdateClienteDto } from './dto/update-cliente.dto';
 import { Prisma } from '@prisma/client';
 import { ClienteListarDto } from './dto/cliente-listar.dto';
 import { PrismaGenericPaginationService } from './../prisma/prisma-generic-pagination.service';
+import { Cliente } from './entities/cliente.entity';
 
 @Injectable()
 export class ClienteService {
@@ -58,7 +59,7 @@ export class ClienteService {
     if (!cliente) throw new NotFoundException('Cliente no encontrado');
     return cliente;
   }
-  async create(createClienteDto: CreateClienteDto) {
+  async create(createClienteDto: CreateClienteDto):Promise<Cliente> {
     const { documento, lugaresEntrega = [] } = createClienteDto;
 
     const existingCliente = await this.prisma.cliente.findUnique({ where: { documento } });

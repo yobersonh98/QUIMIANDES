@@ -4,7 +4,7 @@ import { CreateEntregaDto } from './dto/create-entrega.dto';
 import { UpdateEntregaDto } from './dto/update-entrega.dto';
 import { EntregaProductoService } from './../entrega-producto/entrega-producto.service';
 import { DetallePedidoService } from './../detalle-pedido/detalle-pedido.service';
-import { Entrega, EstadoDetallePedido, EstadoEntrega, EstadoPedido, TipoEntregaProducto } from '@prisma/client';
+import { Entrega, EstadoDetallePedido, EstadoEntrega, EstadoPedido, TipoEntregaProducto, TipoOperacion } from '@prisma/client';
 import { RegistrarDespachoDetallePedidoDto } from './../entrega-producto/dto/registrar-despacho-detalle-pedido.dto';
 import { CompletarEntregaDto } from './dto/finalizar-entrega.dto';
 import { PrismaTransacction } from './../common/types';
@@ -15,6 +15,7 @@ import { PaginationResponse } from './../common/interfaces/IPaginationResponse';
 import { EntregaListadoItem } from './entities/entrega-listado-item';
 import { isEmpty } from 'class-validator';
 import { PedidoDatasource } from './../pedido/pedido.datasource';
+import { AuditoriaLogService } from './../auditoria-log/auditoria-log.service';
 
 @Injectable()
 export class EntregaService {
@@ -23,7 +24,8 @@ export class EntregaService {
     private readonly entregraProductoService: EntregaProductoService,
     private readonly detallePedidoService: DetallePedidoService,
     private readonly prismaGenericPagination: PrismaGenericPaginationService,
-    private readonly pedidoDatasource: PedidoDatasource
+    private readonly pedidoDatasource: PedidoDatasource,
+    private auditService:AuditoriaLogService
   ) { }
 
   async programarEntrega(createEntregaDto: CreateEntregaDto, validar = true): Promise<Entrega> {
@@ -58,7 +60,7 @@ export class EntregaService {
       }
     })
 
-    return this.prisma.$transaction(async (tx) => {
+    const respuesta = await this.prisma.$transaction(async (tx) => {
       const entrega = await tx.entrega.create({
         data: {
           pedidoId,
@@ -98,6 +100,17 @@ export class EntregaService {
       }))
       return entrega;
     },  { timeout: this.prisma.TimeToWait });
+    await this.auditService.log({
+      usuarioId:createEntregaDto.usuarioId,
+      accion: 'programarEntrega',
+      entidad: 'Entrega',
+      modulo: 'Entregas', 
+      entidadId: respuesta.id,
+      descripcion: 'Ha programado una nueva entrega con código ' + respuesta.codigo,
+      valoresNuevos: createEntregaDto,
+      tipoOperacion: TipoOperacion.CREAR
+    })
+    return respuesta
   }
 
   /**
@@ -107,7 +120,7 @@ export class EntregaService {
    * @param despachosEntregaProducto lista de despachos de entrega
    * @returns  entrega actualizada
    */
-  async confirmarEntrega({ entregaId, despachosEntregaProducto, remision, observaciones }: RegistrarDespachoDetallePedidoDto): Promise<Entrega> {
+  async confirmarEntrega({ entregaId, despachosEntregaProducto, remision, observaciones, usuarioId }: RegistrarDespachoDetallePedidoDto): Promise<Entrega> {
     const entrega = await this.prisma.entrega.findUnique({
       where: { id: entregaId },
     });
@@ -204,8 +217,19 @@ export class EntregaService {
     }, { timeout: this.prisma.TimeToWait });
     const cantidadEntregados = await this.detallePedidoService.contarDetallesPedidoSinFinalizar(entrega.pedidoId)
     if (!cantidadEntregados) {
-      await this.pedidoDatasource.update(entrega.pedidoId, {estado: 'ENTREGADO'})
+      await this.pedidoDatasource.update(entrega.pedidoId, { estado: 'ENTREGADO' })
     }
+    await this.auditService.log({
+      accion: 'confirmarEntrega',
+      entidad: 'Entrega',
+      modulo: 'Entregas',
+      entidadId: entrega.id,
+      descripcion: 'Se ha confirmado el despacho de la entrega ' + entrega.codigo,
+      tipoOperacion: TipoOperacion.ACTUALIZAR,
+      valoresAnteriores: entrega,
+      valoresNuevos: entregaSaved,
+      usuarioId
+    })
     return entregaSaved
   }
 
@@ -219,7 +243,7 @@ export class EntregaService {
    * @throws BadRequestException si el detalle de pedido ya está en estado entregado o cancelado
    * @throws BadRequestException si la cantidad entregada es menor a la cantidad despachada
    */
-  async completarEntrega({ entregaId, entregaProductos, observaciones }: CompletarEntregaDto): Promise<Entrega> {
+  async completarEntrega({ entregaId, entregaProductos, observaciones, usuarioId }: CompletarEntregaDto): Promise<Entrega> {
     const entrega = await this.prisma.entrega.findUnique({
       where: { id: entregaId },
     });
@@ -253,7 +277,7 @@ export class EntregaService {
     const esPedidoEntregadoCompleto = detallesPedido.every(
       (detalle) => detalle.estado === EstadoDetallePedido.ENTREGADO
     );
-    return this.prisma.$transaction(async (tx) => {
+    const response = await this.prisma.$transaction(async (tx) => {
       await Promise.all(
         detallesPedido.map(async (detalle) => {
           await this.detallePedidoService.update(detalle.id, {
@@ -288,16 +312,29 @@ export class EntregaService {
 
       return entregaFinalizada;
     }, { timeout: this.prisma.TimeToWait });
+    await this.auditService.log({
+      accion: 'completarEntrega',
+      entidad: 'Entrega',
+      modulo: 'Entregas',
+      entidadId: entregaId,
+      descripcion: 'Se ha entregado al cliente la entrega ' + entrega.codigo,
+      tipoOperacion: TipoOperacion.ACTUALIZAR,
+      valoresAnteriores: entrega,
+      valoresNuevos: response,
+      usuarioId
+    })
+    return response;
   }
 
 
-  async cancelarEntrega(id: string): Promise<Entrega> {
+  async cancelarEntrega(usuarioId:string, id: string): Promise<Entrega> {
     const entrega = await this.prisma.entrega.findUnique({
       where: { id },
       select: {
         id: true,
         estado: true,
         pedidoId: true,
+        codigo: true,
         entregaProductos: {
           select: {
             id: true,
@@ -345,7 +382,7 @@ export class EntregaService {
       };
     })
 
-    return this.prisma.$transaction(async (tx) => {
+    const respuesta = await this.prisma.$transaction(async (tx) => {
       await Promise.all(
         detallesPedidoRoolback.map(async ({ detallePedidoId, cantidadTotalDespachada, cantidadTotalProgramada, estado }) => {
           await this.detallePedidoService.update(detallePedidoId, {
@@ -362,6 +399,15 @@ export class EntregaService {
         },
       });
     }, { timeout: this.prisma.TimeToWait });
+    await this.auditService.log({
+      usuarioId,
+      entidad: 'Entrega',
+      tipoOperacion: TipoOperacion.CANCELAR,
+      descripcion: 'Se ha cancelado la entrega con código ' + entrega.codigo,
+      modulo: 'Entregas',
+      accion: 'cancelarEntrega'
+    })
+    return respuesta;
   }
 
   async findAll(dto: ListarEntregasDto): Promise<PaginationResponse<EntregaListadoItem[]>> {

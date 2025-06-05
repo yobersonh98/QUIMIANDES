@@ -16,7 +16,7 @@ interface DataTableFacetedFilterProps<TData, TValue> {
   column?: Column<TData, TValue>;
   title?: string;
   isSearchParam?: boolean; // si es true se va a usar como parametro de busqueda en la url
-  keyToVariant?: keyof TData; 
+  keyToVariant?: keyof TData;
   options: {
     label: string;
     value: string;
@@ -33,28 +33,33 @@ export function DataTableFacetedFilter<TData, TValue>({
   keyToVariant,
   allSearchsParams
 }: DataTableFacetedFilterProps<TData, TValue>) {
-  const { handleUpdateSearchParams } = useUpdateSearchParams({ searchParamsInPage: allSearchsParams});
+  const { handleUpdateSearchParams } = useUpdateSearchParams({ searchParamsInPage: allSearchsParams });
   return (
-    <Select onValueChange={(value) => {
-      if (isSearchParam) {
-        handleUpdateSearchParams([{key:keyToVariant?.toString() ?? "" ,value}] )
-      } else {
-        column?.setFilterValue(value)
-      }
-    }}>
-      <SelectTrigger className="w-[180px]">
-        <SelectValue placeholder={`Seleccione ${title}`} />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectGroup>
-          <SelectLabel>{title}</SelectLabel>
-          {options.map((option) => {
-            return(
-              <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-            )
-          })}
-        </SelectGroup>
-      </SelectContent>
-    </Select>
+    <div className="flex flex-col space-y-1">
+      <label htmlFor="fecha-inicio" className="text-xs text-muted-foreground">
+        {title}
+      </label>
+      <Select onValueChange={(value) => {
+        if (isSearchParam) {
+          handleUpdateSearchParams([{ key: keyToVariant?.toString() ?? "", value }])
+        } else {
+          column?.setFilterValue(value)
+        }
+      }}>
+        <SelectTrigger className="w-[180px]">
+          <SelectValue placeholder={`Seleccione ${title}`} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            <SelectLabel>{title}</SelectLabel>
+            {options.map((option) => {
+              return (
+                <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+              )
+            })}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+    </div>
   )
 }
