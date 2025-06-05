@@ -40,7 +40,7 @@ interface DataTableProps<TData, TValue> {
 }
 
 // Componente para vista mobile stacked
-function MobileStackedRow<TData>({ row, columns }: { row: Row<TData>, columns: ColumnDef<TData, unknown>[] }) {
+function MobileStackedRow<TData,TValue>({ row, columns }: { row: Row<TData>, columns: ColumnDef<TData, TValue>[] }) {
   return (
     <Card className="mb-4">
       <CardContent className="p-4">
