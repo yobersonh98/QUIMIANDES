@@ -206,7 +206,6 @@ export class PedidoService {
         ordenCompra
       },
     });
-    this.logger.debug(updatePedidoDto)
     const filterDetallesPedidos = detallesPedido.filter(dp => dp.id !== undefined && dp.id !== null)
     await this.pedidoDocumentoService.crearMuchos(pedido.id, pedidoDocumentoIds)
     await Promise.all(

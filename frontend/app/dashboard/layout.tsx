@@ -20,7 +20,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { MoonIcon, SunIcon } from "@radix-ui/react-icons"
 import { useTheme } from "next-themes"
-import { ShoppingBag, Package, Clipboard, BarChart3, Settings, LogOut, User, Home } from "lucide-react"
+import { ShoppingBag, Package, Clipboard, Settings, LogOut, User, Home, Logs } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,8 +43,7 @@ function NavigationMenu() {
     { icon: ShoppingBag, label: "Clientes", href: "/dashboard/clientes" },
     { icon: Package, label: "Proveedores", href: "/dashboard/proveedores" },
     { icon: Package, label: "Productos", href: "/dashboard/productos" },
-    { icon: BarChart3, label: "Inventario", href: "/dashboard/inventario" },
-    { icon: Settings, label: "Configuración", href: "/dashboard/configuracion" },
+    { icon: Logs, label: "Auditoria", href: "/dashboard/auditoria" },
   ]
 
   // Handle menu item click - close sidebar on mobile

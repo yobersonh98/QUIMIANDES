@@ -324,7 +324,7 @@ export class EntregaService {
   }
 
 
-  async cancelarEntrega(usarioId:string, id: string): Promise<Entrega> {
+  async cancelarEntrega(usuarioId:string, id: string): Promise<Entrega> {
     const entrega = await this.prisma.entrega.findUnique({
       where: { id },
       select: {
@@ -397,6 +397,7 @@ export class EntregaService {
       });
     }, { timeout: this.prisma.TimeToWait });
     await this.auditService.log({
+      usuarioId,
       entidad: 'Entrega',
       tipoOperacion: 'ACTUALIZAR',
       descripcion: 'Se ha cancelado la entrega con código ' + entrega.codigo,

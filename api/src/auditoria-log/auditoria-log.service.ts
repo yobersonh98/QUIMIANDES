@@ -4,37 +4,11 @@ import { PrismaService } from '../prisma/prisma.service';
 import { TipoOperacion, NivelAuditoria, Prisma, User } from '@prisma/client';
 import { Request } from 'express';
 import { getClientInfo } from './../common/utils/request';
+import { Pagination } from './../common/dtos/pagination.dto';
+import { CrearAuditoriaDto } from './dtos/crear-auditoria.dto';
+import { FindAllAuditoriaLogsDto } from './dtos/find-all-auditoria-logs.dto';
 
-export interface AuditLogData {
-  usuarioId?: string;
-  tipoOperacion: TipoOperacion;
-  entidad: string;
-  entidadId?: string;
-  nivel?: NivelAuditoria;
-  descripcion: string;
-  modulo?: string;
-  accion?: string;
-  valoresAnteriores?: any;
-  valoresNuevos?: any;
-  ipAddress?: string;
-  userAgent?: string;
-  observaciones?: string;
-  metadata?: any;
-}
 
-export interface AuditQueryParams {
-  page?: number;
-  limit?: number;
-  usuarioId?: string;
-  usuarioEmail?: string;
-  entidad?: string;
-  tipoOperacion?: TipoOperacion;
-  nivel?: NivelAuditoria;
-  modulo?: string;
-  fechaInicio?: Date;
-  fechaFin?: Date;
-  busqueda?: string;
-}
 
 @Injectable()
 export class AuditoriaLogService {
@@ -45,7 +19,7 @@ export class AuditoriaLogService {
   /**
    * Registra una entrada de auditoría
    */
-  async log(data: AuditLogData): Promise<void> {
+  async log(data: CrearAuditoriaDto): Promise<void> {
     try {
       await this.prisma.auditoriaLog.create({
         data: {
@@ -74,9 +48,9 @@ export class AuditoriaLogService {
   /**
    * Obtiene los logs de auditoría con filtros y paginación
    */
-  async getLogs(params: AuditQueryParams) {
+  async getLogs(params:FindAllAuditoriaLogsDto) {
     const {
-      page = 1,
+      offset,
       limit = 50,
       usuarioId,
       entidad,
@@ -85,10 +59,9 @@ export class AuditoriaLogService {
       modulo,
       fechaInicio,
       fechaFin,
-      busqueda,
+      search,
     } = params;
 
-    const skip = (page - 1) * limit;
 
     // Construir filtros dinámicamente
     const where: Prisma.AuditoriaLogWhereInput = {};
@@ -106,32 +79,33 @@ export class AuditoriaLogService {
       if (fechaFin) where.fechaHora.lte = fechaFin;
     }
 
-    if (busqueda) {
+    if (search) {
       where.OR = [
-        { descripcion: { contains: busqueda, mode: 'insensitive' } },
-        { observaciones: { contains: busqueda, mode: 'insensitive' } },
+        { descripcion: { contains: search, mode: 'insensitive' } },
+        { observaciones: { contains: search, mode: 'insensitive' } },
       ];
     }
 
     const [logs, total] = await Promise.all([
       this.prisma.auditoriaLog.findMany({
         where,
-        skip,
+        include: {
+          usuario: {
+            select: {
+              name: true,
+              email: true
+            }
+          }
+        },
+        skip: offset,
         take: limit,
         orderBy: { fechaHora: 'desc' },
       }),
       this.prisma.auditoriaLog.count({ where }),
     ]);
 
-    return {
-      data: logs,
-      pagination: {
-        currentPage: page,
-        totalPages: Math.ceil(total / limit),
-        totalItems: total,
-        itemsPerPage: limit,
-      },
-    };
+    const pagination = new Pagination({limit, offset})
+    return pagination.paginationResponse(total, logs)
   }
 
   /**
@@ -252,7 +226,8 @@ export class AuditoriaLogService {
       entidadId: usuario?.id,
       descripcion: `Usuario ${usuario?.email} inició sesión`,
       ipAddress: typeof ip === 'string' ? ip : Array.isArray(ip) ? ip[0] : undefined,
-      userAgent: userAgent
+      userAgent: userAgent,
+      modulo: 'Autenticación'
     });
   }
 

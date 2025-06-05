@@ -25,6 +25,7 @@ export class EntregaController {
 
   @Patch('/:id/cancelar') 
   cancelarEntrega(@Param('id') entregaId: string, @Request() req) {
+    console.log(req.user)
     return this.entregaService.cancelarEntrega(req.user.sub, entregaId)
   }
 
