@@ -1,19 +1,29 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Search } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Search, UseInterceptors } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiProperty } from '@nestjs/swagger';
 import { ProductoService } from './producto.service';
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { UpdateProductoDto } from './dto/update-producto.dto';
-import { UnidadMedida } from '@prisma/client';
+import { NivelAuditoria, TipoOperacion, UnidadMedida } from '@prisma/client';
+import { PaginationDto } from './../common/dtos/pagination.dto';
+import { Auditable, AuditoriaInterceptor } from './../auditoria-log/auditoria.interceptor';
 
 @ApiTags('productos')
 @Controller('productos')
+@UseInterceptors(AuditoriaInterceptor)
 export class ProductoController {
-  constructor(private readonly productoService: ProductoService) {}
+  constructor(private readonly productoService: ProductoService) { }
 
   @ApiOperation({ summary: 'Crear un nuevo producto' })
   @ApiResponse({ status: 201, description: 'Producto creado exitosamente.' })
   @ApiResponse({ status: 400, description: 'Datos inválidos.' })
   @Post()
+  @Auditable({
+    descripcion: (r) => `Se creó un nuevo producto ${r.nombre} `,
+    entidad: 'Producto',
+    modulo: 'Productos',
+    nivel: NivelAuditoria.INFO,
+    operacion: TipoOperacion.CREAR
+  })
   create(@Body() createProductoDto: CreateProductoDto) {
     return this.productoService.create(createProductoDto);
   }
@@ -21,8 +31,8 @@ export class ProductoController {
   @ApiOperation({ summary: 'Obtener todos los productos' })
   @ApiResponse({ status: 200, description: 'Lista de productos obtenida exitosamente.' })
   @Get()
-  async findAll(@Query() paginationDto) {
-    const productos = await this.productoService.findAll(paginationDto);  
+  async findAll(@Query() paginationDto: PaginationDto) {
+    const productos = await this.productoService.findAll(paginationDto);
     return productos;
   }
   @ApiOperation({ summary: 'Obtener un producto por busqueda' })
@@ -39,7 +49,7 @@ export class ProductoController {
   getUnidadesMedida(@Query('search') search?: string): string[] {
     if (search) {
       return Object.values(UnidadMedida).filter((unidad) => unidad.toLowerCase().includes(search.toLowerCase
-      ())); 
+        ()));
     }
     return Object.values(UnidadMedida);
   }
@@ -56,6 +66,13 @@ export class ProductoController {
   @ApiResponse({ status: 200, description: 'Producto actualizado exitosamente.' })
   @ApiResponse({ status: 404, description: 'Producto no encontrado.' })
   @Patch(':id')
+  @Auditable({
+    descripcion: (r) => `Se actualizó el producto ${r.nombre} `,
+    entidad: 'Producto',
+    modulo: 'Productos',
+    nivel: 'INFO',
+    operacion: TipoOperacion.ACTUALIZAR
+  })
   update(@Param('id') id: string, @Body() updateProductoDto: UpdateProductoDto) {
     return this.productoService.update(id, updateProductoDto);
   }
@@ -64,6 +81,13 @@ export class ProductoController {
   @ApiResponse({ status: 200, description: 'Producto eliminado exitosamente.' })
   @ApiResponse({ status: 404, description: 'Producto no encontrado.' })
   @Delete(':id')
+  @Auditable({
+    descripcion: (r) => `Se elimino el producto ${r.nombre} `,
+    entidad: 'Producto',
+    modulo: 'Productos',
+    nivel: 'INFO',
+    operacion: TipoOperacion.ELIMINAR
+  })
   remove(@Param('id') id: string) {
     return this.productoService.remove(id);
   }

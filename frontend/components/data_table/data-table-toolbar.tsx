@@ -9,6 +9,7 @@ import { DataTableViewOptions } from "./data-table-view-options";
 import { DataTableFacetedFilter } from "./data-table-faceted-filter";
 import { Variants } from "@/types/data-table";
 import useUpdateSearchParams from "@/hooks/useUpdateSearchParams";
+import { DataTableDateFilters, DateFiltersConfig } from "./data-table-date-filter";
 
 export type ColumnToVariantFilter<TData> = {
   keyToVariant: keyof TData;
@@ -16,43 +17,64 @@ export type ColumnToVariantFilter<TData> = {
   variants: Variants[];
   isSearchParam?: boolean; // si es true se va a usar como parametro de busqueda en la url
 };
-interface DataTableToolbarProps<TData> {
-  table: Table<TData>;
-  keyToFilter?: keyof TData;
-  columnToVariantFilter?: ColumnToVariantFilter<TData>;
-  allSearchsParams: string[]; 
-  isShowSearchInput?: boolean;
-}
 
+// Actualizar DataTableToolbar - agregar estas props al interface
+interface DataTableToolbarProps<TData> {
+  table: Table<TData>
+  keyToFilter?: keyof TData
+  columnToVariantFilter?: ColumnToVariantFilter<TData>
+  allSearchsParams: string[]
+  isShowSearchInput?: boolean
+  // Nuevas props para fechas
+  dateFilters?: DateFiltersConfig<TData>
+}
+// 4. Actualizar DataTableToolbar para incluir los filtros de fecha
 export function DataTableToolbar<TData>({
   table,
   columnToVariantFilter,
   allSearchsParams,
-  isShowSearchInput
+  isShowSearchInput,
+  dateFilters // Nueva prop
 }: DataTableToolbarProps<TData>) {
-  const {handleUpdateSearchParams, deleteSarchParam} = useUpdateSearchParams({searchParamsInPage:[]})
-  const isFiltered = table.getState().columnFilters.length > 0;
+  const { handleUpdateSearchParams, deleteSarchParam } = useUpdateSearchParams({ searchParamsInPage: [] })
+  const isFiltered = table.getState().columnFilters.length > 0
   const { keyToVariant, title, variants } = columnToVariantFilter || {
     title: "",
     variants: [],
     isSearchParam: false,
-  };
+  }
+
   return (
     <div className="flex items-center justify-between">
-      <div className="flex flex-1 items-center space-x-2">
-        {
-          isShowSearchInput && (<Input
-            placeholder={`Buscar `}
-            onChange={(event) =>
-              debounce(() => {
-                const value = event.target.value
-                if(value === "") return deleteSarchParam("search");
-                handleUpdateSearchParams([{key:"search", value}])
-              }, 500)()
-            }
-            className="h-8 w-[150px] lg:w-[250px]"
-          />)
-        }
+      <div className="flex flex-1 items-center gap-2 flex-wrap">
+        {isShowSearchInput && (
+          <div className="flex flex-col space-y-1  w-full lg:w-[250px] ">
+            <label htmlFor="fecha-inicio" className="text-xs text-muted-foreground">
+              {'Buscar'}
+            </label>
+            <Input
+              placeholder="Buscar"
+              onChange={(event) =>
+                debounce(() => {
+                  const value = event.target.value
+                  if (value === "") return deleteSarchParam("search")
+                  handleUpdateSearchParams([{ key: "search", value }])
+                }, 500)()
+              }
+              className="h-8"
+            />
+          </div>
+        )}
+
+        {/* Filtros de fecha opcionales */}
+        {dateFilters?.showDateFilters && (
+          <DataTableDateFilters
+            table={table}
+            dateFilters={dateFilters}
+            allSearchsParams={allSearchsParams}
+          />
+        )}
+
         {keyToVariant &&
           table.getColumn(keyToVariant && keyToVariant.toString()) && (
             <DataTableFacetedFilter
@@ -60,10 +82,11 @@ export function DataTableToolbar<TData>({
               title={title}
               keyToVariant={keyToVariant}
               isSearchParam={columnToVariantFilter?.isSearchParam}
-              allSearchsParams={allSearchsParams} 
+              allSearchsParams={allSearchsParams}
               options={variants}
             />
           )}
+
         {isFiltered && (
           <Button
             variant="ghost"
@@ -77,5 +100,5 @@ export function DataTableToolbar<TData>({
       </div>
       <DataTableViewOptions table={table} />
     </div>
-  );
+  )
 }

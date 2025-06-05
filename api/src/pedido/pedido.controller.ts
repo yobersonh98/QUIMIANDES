@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseInterceptors, Request } from '@nestjs/common';
 import { PedidoService } from './pedido.service';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
@@ -6,7 +6,7 @@ import { PaginationDto } from './../common/dtos/pagination.dto';
 import { ListarPedidoDto } from './dto/listar-pedido.dto';
 import { AuditoriaInterceptor } from './../auditoria-log/auditoria.interceptor';
 import { Auditable } from './../auditoria-log/auditoria.interceptor';
-import { TipoOperacion } from '@prisma/client';
+import { NivelAuditoria, TipoOperacion } from '@prisma/client';
 
 @Controller('pedidos')
 @UseInterceptors(AuditoriaInterceptor)
@@ -14,7 +14,8 @@ export class PedidoController {
   constructor(private readonly pedidoService: PedidoService) {}
 
   @Post()
-  create(@Body() createPedidoDto: CreatePedidoDto) {
+  create(@Body() createPedidoDto: CreatePedidoDto, @Request() req) {
+    createPedidoDto.usuarioId = req.user.sub
     return this.pedidoService.create(createPedidoDto);
   }
 
@@ -26,9 +27,10 @@ export class PedidoController {
   @Post(':id/cancelar')
   @Auditable({
     operacion: 'CANCELAR',
-    descripcion: 'Se canceló el pedido',
+    descripcion: (r) => `Se canceló el pedido ${r.codigo}`,
     modulo: 'Pedidos',
-    entidad: 'pedido'
+    entidad: 'pedido',
+    nivel: NivelAuditoria.INFO
   })
   cancelar(@Param('id') id: string) {
     return this.pedidoService.cancelarPedido(id);
@@ -47,7 +49,7 @@ export class PedidoController {
   @Patch(':id')
   @Auditable({
     operacion: TipoOperacion.ACTUALIZAR,
-    descripcion: 'Se acutalizó el pedido',
+    descripcion: (r)=> `Se acutalizó el pedido ${r?.codigo}`,
     modulo: 'Pedidos',
     entidad: 'pedido'
   })
@@ -58,7 +60,7 @@ export class PedidoController {
   @Delete(':id')
   @Auditable({
     operacion: TipoOperacion.ELIMINAR,
-    descripcion: 'Se ha eliminado un pedido',
+    descripcion: (r) => 'Se ha eliminado un pedido ' + r.codigo,
     modulo: 'Pedidos',
     entidad: 'pedido'
   })

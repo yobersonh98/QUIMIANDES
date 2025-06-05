@@ -6,10 +6,10 @@ export default async function Productos(props: PageProps<PaginationSearchParamsP
   const searchParams = await props.searchParams
   return (
     <div>
-      <div className="flex justify-between my-2 font-bold">
+      <div className="flex mb-2 justify-between font-bold">
         <h1
           className="text-3xl"
-        >Auditoria</h1>
+        >Auditoría</h1>
 
       </div>
       <ListaAuditoria

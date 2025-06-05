@@ -17,7 +17,7 @@ export function PedidoDetalleExpandido({ detallesPedido }: PedidoDetalleExpandid
   return (
     <div className="space-y-4">
       <h3 className="text-sm font-medium">Detalles del Pedido</h3>
-      <div className="rounded-md border overflow-hidden">
+      <div className="rounded-md border overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="bg-muted/50">

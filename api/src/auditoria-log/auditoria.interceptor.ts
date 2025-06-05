@@ -12,12 +12,13 @@ import { Reflector } from '@nestjs/core';
 import { TipoOperacion, NivelAuditoria } from '@prisma/client';
 import { AuditoriaLogService } from './auditoria-log.service';
 import { Request } from 'express';
+import { getClientInfo } from './../common/utils/request';
 
 // Decorator para marcar métodos que deben ser auditados
 export const Auditable = (options: {
   entidad: string;
   operacion: TipoOperacion;
-  descripcion: string;
+  descripcion: ((result: any) => string) | string;
   nivel?: NivelAuditoria;
   modulo?: string;
 }) => {
@@ -44,20 +45,18 @@ export class AuditoriaInterceptor implements NestInterceptor {
     }
 
     const request = context.switchToHttp().getRequest<Request>();
-    const user = request.user; // Asumiendo que el usuario está en el request
-    const ip = request.ip || request.connection.remoteAddress;
-    const userAgent = request.get('User-Agent');
+    const { ip, userId, userAgent } = getClientInfo(request)
 
     return next.handle().pipe(
       tap(async (result) => {
         try {
           await this.auditService.log({
-            usuarioId: user?.sub,
+            usuarioId: userId,
             tipoOperacion: auditMetadata.operacion,
             entidad: auditMetadata.entidad,
             entidadId: result?.id || request.params?.id,
             nivel: auditMetadata.nivel || NivelAuditoria.INFO,
-            descripcion: auditMetadata.descripcion,
+            descripcion: typeof auditMetadata.descripcion == 'string' ? auditMetadata.descripcion : auditMetadata.descripcion(result),
             modulo: auditMetadata.modulo,
             valoresNuevos: result,
             ipAddress: ip,

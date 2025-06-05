@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Search, Query, UseInterceptors, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Request } from '@nestjs/common';
 import { EntregaService } from './entrega.service';
 import { CreateEntregaDto } from './dto/create-entrega.dto';
 import { UpdateEntregaDto } from './dto/update-entrega.dto';
@@ -25,10 +25,8 @@ export class EntregaController {
 
   @Patch('/:id/cancelar') 
   cancelarEntrega(@Param('id') entregaId: string, @Request() req) {
-    console.log(req.user)
     return this.entregaService.cancelarEntrega(req.user.sub, entregaId)
   }
-
 
   @Post() 
   create(@Body() createEntregaDto: CreateEntregaDto, @Request() req) {

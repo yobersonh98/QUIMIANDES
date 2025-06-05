@@ -57,8 +57,8 @@ export class AuditoriaLogService {
       tipoOperacion,
       nivel,
       modulo,
-      fechaInicio,
-      fechaFin,
+      initDate,
+      endDate,
       search,
     } = params;
 
@@ -73,10 +73,10 @@ export class AuditoriaLogService {
     if (nivel) where.nivel = nivel;
     if (modulo) where.modulo = modulo;
 
-    if (fechaInicio || fechaFin) {
+    if (initDate || endDate) {
       where.fechaHora = {};
-      if (fechaInicio) where.fechaHora.gte = fechaInicio;
-      if (fechaFin) where.fechaHora.lte = fechaFin;
+      if (initDate) where.fechaHora.gte = new Date(initDate);
+      if (endDate) where.fechaHora.lte = new Date(endDate);
     }
 
     if (search) {
@@ -111,13 +111,13 @@ export class AuditoriaLogService {
   /**
    * Obtiene estadísticas de auditoría
    */
-  async getStats(fechaInicio?: Date, fechaFin?: Date) {
+  async getStats(initDate?: Date, endDate?: Date) {
     const where: Prisma.AuditoriaLogWhereInput = {};
 
-    if (fechaInicio || fechaFin) {
+    if (initDate || endDate) {
       where.fechaHora = {};
-      if (fechaInicio) where.fechaHora.gte = fechaInicio;
-      if (fechaFin) where.fechaHora.lte = fechaFin;
+      if (initDate) where.fechaHora.gte = initDate;
+      if (endDate) where.fechaHora.lte = endDate;
     }
 
     const [
@@ -188,9 +188,9 @@ export class AuditoriaLogService {
     });
   }
 
-  async logUpdate(entidad: string, entidadId: string, valoresAnteriores: any, valoresNuevos: any, usuario?: any, contexto?: any) {
+  async logUpdate(entidad: string, entidadId: string, valoresAnteriores: any, valoresNuevos: any, usuarioId?:string, contexto?: any) {
     await this.log({
-      usuarioId: usuario?.id,
+      usuarioId,
       tipoOperacion: TipoOperacion.ACTUALIZAR,
       entidad,
       entidadId,

@@ -42,7 +42,7 @@ export class ClienteController {
   @Post()
   @Auditable({
     entidad: 'Cliente',
-    descripcion: 'Se  creó un nuevo cliente',
+    descripcion: (r) => `Se ha creado un nuevo cliente ${r.nombre}`,
     modulo: 'Clientes',
     operacion: TipoOperacion.CREAR
   })
@@ -57,7 +57,7 @@ export class ClienteController {
   @Auditable({
     entidad: 'Cliente',
     operacion: TipoOperacion.ACTUALIZAR,
-    descripcion: 'Se actualizó la información del cliente',
+    descripcion: (r) => `Se actualizó la información del cliente ${r.nombre}`,
     modulo: 'Clientes'
   })
   async updateCliente(@Param('id') id: string, @Body() updateCliente: UpdateClienteDto) {

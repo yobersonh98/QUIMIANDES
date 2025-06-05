@@ -101,8 +101,10 @@ export class EntregaService {
       return entrega;
     },  { timeout: this.prisma.TimeToWait });
     await this.auditService.log({
+      usuarioId:createEntregaDto.usuarioId,
       accion: 'programarEntrega',
       entidad: 'Entrega',
+      modulo: 'Entregas', 
       entidadId: respuesta.id,
       descripcion: 'Ha programado una nueva entrega con código ' + respuesta.codigo,
       valoresNuevos: createEntregaDto,
@@ -314,7 +316,8 @@ export class EntregaService {
       accion: 'completarEntrega',
       entidad: 'Entrega',
       modulo: 'Entregas',
-      descripcion: 'Se ha entregado al cliente la entrega' + entrega.codigo,
+      entidadId: entregaId,
+      descripcion: 'Se ha entregado al cliente la entrega ' + entrega.codigo,
       tipoOperacion: TipoOperacion.ACTUALIZAR,
       valoresAnteriores: entrega,
       valoresNuevos: response,
@@ -399,7 +402,7 @@ export class EntregaService {
     await this.auditService.log({
       usuarioId,
       entidad: 'Entrega',
-      tipoOperacion: 'ACTUALIZAR',
+      tipoOperacion: TipoOperacion.CANCELAR,
       descripcion: 'Se ha cancelado la entrega con código ' + entrega.codigo,
       modulo: 'Entregas',
       accion: 'cancelarEntrega'
