@@ -50,7 +50,6 @@ function MobileStackedRow<TData,TValue>({ row, columns }: { row: Row<TData>, col
             const header = typeof column.header === 'string' 
               ? column.header 
               : column.id || `Column ${index + 1}`
-            
             return (
               <div key={cell.id} className="flex justify-between items-start">
                 <div className="font-medium text-sm text-muted-foreground min-w-0 flex-1 pr-3">
