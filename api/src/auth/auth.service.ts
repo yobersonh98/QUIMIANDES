@@ -19,6 +19,7 @@ export class AuthService {
     const user: User = await this.prisma.user.findUnique({
       where: {
         email,
+        estado: true,
       },
     });
     if (!user) {
@@ -33,7 +34,7 @@ export class AuthService {
   }
 
   async login(user: User, req: Request) {
-    const payload:JwtPayload = { email: user.email, sub: user.id, roles:[user.role] };
+    const payload:JwtPayload = { email: user.email, sub: user.id, roles:[] };
     await this.auditService.logLogin(user, req)
     return {
       token: this.jwtService.sign(payload),

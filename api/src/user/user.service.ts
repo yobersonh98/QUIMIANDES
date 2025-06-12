@@ -1,13 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
+import { UpdateUserDto } from './dto/user.dto';
+import { PaginationDto } from './../common/dtos/pagination.dto';
+import { PrismaGenericPaginationService } from './../prisma/prisma-generic-pagination.service';
 
 export type IUser = Omit<User, 'password'>;
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private pagination: PrismaGenericPaginationService) { }
 
   async findOne(
     userWhereUniqueInput: Prisma.UserWhereUniqueInput,
@@ -18,29 +21,22 @@ export class UserService {
         email: true,
         name: true,
         id: true,
-        role: true,
       },
     });
   }
 
-  async findMany(params: {
-    skip?: number;
-    take?: number;
-    cursor?: Prisma.UserWhereUniqueInput;
-    where?: Prisma.UserWhereInput;
-    orderBy?: Prisma.UserOrderByWithRelationInput;
-  }): Promise<User[]> {
-    const { skip, take, cursor, where, orderBy } = params;
-    const users = await this.prisma.user.findMany({
-      skip,
-      take,
-      cursor,
-      where,
-      orderBy,
-    });
-    if (users) {
-      return users.filter((x) => delete x.password);
+  async findAll(paginationDto: PaginationDto) {
+    const whereInput: Prisma.UserWhereInput = {
+      name: paginationDto.search ? { contains: paginationDto.search, mode: 'insensitive' } : undefined,
+      email: paginationDto.search ? { contains: paginationDto.search, mode: 'insensitive' } : undefined,
     }
+    return this.pagination.paginateGeneric({
+      model: 'User',
+      pagination: paginationDto,
+      args: {
+        where: whereInput
+      }
+    })
   }
 
   async createUser(
@@ -55,17 +51,28 @@ export class UserService {
     return createdUser;
   }
 
-  async updateUser(params: {
-    where: Prisma.UserWhereUniqueInput;
-    data: Prisma.UserUpdateInput;
-  }): Promise<Omit<User, 'password'>> {
-    const { where, data } = params;
-    const user = await this.prisma.user.update({
-      data,
-      where,
+  async updateUser(data: UpdateUserDto): Promise<Omit<User, 'password'>> {
+    const user = await this.findOne({
+      id: data.id,
     });
-    delete user.password;
-    return user;
+    if (!user) {
+      throw new NotFoundException();
+    }
+    if (data.password) {
+      const pwdHash = await bcrypt.hash(data.password, 10);
+      data.password = pwdHash;
+    }
+    const userSaved = await this.prisma.user.update({
+      where: {
+        id: data.id
+      },
+      omit: {
+        password: true
+      },
+      data,
+    });
+
+    return userSaved;
   }
 
   async deleteUser(

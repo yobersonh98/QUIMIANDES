@@ -27,6 +27,7 @@ import { join } from 'path';
 import { DocumentModule } from './document/document.module';
 import { PedidoDocumentoService } from './pedido-documento/pedido-documento.service';
 import { AuditoriaLogModule } from './auditoria-log/auditoria-log.module';
+import { FuncionalidadModule } from './funcionalidad/funcionalidad.module';
 @Module({
   imports: [
     UserModule,
@@ -56,7 +57,8 @@ import { AuditoriaLogModule } from './auditoria-log/auditoria-log.module';
       serveRoot: '/uploads',
     }),
     DocumentModule,
-    AuditoriaLogModule
+    AuditoriaLogModule,
+    FuncionalidadModule
   ],
   controllers: [AppController],
   exports: [PrismaModule, AuditoriaLogModule],

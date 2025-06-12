@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN     "actualizadoEn" TIMESTAMP(3),
+ADD COLUMN     "creadoEn" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP;

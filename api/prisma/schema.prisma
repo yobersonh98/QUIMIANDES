@@ -17,8 +17,16 @@ model User {
   name     String?
   email    String  @unique
   password String
-  role     Role    @default(USER)
+
+  estado   Boolean @default(true)
+
+  usuarioRoles UsuarioRol[]
+  
   auditoriaLogs AuditoriaLog[]
+
+  actualizadoEn DateTime? @updatedAt
+  creadoEn DateTime? @default(now())
+
 }
 
 enum Role {
@@ -365,4 +373,135 @@ model AuditoriaLog {
   @@index([fechaHora, tipoOperacion])
   @@index([usuarioId, fechaHora])
 
+}
+
+model Rol {
+  id          String  @id @default(cuid())
+  nombre      String  @unique // ej: "ADMIN", "EDITOR", "VIEWER"
+  descripcion String?
+  activo      Boolean @default(true)
+  
+  // Relaciones
+  usuarioRoles      UsuarioRol[]
+  rolFuncionalidades RolFuncionalidad[]
+  
+  creadoEn     DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+}
+model Funcionalidad {
+  id          String  @id @default(cuid())
+  nombre      String  @unique // ej: "usuarios", "productos", "reportes"
+  descripcion String?
+  ruta        String? // Ruta de Next.js ej: "/dashboard/usuarios"
+  activo      Boolean @default(true)
+  icon        String?
+  
+  // Relaciones
+  rolFuncionalidades RolFuncionalidad[]
+  acciones          Accion[]
+  
+  creadoEn     DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+}
+
+model Accion {
+  id               String  @id @default(cuid())
+  nombre           String  // ej: "crear", "leer", "actualizar", "eliminar", "exportar"
+  descripcion      String?
+  funcionalidadId  String
+  
+  // Relaciones
+  funcionalidad    Funcionalidad @relation(fields: [funcionalidadId], references: [id], onDelete: Cascade)
+  rolAcciones     RolAccion[]
+  endpointAcciones EndpointAccion[]
+  
+  creadoEn     DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+  
+  @@unique([nombre, funcionalidadId]) // Una acción no se puede repetir en la misma funcionalidad
+}
+
+model Endpoint {
+  id          String  @id @default(cuid())
+  ruta        String  // ej: "/api/usuarios", "/api/productos/:id"
+  metodo      MetodoHTTP // GET, POST, PUT, DELETE, PATCH
+  descripcion String?
+  activo      Boolean @default(true)
+  
+  // Relaciones
+  endpointAcciones EndpointAccion[]
+  
+  creadoEn     DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+  
+  @@unique([ruta, metodo]) // Una ruta no puede tener el mismo método duplicado
+}
+
+// Relación muchos a muchos entre Acciones y Endpoints
+model EndpointAccion {
+  accionId   String
+  endpointId String
+  
+  accion   Accion   @relation(fields: [accionId], references: [id], onDelete: Cascade)
+  endpoint Endpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+  
+  creadoEn DateTime @default(now())
+  
+  @@id([accionId, endpointId])
+}
+
+enum MetodoHTTP {
+  GET
+  POST
+  PUT
+  DELETE
+  PATCH
+}
+
+// ===== TABLAS DE RELACIÓN (MANY-TO-MANY) =====
+
+// Usuarios y Roles (muchos a muchos)
+model UsuarioRol {
+  userId String
+  rolId  String
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rol  Rol  @relation(fields: [rolId], references: [id], onDelete: Cascade)
+  
+  asignadoEn  DateTime @default(now())
+  asignadoPor String? // ID del usuario que asignó el rol
+  
+  @@id([userId, rolId])
+}
+
+// Roles y Funcionalidades (muchos a muchos)
+model RolFuncionalidad {
+  rolId           String
+  funcionalidadId String
+  
+  rol           Rol           @relation(fields: [rolId], references: [id], onDelete: Cascade)
+  funcionalidad Funcionalidad @relation(fields: [funcionalidadId], references: [id], onDelete: Cascade)
+  
+  // Relación con las acciones específicas que puede hacer este rol en esta funcionalidad
+  rolAcciones RolAccion[]
+  
+  asignadoEn DateTime @default(now())
+  
+  @@id([rolId, funcionalidadId])
+}
+
+// Acciones específicas que un rol puede hacer en una funcionalidad
+model RolAccion {
+  rolId           String
+  funcionalidadId String
+  accionId        String
+  
+  rolFuncionalidad RolFuncionalidad @relation(fields: [rolId, funcionalidadId], references: [rolId, funcionalidadId], onDelete: Cascade)
+  accion          Accion          @relation(fields: [accionId], references: [id], onDelete: Cascade)
+  
+  permitido Boolean @default(true)
+  
+  creadoEn DateTime @default(now())
+  
+  @@id([rolId, funcionalidadId, accionId])
 }

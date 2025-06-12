@@ -1,5 +1,5 @@
-import { Role } from '@prisma/client';
-import { IsEmail, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { PartialType } from '@nestjs/mapped-types';
+import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateUserDto {
   @IsString()
@@ -13,25 +13,13 @@ export class CreateUserDto {
   @IsString()
   password: string;
 
-  role?: Role;
+  @IsBoolean()
+  @IsOptional()
+  estado: boolean
+
 }
 
-export class UpdateUserDto {
+export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsString()
   id: string;
-
-  @IsString()
-  @IsOptional()
-  name?: string;
-
-  @IsEmail()
-  @IsOptional()
-  email?: string;
-
-  @IsString()
-  @IsOptional()
-  password?: string;
-
-  @IsOptional()
-  role?: Role;
 }
